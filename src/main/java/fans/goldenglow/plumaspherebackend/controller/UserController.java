@@ -22,7 +22,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
     @GetMapping
     public List<UserDto> getAllUsers() {
         List<User> users = userService.findAll();
@@ -32,4 +31,5 @@ public class UserController {
         }
         return userDtos;
     }
+
 }

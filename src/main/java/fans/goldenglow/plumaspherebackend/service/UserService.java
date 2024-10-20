@@ -2,13 +2,16 @@ package fans.goldenglow.plumaspherebackend.service;
 
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class UserService {
     @Autowired
     private UserRepository userRepository;
@@ -19,32 +22,45 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<User> findAllByName(String name) {
-        return userRepository.findAllByName(name).orElse(null);
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
-    public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
-    }
-
-    @Transactional(readOnly = true)
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username).orElse(null);
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     @Transactional
-    public void save(User User) {
-        userRepository.save(User);
+    public Boolean save(User user) {
+        try {
+            userRepository.save(user);
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return false;
+        }
     }
 
     @Transactional
-    public void deleteById(Long id) {
-        userRepository.deleteById(id);
+    public Boolean deleteById(Long id) {
+        try {
+            userRepository.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return false;
+        }
     }
 
     @Transactional
-    public void deleteByUsername(String username) {
-        userRepository.deleteByUsername(username);
+    public boolean deleteByUsername(String username) {
+        try {
+            userRepository.deleteByUsername(username);
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return false;
+        }
     }
 }

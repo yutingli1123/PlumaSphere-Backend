@@ -5,30 +5,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.sql.Date;
 
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "pluma_user")
-public class User {
+@Table(name = "system_config")
+public class SystemConfig {
     @Id
     @GeneratedValue
     private Long id;
-    private String name;
-    @NotEmpty
-    private String username;
-    private String email;
-    @NotEmpty
-    private String password;
-    private Date dob;
 
+    @NotEmpty
+    private String configKey;
 
-    public User(String username, String password) {
-        this.username = username;
-        this.password = password;
+    @NotEmpty
+    private String configValue;
+
+    public SystemConfig(String configKey, String configValue) {
+        this.configKey = configKey;
+        this.configValue = configValue;
     }
 }
