@@ -10,14 +10,11 @@ import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.token.TokenService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -32,7 +29,7 @@ public class LoginController {
 
     @PostMapping("/init")
     public ResponseEntity<Boolean> initUser(@RequestBody UserLoginDto userLoginDto) {
-        User user = new User(userLoginDto.getUsername(),passwordEncoder.encode(userLoginDto.getPassword()));
+        User user = new User(userLoginDto.getUsername(), passwordEncoder.encode(userLoginDto.getPassword()));
         if (userService.save(user)) {
             return ResponseEntity.ok(systemConfigService.set(new SystemConfig("init_complete", "true")));
         }
@@ -40,7 +37,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<HashMap<String,String>> login(@RequestBody UserLoginDto loginData) {
+    public ResponseEntity<HashMap<String, String>> login(@RequestBody UserLoginDto loginData) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + 15 * 60 * 1000);
         Date refresh_expire = new Date(now.getTime() + 20 * 60 * 1000);
@@ -50,12 +47,8 @@ public class LoginController {
         User user = userService.findByUsername(username).orElse(null);
         if (user != null) {
             String password = user.getPassword();
-            String secretKey = null;
-            try {
-                secretKey = systemConfigService.get("secret_key").orElse(systemConfigService.generateSecretKey());
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
+            String secretKey;
+            secretKey = systemConfigService.get("secret_key").orElse(systemConfigService.generateSecretKey());
 
             if (passwordEncoder.matches(rawPassword, password)) {
                 HashMap<String, String> responseData = new HashMap<>();
