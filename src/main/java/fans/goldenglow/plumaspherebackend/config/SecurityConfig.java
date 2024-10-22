@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -73,6 +74,10 @@ public class SecurityConfig {
                             Optional<String> result = systemConfigService.get("init_complete");
                             return new AuthorizationDecision(result.isEmpty() || result.get().equals("false"));
                         })
+                        .requestMatchers("/api/v1/login")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET)
+                        .permitAll()
                         .anyRequest()
                         .authenticated()
                 );
