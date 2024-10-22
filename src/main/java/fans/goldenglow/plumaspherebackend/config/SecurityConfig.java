@@ -44,13 +44,12 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager userAuthenticationManager() {
         return authentication -> {
+            authentication.setAuthenticated(false);
             String principal = (String) authentication.getPrincipal();
             String[] formattedToken = principal.split(" ");
-            if (formattedToken[0].equals("Bearer")) {
+            if (formattedToken.length == 2 && formattedToken[0].equals("Bearer")) {
                 Optional<String> secretKey = systemConfigService.get("secret_key");
-                if (secretKey.isEmpty()) {
-                    authentication.setAuthenticated(false);
-                } else {
+                if (secretKey.isPresent()) {
                     String username = JWT.require(Algorithm.HMAC256(secretKey.get())).build().verify(formattedToken[1]).getIssuer();
                     authentication = new PreAuthenticatedAuthenticationToken(username, principal);
                     authentication.setAuthenticated(true);
