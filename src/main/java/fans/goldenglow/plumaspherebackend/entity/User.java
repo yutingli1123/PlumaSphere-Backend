@@ -1,9 +1,7 @@
 package fans.goldenglow.plumaspherebackend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,11 +18,15 @@ public class User {
     private Long id;
     private String name;
     @NotEmpty
+    @Column(unique = true)
     private String username;
     private String email;
     @NotEmpty
     private String password;
     private Date dob;
+    @NotEmpty
+    @Enumerated(EnumType.STRING)
+    private UserRoles role;
 
 
     public User(String username, String password) {
