@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -16,17 +18,26 @@ public class User {
     @Id
     @GeneratedValue
     private Long id;
-    private String name;
     @NotEmpty
     @Column(unique = true)
     private String username;
-    private String email;
     @NotEmpty
     private String password;
-    private Date dob;
     @NotEmpty
     @Enumerated(EnumType.STRING)
+    private String name;
     private UserRoles role;
+    private String email;
+    private Date dob;
+    private String bio;
+    private String iconUrl;
+
+    @OneToMany
+
+    private List<Post> posts = new ArrayList<>();
+    @OneToMany
+    private List<Comment> comments = new ArrayList<>();
+
 
 
     public User(String username, String password) {

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "system_config")
+@Table(name = "pluma_system_config")
 public class SystemConfig {
     @Id
     @GeneratedValue
