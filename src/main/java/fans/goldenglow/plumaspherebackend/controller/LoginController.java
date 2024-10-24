@@ -1,19 +1,17 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import fans.goldenglow.plumaspherebackend.dto.UserLoginDto;
 import fans.goldenglow.plumaspherebackend.entity.SystemConfig;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.SystemConfigService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
+import fans.goldenglow.plumaspherebackend.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.HashMap;
 
 @RestController
@@ -26,6 +24,8 @@ public class LoginController {
     private UserService userService;
     @Autowired
     private SystemConfigService systemConfigService;
+    @Autowired
+    private JWTUtil jwtUtil;
 
     @PostMapping("/init")
     public ResponseEntity<Boolean> initUser(@RequestBody UserLoginDto userLoginDto) {
@@ -38,25 +38,35 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<HashMap<String, String>> login(@RequestBody UserLoginDto loginData) {
-        Date now = new Date();
-        Date expire = new Date(now.getTime() + 15 * 60 * 1000);
-        Date refresh_expire = new Date(now.getTime() + 20 * 60 * 1000);
         String username = loginData.getUsername();
         String rawPassword = loginData.getPassword();
 
         User user = userService.findByUsername(username).orElse(null);
         if (user != null) {
             String password = user.getPassword();
-            String secretKey;
-            secretKey = systemConfigService.get("secret_key").orElse(systemConfigService.generateSecretKey());
 
             if (passwordEncoder.matches(rawPassword, password)) {
-                HashMap<String, String> responseData = new HashMap<>();
-                responseData.put("token", JWT.create().withIssuer(username).withIssuedAt(now).withExpiresAt(expire).sign(Algorithm.HMAC256(secretKey)));
-                responseData.put("refresh_token", JWT.create().withIssuer(username).withIssuedAt(now).withExpiresAt(refresh_expire).sign(Algorithm.HMAC256(secretKey)));
+                HashMap<String, String> responseData = jwtUtil.generateToken(username);
                 return ResponseEntity.ok(responseData);
             }
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<HashMap<String, String>> register(@RequestBody UserLoginDto loginData) {
+
+        String username = loginData.getUsername();
+        String rawPassword = loginData.getPassword();
+
+        User user = userService.findByUsername(username).orElse(null);
+        if (user == null) {
+            User newUser = new User(username, passwordEncoder.encode(rawPassword));
+            if (userService.save(newUser)) {
+                HashMap<String, String> responseData = jwtUtil.generateToken(username);
+                return ResponseEntity.ok(responseData);
+            } else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
