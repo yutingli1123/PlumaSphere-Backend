@@ -23,9 +23,9 @@ public class User {
     private String username;
     @NotEmpty
     private String password;
+    private String name;
     @NotEmpty
     @Enumerated(EnumType.STRING)
-    private String name;
     private UserRoles role;
     private String email;
     private Date dob;
@@ -37,7 +37,6 @@ public class User {
     private List<Post> posts = new ArrayList<>();
     @OneToMany
     private List<Comment> comments = new ArrayList<>();
-
 
 
     public User(String username, String password) {
