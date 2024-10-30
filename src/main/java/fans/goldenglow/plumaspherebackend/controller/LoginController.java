@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.dto.UserLoginDto;
 import fans.goldenglow.plumaspherebackend.entity.SystemConfig;
 import fans.goldenglow.plumaspherebackend.entity.User;
@@ -30,8 +31,9 @@ public class LoginController {
     @PostMapping("/init")
     public ResponseEntity<Boolean> initUser(@RequestBody UserLoginDto userLoginDto) {
         User user = new User(userLoginDto.getUsername(), passwordEncoder.encode(userLoginDto.getPassword()));
+        user.setRole(UserRoles.ROLE_ADMIN);
         if (userService.save(user)) {
-            return ResponseEntity.ok(systemConfigService.set(new SystemConfig("init_complete", "true")));
+            return ResponseEntity.ok(systemConfigService.set(new SystemConfig("initialled", "true")));
         }
         return ResponseEntity.internalServerError().build();
     }
@@ -62,11 +64,19 @@ public class LoginController {
         User user = userService.findByUsername(username).orElse(null);
         if (user == null) {
             User newUser = new User(username, passwordEncoder.encode(rawPassword));
+            newUser.setRole(UserRoles.ROLE_REGULAR);
             if (userService.save(newUser)) {
                 HashMap<String, String> responseData = jwtUtil.generateToken(username);
                 return ResponseEntity.ok(responseData);
             } else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<HashMap<String, String>> getStatus() {
+        HashMap<String, String> responseData = new HashMap<>();
+        responseData.put("isInit", systemConfigService.get("initialled").orElse("false"));
+        return ResponseEntity.ok(responseData);
     }
 }
