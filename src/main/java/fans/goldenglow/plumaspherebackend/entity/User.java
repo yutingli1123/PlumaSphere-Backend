@@ -3,6 +3,7 @@ package fans.goldenglow.plumaspherebackend.entity;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -24,7 +25,7 @@ public class User {
     @NotEmpty
     private String password;
     private String name;
-    @NotEmpty
+    @NotNull
     @Enumerated(EnumType.STRING)
     private UserRoles role;
     private String email;
