@@ -38,17 +38,19 @@ public class SystemConfigService {
         return systemConfigRepository.findByConfigKey(configKey).map(SystemConfig::getConfigValue);
     }
 
-    public String generateSecretKey(){
-        try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-            keyGenerator.init(256);
-            SecretKey secretKey = keyGenerator.generateKey();
-            String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
-            log.info(encodedKey);
-
-            return encodedKey;
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+    public String generateSecretKey() {
+        if (get("secret_key").isEmpty()) {
+            try {
+                KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
+                keyGenerator.init(256);
+                SecretKey secretKey = keyGenerator.generateKey();
+                String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+//                log.info(encodedKey);
+                set(new SystemConfig("secret_key", encodedKey));
+                return encodedKey;
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
+        } else return null;
     }
 }
