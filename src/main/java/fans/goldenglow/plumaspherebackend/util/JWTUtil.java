@@ -5,12 +5,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import fans.goldenglow.plumaspherebackend.service.SystemConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Optional;
 
 @Slf4j
 @Service

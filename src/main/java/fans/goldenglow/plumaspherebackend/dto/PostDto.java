@@ -1,7 +1,8 @@
 package fans.goldenglow.plumaspherebackend.dto;
 
-import fans.goldenglow.plumaspherebackend.entity.*;
-import jakarta.persistence.*;
+import fans.goldenglow.plumaspherebackend.entity.Category;
+import fans.goldenglow.plumaspherebackend.entity.Like;
+import fans.goldenglow.plumaspherebackend.entity.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
