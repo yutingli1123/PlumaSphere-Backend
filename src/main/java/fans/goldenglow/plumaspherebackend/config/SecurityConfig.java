@@ -3,7 +3,11 @@ package fans.goldenglow.plumaspherebackend.config;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import fans.goldenglow.plumaspherebackend.config.filter.ApiKeyAuthFilter;
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
+import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.SystemConfigService;
+import fans.goldenglow.plumaspherebackend.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,20 +19,26 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
     @Autowired
     private SystemConfigService systemConfigService;
+
+    @Autowired
+    private UserService userService;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -51,9 +61,16 @@ public class SecurityConfig {
             if (formattedToken.length == 2 && formattedToken[0].equals("Bearer")) {
                 Optional<String> secretKey = systemConfigService.get("secret_key");
                 if (secretKey.isPresent()) {
-                    String username = JWT.require(Algorithm.HMAC256(secretKey.get())).build().verify(formattedToken[1]).getIssuer();
-                    authentication = new PreAuthenticatedAuthenticationToken(username, principal);
-                    authentication.setAuthenticated(true);
+                    try {
+                        String username = JWT.require(Algorithm.HMAC256(secretKey.get())).build().verify(formattedToken[1]).getIssuer();
+                        Optional<User> user = userService.findByUsername(username);
+                        if (user.isPresent()) {
+                            authentication = new PreAuthenticatedAuthenticationToken(username, principal, Collections.singleton(new SimpleGrantedAuthority(user.get().getRole().name())));
+                            authentication.setAuthenticated(true);
+                        }
+                    } catch (Exception e) {
+                        log.error(e.getMessage());
+                    }
                 }
             }
             return authentication;
@@ -71,17 +88,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/init")
                         .access((authentication, object) -> {
-                            Optional<String> result = systemConfigService.get("init_complete");
+                            Optional<String> result = systemConfigService.get("initialled");
                             return new AuthorizationDecision(result.isEmpty() || result.get().equals("false"));
                         })
                         .requestMatchers("/api/v1/login")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET)
+                        .requestMatchers("/api/v1/status")
                         .permitAll()
-                        .requestMatchers("/api/v1/admin/**")
-                        .hasRole("ADMIN")
                         .anyRequest()
-                        .authenticated()
+                        .hasAuthority("ROLE_ADMIN")
                 );
         return http.build();
     }
