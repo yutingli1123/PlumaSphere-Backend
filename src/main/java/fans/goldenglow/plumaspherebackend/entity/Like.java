@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -15,14 +16,12 @@ public class Like {
     @GeneratedValue
     private Long id;
 
-    @ManyToOne
-    private User user;
+    @OneToMany
+    private List<User> user;
 
-    @ManyToOne
+    @OneToOne
     private Post post;
 
-    @ManyToOne
+    @OneToOne
     private Comment comment;
-
-    private LocalDateTime likedAt;
 }

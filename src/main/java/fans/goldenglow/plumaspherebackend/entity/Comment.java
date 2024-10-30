@@ -20,7 +20,7 @@ public class Comment {
     private User author;
     @ManyToOne
     private Post post;
-    @OneToMany
-    private List<Like> likes;
+    @OneToOne
+    private Like like;
     private LocalDateTime createdAt;
 }
