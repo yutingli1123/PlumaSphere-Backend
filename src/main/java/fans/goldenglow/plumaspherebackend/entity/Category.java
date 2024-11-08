@@ -18,6 +18,6 @@ public class Category {
 
     private String name;
 
-    @OneToMany
+    @ManyToMany
     private Set<Post> posts = new HashSet<>();
 }
