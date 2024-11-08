@@ -1,15 +1,11 @@
 package fans.goldenglow.plumaspherebackend.dto;
 
-import fans.goldenglow.plumaspherebackend.entity.Category;
-import fans.goldenglow.plumaspherebackend.entity.Like;
-import fans.goldenglow.plumaspherebackend.entity.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -22,11 +18,11 @@ public class PostDto {
 
     private String author;
 
-    private List<Tag> tags = new ArrayList<>();
+    private Set<TagDto> tags;
 
-    private Category categories;
+    private Set<CategoryDto> categories;
 
-    private List<Like> likes;
+    private Set<String> likedBy;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

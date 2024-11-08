@@ -4,6 +4,7 @@ import fans.goldenglow.plumaspherebackend.dto.UserDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,13 +24,13 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public List<UserDto> getAllUsers() {
+    public ResponseEntity<List<UserDto>> getAllUsers() {
         List<User> users = userService.findAll();
         List<UserDto> userDtos = new ArrayList<>();
         for (User user : users) {
             userDtos.add(new UserDto(user.getUsername(),user.getName(),user.getEmail(),user.getDob()));
         }
-        return userDtos;
+        return ResponseEntity.ok(userDtos);
     }
 
 }
