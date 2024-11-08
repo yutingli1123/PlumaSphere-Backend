@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,5 +29,20 @@ public class JWTUtil {
         result.put("token", JWT.create().withIssuer(username).withIssuedAt(now).withExpiresAt(expire).sign(Algorithm.HMAC256(secretKey)));
         result.put("refresh_token", JWT.create().withIssuer(username).withIssuedAt(now).withExpiresAt(refresh_expire).sign(Algorithm.HMAC256(secretKey)));
         return result;
+    }
+
+    public String getUsername(String token) {
+        String[] formattedToken = token.split(" ");
+        if (formattedToken.length == 2 && formattedToken[0].equals("Bearer")) {
+            Optional<String> secretKey = systemConfigService.get("secret_key");
+            if (secretKey.isPresent()) {
+                try {
+                    return JWT.require(Algorithm.HMAC256(secretKey.get())).build().verify(formattedToken[1]).getIssuer();
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+            }
+        }
+        return null;
     }
 }
