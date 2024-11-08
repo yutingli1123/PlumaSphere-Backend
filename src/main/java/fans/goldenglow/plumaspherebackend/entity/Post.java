@@ -6,7 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -22,14 +24,22 @@ public class Post {
     @ManyToOne
     private User author;
     @OneToMany
-    private List<Comment> comments = new ArrayList<>();
+    private Set<Comment> comments = new HashSet<>();
     @ManyToMany
-    private List<Tag> tags = new ArrayList<>();
+    private Set<Tag> tags = new HashSet<>();
     @ManyToOne
     private Category categories;
-    @OneToMany
-    private List<Like> likes;
+    @OneToOne
+    private Like likes = new Like();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public Post(String title, String content, User author, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.title = title;
+        this.content = content;
+        this.author = author;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 }

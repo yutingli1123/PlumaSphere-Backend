@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -16,7 +19,7 @@ public class Like {
     private Long id;
 
     @OneToMany
-    private List<User> user;
+    private Set<User> user = new HashSet<>();
 
     @OneToOne
     private Post post;

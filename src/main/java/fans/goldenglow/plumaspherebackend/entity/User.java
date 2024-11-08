@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -34,9 +36,9 @@ public class User {
     private String iconUrl;
 
     @OneToMany
-    private List<Post> posts = new ArrayList<>();
+    private Set<Post> posts = new HashSet<>();
     @OneToMany
-    private List<Comment> comments = new ArrayList<>();
+    private Set<Comment> comments = new HashSet<>();
 
 
     public User(String username, String password) {
