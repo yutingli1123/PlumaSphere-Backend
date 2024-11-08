@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Data
@@ -19,7 +21,9 @@ public class Comment {
     private User author;
     @ManyToOne
     private Post post;
-    @OneToOne
-    private Like like;
+    @OneToMany
+    private Set<User> likedBy = new HashSet<>();
     private LocalDateTime createdAt;
+    @OneToMany
+    private Set<Comment> comments = new HashSet<>();
 }

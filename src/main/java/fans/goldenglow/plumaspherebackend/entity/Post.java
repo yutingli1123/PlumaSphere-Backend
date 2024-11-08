@@ -25,10 +25,10 @@ public class Post {
     private Set<Comment> comments = new HashSet<>();
     @ManyToMany
     private Set<Tag> tags = new HashSet<>();
-    @ManyToOne
-    private Category categories;
-    @OneToOne
-    private Like likes = new Like();
+    @ManyToMany
+    private Set<Category> categories;
+    @OneToMany
+    private Set<User> likedBy = new HashSet<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
