@@ -1,11 +1,10 @@
 package fans.goldenglow.plumaspherebackend.config;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import fans.goldenglow.plumaspherebackend.config.filter.ApiKeyAuthFilter;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.SystemConfigService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
+import fans.goldenglow.plumaspherebackend.util.JWTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +37,9 @@ public class SecurityConfig {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JWTUtil jwtUtil;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -55,21 +57,11 @@ public class SecurityConfig {
         return authentication -> {
             authentication.setAuthenticated(false);
             String principal = (String) authentication.getPrincipal();
-            String[] formattedToken = principal.split(" ");
-            if (formattedToken.length == 2 && formattedToken[0].equals("Bearer")) {
-                Optional<String> secretKey = systemConfigService.get("secret_key");
-                if (secretKey.isPresent()) {
-                    try {
-                        String username = JWT.require(Algorithm.HMAC256(secretKey.get())).build().verify(formattedToken[1]).getIssuer();
-                        Optional<User> user = userService.findByUsername(username);
-                        if (user.isPresent()) {
-                            authentication = new PreAuthenticatedAuthenticationToken(username, principal, Collections.singleton(new SimpleGrantedAuthority(user.get().getRole().name())));
-                            authentication.setAuthenticated(true);
-                        }
-                    } catch (Exception e) {
-                        log.error(e.getMessage());
-                    }
-                }
+            String username = jwtUtil.getUsername(principal);
+            Optional<User> user = userService.findByUsername(username);
+            if (user.isPresent()) {
+                authentication = new PreAuthenticatedAuthenticationToken(username, principal, Collections.singleton(new SimpleGrantedAuthority(user.get().getRole().name())));
+                authentication.setAuthenticated(true);
             }
             return authentication;
         };
@@ -79,23 +71,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         ApiKeyAuthFilter filter = new ApiKeyAuthFilter(HttpHeaders.AUTHORIZATION);
         filter.setAuthenticationManager(userAuthenticationManager());
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> corsConfigurationSource())
-                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilter(filter)
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/v1/init")
-                        .access((authentication, object) -> {
-                            Optional<String> result = systemConfigService.get("initialled");
-                            return new AuthorizationDecision(result.isEmpty() || result.get().equals("false"));
-                        })
-                        .requestMatchers("/api/v1/login")
-                        .permitAll()
-                        .requestMatchers("/api/v1/status")
-                        .permitAll()
-                        .anyRequest()
-                        .hasAuthority("ROLE_ADMIN")
-                );
+        http.csrf(AbstractHttpConfigurer::disable).cors(cors -> corsConfigurationSource()).sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).addFilter(filter).authorizeHttpRequests(request -> request.requestMatchers("/api/v1/init").access((authentication, object) -> {
+            Optional<String> result = systemConfigService.get("initialled");
+            return new AuthorizationDecision(result.isEmpty() || result.get().equals("false"));
+        }).requestMatchers("/api/v1/login").permitAll().requestMatchers("/api/v1/status").permitAll().anyRequest().hasAuthority("ROLE_ADMIN"));
         return http.build();
     }
 }
