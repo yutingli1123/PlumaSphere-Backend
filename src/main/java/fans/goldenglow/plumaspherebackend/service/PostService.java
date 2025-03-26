@@ -12,8 +12,12 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class PostService {
+    private final PostRepository postRepository;
+
     @Autowired
-    private PostRepository postRepository;
+    public PostService(PostRepository postRepository) {
+        this.postRepository = postRepository;
+    }
 
     public List<Post> findAll() {
         return postRepository.findAll();

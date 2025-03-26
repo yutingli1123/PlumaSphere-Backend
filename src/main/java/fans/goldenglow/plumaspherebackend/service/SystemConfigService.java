@@ -15,8 +15,12 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class SystemConfigService {
+    private final SystemConfigRepository systemConfigRepository;
+
     @Autowired
-    private SystemConfigRepository systemConfigRepository;
+    public SystemConfigService(SystemConfigRepository systemConfigRepository) {
+        this.systemConfigRepository = systemConfigRepository;
+    }
 
     public Boolean set(SystemConfig systemConfig) {
         SystemConfig config = systemConfigRepository.findByConfigKey(systemConfig.getConfigKey()).orElse(null);

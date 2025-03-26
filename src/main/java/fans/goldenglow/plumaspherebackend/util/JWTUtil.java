@@ -14,8 +14,12 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class JWTUtil {
+    private final SystemConfigService systemConfigService;
+
     @Autowired
-    private SystemConfigService systemConfigService;
+    public JWTUtil(SystemConfigService systemConfigService) {
+        this.systemConfigService = systemConfigService;
+    }
 
     public HashMap<String, String> generateToken(String username) {
         Date now = new Date();

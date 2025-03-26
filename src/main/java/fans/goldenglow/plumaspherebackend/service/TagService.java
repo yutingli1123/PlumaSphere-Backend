@@ -15,8 +15,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class TagService {
+    private final TagRepository tagRepository;
+
     @Autowired
-    private TagRepository tagRepository;
+    public TagService(TagRepository tagRepository) {
+        this.tagRepository = tagRepository;
+    }
 
     public List<Tag> findAll() {
         return tagRepository.findAll();

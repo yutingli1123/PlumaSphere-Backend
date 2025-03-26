@@ -11,8 +11,12 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class CommentService {
+    private final CommentRepository commentRepository;
+
     @Autowired
-    private CommentRepository commentRepository;
+    public CommentService(CommentRepository commentRepository) {
+        this.commentRepository = commentRepository;
+    }
 
     public Optional<Comment> findById(Long id) {
         return commentRepository.findById(id);

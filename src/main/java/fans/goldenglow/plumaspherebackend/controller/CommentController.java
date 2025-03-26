@@ -21,14 +21,18 @@ import java.util.Set;
 @CrossOrigin
 @RequestMapping("/api/v1")
 public class CommentController {
+    private final PostService postService;
+    private final CommentService commentService;
+    private final UserService userService;
+    private final JWTUtil jwtUtil;
+
     @Autowired
-    private PostService postService;
-    @Autowired
-    private CommentService commentService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JWTUtil jwtUtil;
+    public CommentController(PostService postService, CommentService commentService, UserService userService, JWTUtil jwtUtil) {
+        this.postService = postService;
+        this.commentService = commentService;
+        this.userService = userService;
+        this.jwtUtil = jwtUtil;
+    }
 
     @GetMapping("/comment/{commentId}")
     public ResponseEntity<Comment> getComment(@PathVariable Long commentId) {

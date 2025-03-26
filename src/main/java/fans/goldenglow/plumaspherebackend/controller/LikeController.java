@@ -19,14 +19,18 @@ import java.util.Set;
 @CrossOrigin
 @RequestMapping("/api/v1")
 public class LikeController {
+    private final PostService postService;
+    private final UserService userService;
+    private final CommentService commentService;
+    private final JWTUtil jwtUtil;
+
     @Autowired
-    private PostService postService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private CommentService commentService;
-    @Autowired
-    private JWTUtil jwtUtil;
+    public LikeController(PostService postService, UserService userService, CommentService commentService, JWTUtil jwtUtil) {
+        this.postService = postService;
+        this.userService = userService;
+        this.commentService = commentService;
+        this.jwtUtil = jwtUtil;
+    }
 
     @GetMapping("/post/{postId}/like")
     public ResponseEntity<Set<User>> getLikes(@PathVariable Long postId) {

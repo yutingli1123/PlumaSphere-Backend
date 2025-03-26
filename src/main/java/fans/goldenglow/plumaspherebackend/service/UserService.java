@@ -13,8 +13,12 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class UserService {
+    private final UserRepository userRepository;
+
     @Autowired
-    private UserRepository userRepository;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Transactional(readOnly = true)
     public List<User> findAll() {

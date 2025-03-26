@@ -23,15 +23,18 @@ import java.util.stream.Collectors;
 @CrossOrigin
 @RequestMapping("/api/v1/post")
 public class PostController {
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
+    private final UserService userService;
+    private final CategoryService categoryService;
+    private final TagService tagService;
 
     @Autowired
-    private UserService userService;
-    @Autowired
-    private CategoryService categoryService;
-    @Autowired
-    private TagService tagService;
+    public PostController(PostService postService, UserService userService, CategoryService categoryService, TagService tagService) {
+        this.postService = postService;
+        this.userService = userService;
+        this.categoryService = categoryService;
+        this.tagService = tagService;
+    }
 
     @GetMapping
     public ResponseEntity<Set<PostDto>> getPosts() {

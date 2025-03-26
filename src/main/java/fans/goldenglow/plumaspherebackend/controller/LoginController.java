@@ -21,12 +21,16 @@ import java.util.HashMap;
 public class LoginController {
     private final Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 1, 60000, 10);
 
+    private final UserService userService;
+    private final SystemConfigService systemConfigService;
+    private final JWTUtil jwtUtil;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private SystemConfigService systemConfigService;
-    @Autowired
-    private JWTUtil jwtUtil;
+    public LoginController(UserService userService, SystemConfigService systemConfigService, JWTUtil jwtUtil) {
+        this.userService = userService;
+        this.systemConfigService = systemConfigService;
+        this.jwtUtil = jwtUtil;
+    }
 
     @PostMapping("/init")
     public ResponseEntity<Boolean> initUser(@RequestBody UserLoginDto userLoginDto) {

@@ -31,14 +31,16 @@ import java.util.Optional;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Autowired
-    private SystemConfigService systemConfigService;
+    private final SystemConfigService systemConfigService;
+    private final UserService userService;
+    private final JWTUtil jwtUtil;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private JWTUtil jwtUtil;
+    public SecurityConfig(SystemConfigService systemConfigService, UserService userService, JWTUtil jwtUtil) {
+        this.systemConfigService = systemConfigService;
+        this.userService = userService;
+        this.jwtUtil = jwtUtil;
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

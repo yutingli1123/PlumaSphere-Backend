@@ -13,8 +13,12 @@ import java.util.List;
 @CrossOrigin
 @RequestMapping("/api/v1/tag")
 public class TagController {
+    private final TagService tagService;
+
     @Autowired
-    private TagService tagService;
+    public TagController(TagService tagService) {
+        this.tagService = tagService;
+    }
 
     @GetMapping
     public ResponseEntity<List<Tag>> getAllTags() {
