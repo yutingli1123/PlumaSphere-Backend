@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.3.4'
-	id 'io.spring.dependency-management' version '1.1.6'
+	id 'org.springframework.boot' version '3.4.4'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'fans.goldenglow'
@@ -24,6 +24,8 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.springframework.security:spring-security-oauth2-jose'
+	implementation 'org.springframework.security:spring-security-oauth2-resource-server'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -42,7 +44,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.78.1'
-	implementation 'com.auth0:java-jwt:4.4.0'
+	implementation 'com.auth0:java-jwt:4.5.0'
 }
 
 tasks.named('test') {

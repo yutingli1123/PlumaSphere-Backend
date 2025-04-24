@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: PlumaSphere-Backend
+  jpa:
+    hibernate.ddl-auto: update
