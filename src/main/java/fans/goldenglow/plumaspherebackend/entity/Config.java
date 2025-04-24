@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "pluma_system_config")
-public class SystemConfig {
+@Table(name = "pluma_config")
+public class Config {
     @Id
     @GeneratedValue
     private Long id;
@@ -23,7 +23,7 @@ public class SystemConfig {
     @NotEmpty
     private String configValue;
 
-    public SystemConfig(String configKey, String configValue) {
+    public Config(String configKey, String configValue) {
         this.configKey = configKey;
         this.configValue = configValue;
     }

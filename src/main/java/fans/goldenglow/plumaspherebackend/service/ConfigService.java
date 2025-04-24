@@ -1,6 +1,6 @@
 package fans.goldenglow.plumaspherebackend.service;
 
-import fans.goldenglow.plumaspherebackend.entity.SystemConfig;
+import fans.goldenglow.plumaspherebackend.entity.Config;
 import fans.goldenglow.plumaspherebackend.repository.SystemConfigRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,8 @@ public class ConfigService {
         this.systemConfigRepository = systemConfigRepository;
     }
 
-    public Boolean set(SystemConfig systemConfig) {
-        SystemConfig config = systemConfigRepository.findByConfigKey(systemConfig.getConfigKey()).orElse(null);
+    public Boolean set(Config systemConfig) {
+        Config config = systemConfigRepository.findByConfigKey(systemConfig.getConfigKey()).orElse(null);
         if (config != null) {
             config.setConfigValue(systemConfig.getConfigValue());
         } else {
@@ -35,6 +35,6 @@ public class ConfigService {
     }
 
     public Optional<String> get(String configKey) {
-        return systemConfigRepository.findByConfigKey(configKey).map(SystemConfig::getConfigValue);
+        return systemConfigRepository.findByConfigKey(configKey).map(Config::getConfigValue);
     }
 }

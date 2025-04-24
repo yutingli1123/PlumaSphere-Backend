@@ -25,8 +25,6 @@ public class Post {
     private Set<Comment> comments = new HashSet<>();
     @ManyToMany
     private Set<Tag> tags = new HashSet<>();
-    @ManyToMany
-    private Set<Category> categories;
     @OneToMany
     private Set<User> likedBy = new HashSet<>();
 

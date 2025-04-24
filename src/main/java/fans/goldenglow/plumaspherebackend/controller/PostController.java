@@ -1,11 +1,9 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
-import fans.goldenglow.plumaspherebackend.dto.CategoryDto;
 import fans.goldenglow.plumaspherebackend.dto.PostDto;
 import fans.goldenglow.plumaspherebackend.dto.TagDto;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
-import fans.goldenglow.plumaspherebackend.service.CategoryService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.TagService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
@@ -25,14 +23,12 @@ import java.util.stream.Collectors;
 public class PostController {
     private final PostService postService;
     private final UserService userService;
-    private final CategoryService categoryService;
     private final TagService tagService;
 
     @Autowired
-    public PostController(PostService postService, UserService userService, CategoryService categoryService, TagService tagService) {
+    public PostController(PostService postService, UserService userService, TagService tagService) {
         this.postService = postService;
         this.userService = userService;
-        this.categoryService = categoryService;
         this.tagService = tagService;
     }
 
@@ -44,9 +40,6 @@ public class PostController {
                         post.getId(), post.getTitle(), post.getContent(), post.getAuthor().getUsername(),
                         post.getTags().stream()
                                 .map(tag -> new TagDto(tag.getId(), tag.getName()))
-                                .collect(Collectors.toSet()),
-                        post.getCategories().stream()
-                                .map(category -> new CategoryDto(category.getId(), category.getName()))
                                 .collect(Collectors.toSet()),
                         post.getLikedBy().stream()
                                 .map(User::getUsername)
@@ -63,7 +56,6 @@ public class PostController {
             PostDto postDto = new PostDto(postEntity.getId(), postEntity.getTitle(), postEntity.getContent(),
                     postEntity.getAuthor().getUsername(),
                     postEntity.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
-                    postEntity.getCategories().stream().map(category -> new CategoryDto(category.getId(), category.getName())).collect(Collectors.toSet()),
                     postEntity.getLikedBy().stream().map(User::getUsername).collect(Collectors.toSet()),
                     postEntity.getCreatedAt(), postEntity.getUpdatedAt());
             return ResponseEntity.ok(postDto);
@@ -84,7 +76,6 @@ public class PostController {
                     Post postEntity = post.get();
                     postEntity.setTitle(postDto.getTitle());
                     postEntity.setContent(postDto.getContent());
-                    postEntity.setCategories(categoryService.dtoToEntity(postDto.getCategories()));
                     postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
                     postEntity.setUpdatedAt(LocalDateTime.now());
 
@@ -97,7 +88,6 @@ public class PostController {
             newPost.setTitle(postDto.getTitle());
             newPost.setContent(postDto.getContent());
             newPost.setAuthor(userEntity);
-            newPost.setCategories(categoryService.dtoToEntity(postDto.getCategories()));
             newPost.setTags(tagService.dtoToEntity(postDto.getTags()));
             newPost.setUpdatedAt(LocalDateTime.now());
             newPost.setCreatedAt(LocalDateTime.now());

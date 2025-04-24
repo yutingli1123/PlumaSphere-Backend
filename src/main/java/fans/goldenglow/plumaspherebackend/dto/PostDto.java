@@ -20,8 +20,6 @@ public class PostDto {
 
     private Set<TagDto> tags;
 
-    private Set<CategoryDto> categories;
-
     private Set<String> likedBy;
 
     private LocalDateTime createdAt;

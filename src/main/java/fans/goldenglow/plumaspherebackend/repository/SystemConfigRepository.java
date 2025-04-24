@@ -1,12 +1,12 @@
 package fans.goldenglow.plumaspherebackend.repository;
 
-import fans.goldenglow.plumaspherebackend.entity.SystemConfig;
+import fans.goldenglow.plumaspherebackend.entity.Config;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface SystemConfigRepository extends JpaRepository<SystemConfig, Long> {
-    Optional<SystemConfig> findByConfigKey(String configKey);
+public interface SystemConfigRepository extends JpaRepository<Config, Long> {
+    Optional<Config> findByConfigKey(String configKey);
 }
