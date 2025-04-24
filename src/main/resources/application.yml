@@ -3,3 +3,9 @@ spring:
     name: PlumaSphere-Backend
   jpa:
     hibernate.ddl-auto: update
+config:
+  jwt:
+    iss: your_iss
+    expiration:
+      access_token: 5
+      refresh_token: 15

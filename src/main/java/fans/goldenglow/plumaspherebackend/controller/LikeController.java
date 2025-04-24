@@ -6,10 +6,9 @@ import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import fans.goldenglow.plumaspherebackend.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -22,14 +21,12 @@ public class LikeController {
     private final PostService postService;
     private final UserService userService;
     private final CommentService commentService;
-    private final JWTUtil jwtUtil;
 
     @Autowired
-    public LikeController(PostService postService, UserService userService, CommentService commentService, JWTUtil jwtUtil) {
+    public LikeController(PostService postService, UserService userService, CommentService commentService) {
         this.postService = postService;
         this.userService = userService;
         this.commentService = commentService;
-        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/post/{postId}/like")
@@ -43,36 +40,35 @@ public class LikeController {
     }
 
     @PostMapping("/post/{postId}/like")
-    public ResponseEntity<Boolean> postLike(@PathVariable Long postId, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        String username = jwtUtil.getUsername(token);
-        Optional<User> user = userService.findByUsername(username);
-        if (user.isPresent()) {
-            User userEntity = user.get();
-            Optional<Post> post = postService.findById(postId);
-            if (post.isPresent()) {
-                Post postEntity = post.get();
-                Set<User> users = postEntity.getLikedBy();
-                users.add(userEntity);
-                return ResponseEntity.ok(postService.save(postEntity));
-            }
-        }
-        return ResponseEntity.internalServerError().build();
+    public ResponseEntity<Boolean> postLike(@PathVariable Long postId, JwtAuthenticationToken token) {
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        Optional<User> user = userService.findById(userId);
+
+        if (user.isEmpty()) return ResponseEntity.notFound().build();
+
+        User userEntity = user.get();
+        Optional<Post> post = postService.findById(postId);
+
+        if (post.isEmpty()) return ResponseEntity.notFound().build();
+
+        Post postEntity = post.get();
+        Set<User> users = postEntity.getLikedBy();
+        users.add(userEntity);
+
+        return ResponseEntity.ok(postService.save(postEntity));
     }
 
     @PostMapping("/comment/{commentId}/like")
-    public ResponseEntity<Boolean> commentLike(@PathVariable Long commentId, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        String username = jwtUtil.getUsername(token);
-        Optional<User> user = userService.findByUsername(username);
-        if (user.isPresent()) {
-            User userEntity = user.get();
-            Optional<Comment> comment = commentService.findById(commentId);
-            if (comment.isPresent()) {
-                Comment commentEntity = comment.get();
-                Set<User> users = commentEntity.getLikedBy();
-                users.add(userEntity);
-                return ResponseEntity.ok(commentService.save(commentEntity));
-            }
-        }
-        return ResponseEntity.internalServerError().build();
+    public ResponseEntity<Boolean> commentLike(@PathVariable Long commentId, JwtAuthenticationToken token) {
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        Optional<User> user = userService.findById(userId);
+        if (user.isEmpty()) return ResponseEntity.notFound().build();
+        User userEntity = user.get();
+        Optional<Comment> comment = commentService.findById(commentId);
+        if (comment.isEmpty()) return ResponseEntity.notFound().build();
+        Comment commentEntity = comment.get();
+        Set<User> users = commentEntity.getLikedBy();
+        users.add(userEntity);
+        return ResponseEntity.ok(commentService.save(commentEntity));
     }
 }

@@ -32,7 +32,7 @@ public class UserController {
         List<User> users = userService.findAll();
         List<UserDto> userDtos = new ArrayList<>();
         for (User user : users) {
-            userDtos.add(new UserDto(user.getUsername(),user.getName(),user.getEmail(),user.getDob()));
+            userDtos.add(new UserDto(user.getUsername(), user.getNickname(), user.getDob()));
         }
         return ResponseEntity.ok(userDtos);
     }

@@ -11,7 +11,6 @@ import java.sql.Date;
 @AllArgsConstructor
 public class UserDto {
     private String username;
-    private String name;
-    private String email;
+    private String nickname;
     private Date dob;
 }

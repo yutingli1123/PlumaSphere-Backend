@@ -6,19 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Optional;
 
 @Service
 @Slf4j
-public class SystemConfigService {
+public class ConfigService {
     private final SystemConfigRepository systemConfigRepository;
 
     @Autowired
-    public SystemConfigService(SystemConfigRepository systemConfigRepository) {
+    public ConfigService(SystemConfigRepository systemConfigRepository) {
         this.systemConfigRepository = systemConfigRepository;
     }
 
@@ -40,21 +36,5 @@ public class SystemConfigService {
 
     public Optional<String> get(String configKey) {
         return systemConfigRepository.findByConfigKey(configKey).map(SystemConfig::getConfigValue);
-    }
-
-    public String generateSecretKey() {
-        if (get("secret_key").isEmpty()) {
-            try {
-                KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-                keyGenerator.init(256);
-                SecretKey secretKey = keyGenerator.generateKey();
-                String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
-//                log.info(encodedKey);
-                set(new SystemConfig("secret_key", encodedKey));
-                return encodedKey;
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
-        } else return null;
     }
 }

@@ -1,19 +1,20 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
+import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
 import fans.goldenglow.plumaspherebackend.dto.UserLoginDto;
-import fans.goldenglow.plumaspherebackend.entity.SystemConfig;
 import fans.goldenglow.plumaspherebackend.entity.User;
-import fans.goldenglow.plumaspherebackend.service.SystemConfigService;
+import fans.goldenglow.plumaspherebackend.service.ConfigService;
+import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import fans.goldenglow.plumaspherebackend.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -22,65 +23,32 @@ public class LoginController {
     private final Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 1, 60000, 10);
 
     private final UserService userService;
-    private final SystemConfigService systemConfigService;
-    private final JWTUtil jwtUtil;
+    private final TokenService tokenService;
 
     @Autowired
-    public LoginController(UserService userService, SystemConfigService systemConfigService, JWTUtil jwtUtil) {
+    public LoginController(UserService userService, ConfigService configService, TokenService tokenService) {
         this.userService = userService;
-        this.systemConfigService = systemConfigService;
-        this.jwtUtil = jwtUtil;
-    }
-
-    @PostMapping("/init")
-    public ResponseEntity<Boolean> initUser(@RequestBody UserLoginDto userLoginDto) {
-        User user = new User(userLoginDto.getUsername(), passwordEncoder.encode(userLoginDto.getPassword()));
-        user.setRole(UserRoles.ROLE_ADMIN);
-        if (userService.save(user)) {
-            return ResponseEntity.ok(systemConfigService.set(new SystemConfig("initialled", "true")));
-        }
-        return ResponseEntity.internalServerError().build();
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<HashMap<String, String>> login(@RequestBody UserLoginDto loginData) {
+    public ResponseEntity<TokenResponseDto> login(@RequestBody UserLoginDto loginData) {
         String username = loginData.getUsername();
         String rawPassword = loginData.getPassword();
 
-        User user = userService.findByUsername(username).orElse(null);
-        if (user != null) {
-            String password = user.getPassword();
+        Optional<User> user = userService.findByUsername(username);
+        if (user.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-            if (passwordEncoder.matches(rawPassword, password)) {
-                HashMap<String, String> responseData = jwtUtil.generateToken(username);
-                return ResponseEntity.ok(responseData);
-            }
+        User userEntity = user.get();
+        String password = userEntity.getPassword();
+        Long userId = userEntity.getId();
+        UserRoles role = userEntity.getRole();
+
+        if (passwordEncoder.matches(rawPassword, password)) {
+            TokenResponseDto responseDto = tokenService.generateTokens(userId, List.of(role.toString().toLowerCase()));
+            return ResponseEntity.ok(responseDto);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<HashMap<String, String>> register(@RequestBody UserLoginDto loginData) {
-
-        String username = loginData.getUsername();
-        String rawPassword = loginData.getPassword();
-
-        User user = userService.findByUsername(username).orElse(null);
-        if (user == null) {
-            User newUser = new User(username, passwordEncoder.encode(rawPassword));
-            newUser.setRole(UserRoles.ROLE_REGULAR);
-            if (userService.save(newUser)) {
-                HashMap<String, String> responseData = jwtUtil.generateToken(username);
-                return ResponseEntity.ok(responseData);
-            } else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
-
-    @GetMapping("/status")
-    public ResponseEntity<HashMap<String, String>> getStatus() {
-        HashMap<String, String> responseData = new HashMap<>();
-        responseData.put("isInit", systemConfigService.get("initialled").orElse("false"));
-        return ResponseEntity.ok(responseData);
-    }
 }

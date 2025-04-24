@@ -1,82 +1,60 @@
 package fans.goldenglow.plumaspherebackend.config;
 
-import fans.goldenglow.plumaspherebackend.config.filter.ApiKeyAuthFilter;
-import fans.goldenglow.plumaspherebackend.entity.User;
-import fans.goldenglow.plumaspherebackend.service.SystemConfigService;
-import fans.goldenglow.plumaspherebackend.service.UserService;
-import fans.goldenglow.plumaspherebackend.util.JWTUtil;
-import lombok.extern.slf4j.Slf4j;
+import fans.goldenglow.plumaspherebackend.service.ConfigService;
+import fans.goldenglow.plumaspherebackend.service.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
-@Slf4j
+import static org.springframework.security.oauth2.core.authorization.OAuth2AuthorizationManagers.hasScope;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final SystemConfigService systemConfigService;
-    private final UserService userService;
-    private final JWTUtil jwtUtil;
+    private final SecurityService securityService;
+    private final ConfigService configService;
 
     @Autowired
-    public SecurityConfig(SystemConfigService systemConfigService, UserService userService, JWTUtil jwtUtil) {
-        this.systemConfigService = systemConfigService;
-        this.userService = userService;
-        this.jwtUtil = jwtUtil;
+    public SecurityConfig(SecurityService securityService, ConfigService configService) {
+        this.securityService = securityService;
+        this.configService = configService;
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setAllowedHeaders(List.of("*"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/init")
+                        .access(((authentication, object) -> {
+                            Optional<String> result = configService.get("initialled");
+                            return new AuthorizationDecision(result.isEmpty());
+                        }))
+                        .requestMatchers("/api/v1/login", "/api/v1/status", "/public/**", "/error/**").permitAll()
+                        .anyRequest().access(hasScope("admin"))
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.decoder(jwtDecoder()))
+                )
+                .build();
     }
 
     @Bean
-    public AuthenticationManager userAuthenticationManager() {
-        return authentication -> {
-            authentication.setAuthenticated(false);
-            String principal = (String) authentication.getPrincipal();
-            String username = jwtUtil.getUsername(principal);
-            Optional<User> user = userService.findByUsername(username);
-            if (user.isPresent()) {
-                authentication = new PreAuthenticatedAuthenticationToken(username, principal, Collections.singleton(new SimpleGrantedAuthority(user.get().getRole().name())));
-                authentication.setAuthenticated(true);
-            }
-            return authentication;
-        };
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        ApiKeyAuthFilter filter = new ApiKeyAuthFilter(HttpHeaders.AUTHORIZATION);
-        filter.setAuthenticationManager(userAuthenticationManager());
-        http.csrf(AbstractHttpConfigurer::disable).cors(cors -> corsConfigurationSource()).sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).addFilter(filter).authorizeHttpRequests(request -> request.requestMatchers("/api/v1/init").access((authentication, object) -> {
-            Optional<String> result = systemConfigService.get("initialled");
-            return new AuthorizationDecision(result.isEmpty() || result.get().equals("false"));
-        }).requestMatchers("/api/v1/login").permitAll().requestMatchers("/api/v1/status").permitAll().anyRequest().hasAuthority("ROLE_ADMIN"));
-        return http.build();
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withSecretKey(securityService.getSecret()).build();
     }
 }

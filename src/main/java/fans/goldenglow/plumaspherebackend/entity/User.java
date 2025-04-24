@@ -3,9 +3,9 @@ package fans.goldenglow.plumaspherebackend.entity;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.sql.Date;
 import java.util.HashSet;
@@ -20,24 +20,21 @@ public class User {
     @GeneratedValue
     private Long id;
     @NotEmpty
+    @NonNull
     @Column(unique = true)
     private String username;
-    @NotEmpty
     private String password;
-    private String name;
-    @NotNull
+    private String nickname;
+    @NonNull
     @Enumerated(EnumType.STRING)
     private UserRoles role;
-    private String email;
     private Date dob;
-    private String bio;
-    private String iconUrl;
+    private String avatarUrl;
 
     @OneToMany
     private Set<Post> posts = new HashSet<>();
     @OneToMany
     private Set<Comment> comments = new HashSet<>();
-
 
     public User(String username, String password) {
         this.username = username;

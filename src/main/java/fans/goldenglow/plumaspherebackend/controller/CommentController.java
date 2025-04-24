@@ -7,10 +7,9 @@ import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import fans.goldenglow.plumaspherebackend.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,14 +23,12 @@ public class CommentController {
     private final PostService postService;
     private final CommentService commentService;
     private final UserService userService;
-    private final JWTUtil jwtUtil;
 
     @Autowired
-    public CommentController(PostService postService, CommentService commentService, UserService userService, JWTUtil jwtUtil) {
+    public CommentController(PostService postService, CommentService commentService, UserService userService) {
         this.postService = postService;
         this.commentService = commentService;
         this.userService = userService;
-        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/comment/{commentId}")
@@ -51,24 +48,21 @@ public class CommentController {
     }
 
     @PostMapping("/post/{postId}")
-    public ResponseEntity<Boolean> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+    public ResponseEntity<Boolean> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
         Optional<Post> post = postService.findById(postId);
-        if (post.isPresent()) {
-            String username = jwtUtil.getUsername(token);
-            Optional<User> user = userService.findByUsername(username);
-            if (user.isPresent()) {
-                Post postEntity = post.get();
-                User userEntity = user.get();
-                Set<Comment> comments = postEntity.getComments();
-                Comment comment = new Comment();
-                comment.setAuthor(userEntity);
-                comment.setContent(commentDto.getContent());
-                comment.setCreatedAt(LocalDateTime.now());
-                comments.add(comment);
-                postEntity.setComments(comments);
-                return ResponseEntity.ok(commentService.save(comment) && postService.save(postEntity));
-            }
-        }
-        return ResponseEntity.notFound().build();
+        if (post.isEmpty()) return ResponseEntity.notFound().build();
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        Optional<User> user = userService.findById(userId);
+        if (user.isEmpty()) return ResponseEntity.notFound().build();
+        Post postEntity = post.get();
+        User userEntity = user.get();
+        Set<Comment> comments = postEntity.getComments();
+        Comment comment = new Comment();
+        comment.setAuthor(userEntity);
+        comment.setContent(commentDto.getContent());
+        comment.setCreatedAt(LocalDateTime.now());
+        comments.add(comment);
+        postEntity.setComments(comments);
+        return ResponseEntity.ok(commentService.save(comment) && postService.save(postEntity));
     }
 }
