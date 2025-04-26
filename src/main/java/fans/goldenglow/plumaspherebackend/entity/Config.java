@@ -27,6 +27,8 @@ public class Config implements Serializable {
     @NotEmpty
     private String configValue;
 
+    private Boolean isOpenToPublic = false;
+
     public Config(String configKey, String configValue) {
         this.configKey = configKey;
         this.configValue = configValue;

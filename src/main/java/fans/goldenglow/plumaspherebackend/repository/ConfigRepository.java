@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface SystemConfigRepository extends JpaRepository<Config, Long> {
+public interface ConfigRepository extends JpaRepository<Config, Long> {
     Optional<Config> findByConfigKey(String configKey);
 }
