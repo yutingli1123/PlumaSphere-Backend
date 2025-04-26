@@ -1,29 +1,86 @@
 package fans.goldenglow.plumaspherebackend.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+@EntityListeners(AuditingEntityListener.class)
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(of = {"id"})
+@ToString(of = {"id", "content"})
 @NoArgsConstructor
-@Table(name = "pluma_comment")
-public class Comment {
+@Table(name = "pluma_comment", indexes = {
+        @Index(name = "idx_comment_author_id", columnList = "author_id"),
+        @Index(name = "idx_comment_post", columnList = "post_id"),
+        @Index(name = "idx_comment_parent_id", columnList = "parent_id")
+})
+public class Comment implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Version
+    private Long version;
+
     @Id
     @GeneratedValue
     private Long id;
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+    @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "author_id", nullable = false)
     private User author;
     @ManyToOne
+    @JoinColumn(name = "post_id")
     private Post post;
-    @OneToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "pluma_comment_like",
+            joinColumns = @JoinColumn(name = "comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private Set<User> likedBy = new HashSet<>();
-    @OneToMany
+    @OneToMany(mappedBy = "parentComment", cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private Set<Comment> comments = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Comment parentComment;
+
+    public Comment(String content, LocalDateTime createdAt, User author) {
+        this.content = content;
+        this.createdAt = createdAt;
+        this.author = author;
+    }
+
+    public void addComment(Comment comment) {
+        comments.add(comment);
+        comment.setParentComment(this);
+    }
+
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        comment.setParentComment(null);
+    }
+
+    public void addLikedBy(User user) {
+        likedBy.add(user);
+    }
+
+    public void removeLikedBy(User user) {
+        likedBy.remove(user);
+    }
 }

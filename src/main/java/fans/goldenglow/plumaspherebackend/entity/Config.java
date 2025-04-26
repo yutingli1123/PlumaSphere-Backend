@@ -1,21 +1,25 @@
 package fans.goldenglow.plumaspherebackend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.io.Serializable;
 
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(of = {"id"})
+@ToString(of = {"id", "configKey", "configValue"})
 @NoArgsConstructor
 @Table(name = "pluma_config")
-public class Config {
+public class Config implements Serializable {
     @Id
     @GeneratedValue
     private Long id;
+
+    @Version
+    private Long version;
 
     @NotEmpty
     private String configKey;
