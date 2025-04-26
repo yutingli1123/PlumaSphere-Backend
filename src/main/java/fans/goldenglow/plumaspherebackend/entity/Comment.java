@@ -17,13 +17,13 @@ public class Comment {
     @GeneratedValue
     private Long id;
     private String content;
-    @OneToOne
+    private LocalDateTime createdAt;
+    @ManyToOne
     private User author;
     @ManyToOne
     private Post post;
     @OneToMany
     private Set<User> likedBy = new HashSet<>();
-    private LocalDateTime createdAt;
     @OneToMany
     private Set<Comment> comments = new HashSet<>();
 }
