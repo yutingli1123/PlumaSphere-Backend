@@ -9,7 +9,7 @@ import java.security.NoSuchAlgorithmException;
 
 @Slf4j
 @Service
-public class SecurityService {
+public class SecretService {
     private SecretKey jwtSecret;
 
     private SecretKey GenerateSecret() {

@@ -36,35 +36,17 @@ public class UserService {
     }
 
     @Transactional
-    public Boolean save(User user) {
-        try {
-            userRepository.save(user);
-            return true;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return false;
-        }
+    public void save(User user) {
+        userRepository.save(user);
     }
 
     @Transactional
-    public Boolean deleteById(Long id) {
-        try {
-            userRepository.deleteById(id);
-            return true;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return false;
-        }
+    public void deleteById(Long id) {
+        userRepository.deleteById(id);
     }
 
     @Transactional
-    public boolean deleteByUsername(String username) {
-        try {
-            userRepository.deleteByUsername(username);
-            return true;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return false;
-        }
+    public void deleteByUsername(String username) {
+        userRepository.deleteByUsername(username);
     }
 }

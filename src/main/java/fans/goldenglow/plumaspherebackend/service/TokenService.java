@@ -30,9 +30,9 @@ public class TokenService {
     private long REFRESH_TOKEN_EXPIRATION;
 
     @Autowired
-    public TokenService(UserService userService, SecurityService securityService) {
+    public TokenService(UserService userService, SecretService secretService) {
         this.userService = userService;
-        this.algorithm = Algorithm.HMAC256(securityService.getSecret().getEncoded());
+        this.algorithm = Algorithm.HMAC256(secretService.getSecret().getEncoded());
     }
 
     private String generateToken(String userId, long expirationMinutes, List<String> scopes) {
@@ -56,20 +56,17 @@ public class TokenService {
         return new TokenResponseDto(accessToken, refreshToken);
     }
 
-    public TokenResponseDto refreshToken(String refreshTokenValue) throws Exception {
+    public TokenResponseDto refreshToken(String refreshTokenValue) {
         JWTVerifier jwtVerifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).build();
         DecodedJWT decodedJWT = jwtVerifier.verify(refreshTokenValue);
 
-        if (!decodedJWT.getClaim("scope").asString().contains("refresh_token")) {
-            throw new Exception("Invalid scope");
-        }
+        String scopeValue = decodedJWT.getClaim("scope").asString();
+        if (scopeValue == null || !scopeValue.contains("refresh_token")) return null;
 
         String userId = decodedJWT.getSubject();
 
         Optional<User> user = userService.findById(Long.parseLong(userId));
-        if (user.isEmpty()) {
-            throw new Exception("Invalid user");
-        }
+        if (user.isEmpty()) return null;
 
         User userEntity = user.get();
 

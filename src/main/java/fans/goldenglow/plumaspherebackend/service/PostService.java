@@ -5,6 +5,7 @@ import fans.goldenglow.plumaspherebackend.repository.PostRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,21 +20,18 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Post> findAll() {
         return postRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Post> findById(Long id) {
         return postRepository.findById(id);
     }
 
-    public Boolean save(Post post) {
-        try {
-            postRepository.save(post);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return false;
-        }
-        return true;
+    @Transactional
+    public void save(Post post) {
+        postRepository.save(post);
     }
 }

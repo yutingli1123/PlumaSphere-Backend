@@ -5,6 +5,7 @@ import fans.goldenglow.plumaspherebackend.repository.CommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -18,17 +19,13 @@ public class CommentService {
         this.commentRepository = commentRepository;
     }
 
+    @Transactional(readOnly = true)
     public Optional<Comment> findById(Long id) {
         return commentRepository.findById(id);
     }
 
-    public Boolean save (Comment comment) {
-        try {
-            commentRepository.save(comment);
-            return true;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return false;
+    @Transactional
+    public void save(Comment comment) {
+        commentRepository.save(comment);
     }
 }

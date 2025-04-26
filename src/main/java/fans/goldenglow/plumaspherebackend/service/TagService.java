@@ -6,6 +6,7 @@ import fans.goldenglow.plumaspherebackend.repository.TagRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,20 +23,17 @@ public class TagService {
         this.tagRepository = tagRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Tag> findAll() {
         return tagRepository.findAll();
     }
 
-    public Boolean save(Tag tag) {
-        try {
-            tagRepository.save(tag);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return false;
-        }
-        return true;
+    @Transactional
+    public void save(Tag tag) {
+        tagRepository.save(tag);
     }
 
+    @Transactional
     public Set<Tag> dtoToEntity(Set<TagDto> tagDtos) {
         return tagDtos.stream().map(tagDto -> {
             Optional<Tag> tag = tagRepository.findById(tagDto.getId());
@@ -44,7 +42,7 @@ public class TagService {
             } else {
                 Tag tagEntity = new Tag();
                 tagEntity.setName(tagDto.getName());
-                if (!save(tagEntity)) log.error("Save Entity Failed: Tag{{}}", tagDto.getName());
+                save(tagEntity);
                 return tagEntity;
             }
         }).collect(Collectors.toSet());
