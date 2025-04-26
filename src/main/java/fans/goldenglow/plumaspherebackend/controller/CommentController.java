@@ -47,7 +47,7 @@ public class CommentController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/post/{postId}")
+    @PostMapping("/post/{postId}/comment")
     public ResponseEntity<Boolean> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
         Optional<Post> post = postService.findById(postId);
         if (post.isEmpty()) return ResponseEntity.notFound().build();
