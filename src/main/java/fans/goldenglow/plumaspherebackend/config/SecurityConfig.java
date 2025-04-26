@@ -1,7 +1,7 @@
 package fans.goldenglow.plumaspherebackend.config;
 
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
-import fans.goldenglow.plumaspherebackend.service.SecurityService;
+import fans.goldenglow.plumaspherebackend.service.SecretService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,12 +21,12 @@ import static org.springframework.security.oauth2.core.authorization.OAuth2Autho
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final SecurityService securityService;
+    private final SecretService secretService;
     private final ConfigService configService;
 
     @Autowired
-    public SecurityConfig(SecurityService securityService, ConfigService configService) {
-        this.securityService = securityService;
+    public SecurityConfig(SecretService secretService, ConfigService configService) {
+        this.secretService = secretService;
         this.configService = configService;
     }
 
@@ -56,6 +56,6 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withSecretKey(securityService.getSecret()).build();
+        return NimbusJwtDecoder.withSecretKey(secretService.getSecret()).build();
     }
 }

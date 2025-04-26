@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -12,5 +12,5 @@ import java.sql.Date;
 public class UserDto {
     private String username;
     private String nickname;
-    private Date dob;
+    private LocalDate dob;
 }

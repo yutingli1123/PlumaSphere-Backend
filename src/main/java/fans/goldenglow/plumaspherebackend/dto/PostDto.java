@@ -16,11 +16,11 @@ public class PostDto {
     private String title;
     private String content;
 
-    private String author;
+    private Long authorId;
 
     private Set<TagDto> tags;
 
-    private Set<String> likedBy;
+    private Set<Long> likedBy;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
