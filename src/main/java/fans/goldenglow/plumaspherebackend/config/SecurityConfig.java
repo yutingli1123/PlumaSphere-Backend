@@ -42,7 +42,8 @@ public class SecurityConfig {
                             return new AuthorizationDecision(result.isEmpty());
                         }))
                         .requestMatchers("/api/v1/login", "/api/v1/status", "/public/**", "/error/**").permitAll()
-                        .anyRequest().access(hasScope("admin"))
+                        .requestMatchers("/api/v1/admin/**").access(hasScope("admin"))
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
