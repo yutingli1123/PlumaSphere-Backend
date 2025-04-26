@@ -26,9 +26,10 @@ public class TagController {
     }
 
     @PostMapping
-    public ResponseEntity<Boolean> addTag(@RequestBody TagDto tagDto) {
+    public ResponseEntity<Void> addTag(@RequestBody TagDto tagDto) {
         Tag tag = new Tag();
         tag.setName(tagDto.getName());
-        return ResponseEntity.ok(tagService.save(tag));
+        tagService.save(tag);
+        return ResponseEntity.ok().build();
     }
 }

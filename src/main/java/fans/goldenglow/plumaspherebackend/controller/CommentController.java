@@ -40,29 +40,25 @@ public class CommentController {
     @GetMapping("/post/{postId}/comment")
     public ResponseEntity<Set<Comment>> getComments(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
-        if (post.isPresent()) {
-            Post postEntity = post.get();
-            return ResponseEntity.ok(postEntity.getComments());
-        }
-        return ResponseEntity.notFound().build();
+        return post.map(value -> ResponseEntity.ok(value.getComments())).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/post/{postId}/comment")
-    public ResponseEntity<Boolean> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
         Optional<Post> post = postService.findById(postId);
+
         if (post.isEmpty()) return ResponseEntity.notFound().build();
+
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
+
         if (user.isEmpty()) return ResponseEntity.notFound().build();
+
         Post postEntity = post.get();
         User userEntity = user.get();
-        Set<Comment> comments = postEntity.getComments();
-        Comment comment = new Comment();
-        comment.setAuthor(userEntity);
-        comment.setContent(commentDto.getContent());
-        comment.setCreatedAt(LocalDateTime.now());
-        comments.add(comment);
-        postEntity.setComments(comments);
-        return ResponseEntity.ok(commentService.save(comment) && postService.save(postEntity));
+        Comment comment = new Comment(commentDto.getContent(), LocalDateTime.now(), userEntity);
+        postEntity.addComment(comment);
+        postService.save(postEntity);
+        return ResponseEntity.ok().build();
     }
 }

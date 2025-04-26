@@ -32,15 +32,11 @@ public class LikeController {
     @GetMapping("/post/{postId}/like")
     public ResponseEntity<Set<User>> getLikes(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
-        if (post.isPresent()) {
-            Post postEntity = post.get();
-            return ResponseEntity.ok(postEntity.getLikedBy());
-        }
-        return ResponseEntity.notFound().build();
+        return post.map(value -> ResponseEntity.ok(value.getLikedBy())).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/post/{postId}/like")
-    public ResponseEntity<Boolean> postLike(@PathVariable Long postId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> postLike(@PathVariable Long postId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
 
@@ -52,23 +48,28 @@ public class LikeController {
         if (post.isEmpty()) return ResponseEntity.notFound().build();
 
         Post postEntity = post.get();
-        Set<User> users = postEntity.getLikedBy();
-        users.add(userEntity);
+        postEntity.addLikedBy(userEntity);
+        postService.save(postEntity);
 
-        return ResponseEntity.ok(postService.save(postEntity));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/comment/{commentId}/like")
-    public ResponseEntity<Boolean> commentLike(@PathVariable Long commentId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> commentLike(@PathVariable Long commentId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
+
         if (user.isEmpty()) return ResponseEntity.notFound().build();
+
         User userEntity = user.get();
         Optional<Comment> comment = commentService.findById(commentId);
+
         if (comment.isEmpty()) return ResponseEntity.notFound().build();
+
         Comment commentEntity = comment.get();
-        Set<User> users = commentEntity.getLikedBy();
-        users.add(userEntity);
-        return ResponseEntity.ok(commentService.save(commentEntity));
+        commentEntity.addLikedBy(userEntity);
+        commentService.save(commentEntity);
+
+        return ResponseEntity.ok().build();
     }
 }

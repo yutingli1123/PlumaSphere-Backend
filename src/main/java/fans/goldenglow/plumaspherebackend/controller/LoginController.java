@@ -4,7 +4,6 @@ import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
 import fans.goldenglow.plumaspherebackend.dto.UserLoginDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
-import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +26,7 @@ public class LoginController {
     private final TokenService tokenService;
 
     @Autowired
-    public LoginController(UserService userService, ConfigService configService, TokenService tokenService) {
+    public LoginController(UserService userService, TokenService tokenService) {
         this.userService = userService;
         this.tokenService = tokenService;
     }
@@ -45,6 +45,8 @@ public class LoginController {
         UserRoles role = userEntity.getRole();
 
         if (passwordEncoder.matches(rawPassword, password)) {
+            userEntity.setLastLoginAt(LocalDateTime.now());
+            userService.save(userEntity);
             TokenResponseDto responseDto = tokenService.generateTokens(userId, List.of(role.toString().toLowerCase()));
             return ResponseEntity.ok(responseDto);
         }
