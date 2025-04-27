@@ -39,14 +39,13 @@ public class PostController {
                 .map(post -> new PostDto(
                         post.getId(),
                         post.getTitle(),
-                        post.getContent(),
+                        null,
+                        post.getDescription(),
                         post.getAuthor().getId(),
                         post.getTags().stream()
                                 .map(tag -> new TagDto(tag.getId(), tag.getName()))
                                 .collect(Collectors.toSet()),
-                        post.getLikedBy().stream()
-                                .map(User::getId)
-                                .collect(Collectors.toSet()),
+                        null,
                         post.getCreatedAt(),
                         post.getUpdatedAt()))
                 .collect(Collectors.toSet()));
@@ -63,6 +62,7 @@ public class PostController {
                 postEntity.getId(),
                 postEntity.getTitle(),
                 postEntity.getContent(),
+                postEntity.getDescription(),
                 postEntity.getAuthor().getId(),
                 postEntity.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
                 postEntity.getLikedBy().stream().map(User::getId).collect(Collectors.toSet()),
@@ -78,23 +78,28 @@ public class PostController {
         if (user.isEmpty()) return ResponseEntity.notFound().build();
         User userEntity = user.get();
         Long postId = postDto.getId();
+        Post postEntity;
         if (postId != null) {
             Optional<Post> post = postService.findById(postId);
             if (post.isPresent()) {
-                Post postEntity = post.get();
+                String content = postDto.getContent();
+                postEntity = post.get();
                 postEntity.setTitle(postDto.getTitle());
-                postEntity.setContent(postDto.getContent());
+                postEntity.setContent(content);
                 postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
+                postEntity.setDescription(content.substring(0, Math.min(content.length(), 300)) + "...");
                 postService.save(postEntity);
                 return ResponseEntity.ok().build();
             }
         }
-        Post newPost = new Post();
-        newPost.setTitle(postDto.getTitle());
-        newPost.setContent(postDto.getContent());
-        newPost.setAuthor(userEntity);
-        newPost.setTags(tagService.dtoToEntity(postDto.getTags()));
-        postService.save(newPost);
+        String content = postDto.getContent();
+        postEntity = new Post();
+        postEntity.setTitle(postDto.getTitle());
+        postEntity.setContent(content);
+        postEntity.setAuthor(userEntity);
+        postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
+        postEntity.setDescription(content.substring(0, Math.min(content.length(), 300)) + "...");
+        postService.save(postEntity);
         return ResponseEntity.ok().build();
     }
 }

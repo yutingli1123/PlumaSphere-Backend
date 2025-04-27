@@ -37,6 +37,9 @@ public class Post implements Serializable {
     @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String description;
     @ManyToOne(optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;

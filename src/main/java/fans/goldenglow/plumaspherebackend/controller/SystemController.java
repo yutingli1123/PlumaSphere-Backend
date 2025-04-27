@@ -28,7 +28,6 @@ public class SystemController {
     private final PasswordService passwordService;
     private final UserService userService;
 
-
     @Autowired
     public SystemController(ConfigService configService, RedisService redisService, PasswordService passwordService, UserService userService) {
         this.configService = configService;

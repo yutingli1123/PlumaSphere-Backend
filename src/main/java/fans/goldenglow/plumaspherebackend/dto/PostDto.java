@@ -16,6 +16,7 @@ public class PostDto {
 
     private String title;
     private String content;
+    private String description;
 
     @JsonProperty("author_id")
     private Long authorId;
