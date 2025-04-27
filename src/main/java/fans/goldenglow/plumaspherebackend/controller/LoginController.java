@@ -53,7 +53,7 @@ public class LoginController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/refresh_token")
+    @PostMapping("/refresh-token")
     public ResponseEntity<TokenResponseDto> refreshToken(@RequestBody String refreshToken) {
         TokenResponseDto responseDto = tokenService.refreshToken(refreshToken);
         if (responseDto == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
