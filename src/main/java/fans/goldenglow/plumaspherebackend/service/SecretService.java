@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 public class SecretService {
     private SecretKey jwtSecret;
 
-    private SecretKey GenerateSecret() {
+    private SecretKey generateSecret() {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
             keyGenerator.init(256);
@@ -25,7 +25,7 @@ public class SecretService {
 
     public SecretKey getSecret() {
         if (jwtSecret == null) {
-            jwtSecret = GenerateSecret();
+            jwtSecret = generateSecret();
         }
         return jwtSecret;
     }
