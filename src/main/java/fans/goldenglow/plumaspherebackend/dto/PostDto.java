@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,12 +17,16 @@ public class PostDto {
     private String title;
     private String content;
 
+    @JsonProperty("author_id")
     private Long authorId;
 
     private Set<TagDto> tags;
 
+    @JsonProperty("liked_by")
     private Set<Long> likedBy;
 
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
+    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 }
