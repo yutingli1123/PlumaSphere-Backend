@@ -17,9 +17,11 @@ import java.io.Serializable;
 public class Config implements Serializable {
     @Id
     @GeneratedValue
+    @JsonIgnore
     private Long id;
 
     @Version
+    @JsonIgnore
     private Long version;
 
     @NotEmpty
@@ -31,8 +33,9 @@ public class Config implements Serializable {
     @JsonIgnore
     private Boolean isOpenToPublic = false;
 
-    public Config(String configKey, String configValue) {
+    public Config(String configKey, String configValue, Boolean isOpenToPublic) {
         this.configKey = configKey;
         this.configValue = configValue;
+        this.isOpenToPublic = isOpenToPublic;
     }
 }

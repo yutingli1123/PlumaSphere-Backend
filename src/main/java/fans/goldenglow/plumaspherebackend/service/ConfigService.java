@@ -23,7 +23,7 @@ public class ConfigService {
 
     @Transactional(readOnly = true)
     public Optional<String> get(ConfigField configField) {
-        return configRepository.findByConfigKey(configField.name()).map(Config::getConfigValue);
+        return configRepository.findByConfigKey(configField.name().toLowerCase()).map(Config::getConfigValue);
     }
 
     @Transactional(readOnly = true)
@@ -38,16 +38,20 @@ public class ConfigService {
     }
 
     @Transactional
-    public void set(Config systemConfig) {
-        Optional<Config> config = configRepository.findByConfigKey(systemConfig.getConfigKey());
+    public void set(ConfigField configField, String value) {
+        set(configField, value, false);
+    }
+
+    @Transactional
+    public void set(ConfigField configField, String value, boolean isOpenToPublic) {
+        Optional<Config> config = configRepository.findByConfigKey(configField.name().toLowerCase());
         Config configEntity;
         if (config.isPresent()) {
             configEntity = config.get();
-            configEntity.setConfigValue(systemConfig.getConfigValue());
+            configEntity.setConfigValue(value);
         } else {
-            configEntity = systemConfig;
+            configEntity = new Config(configField.name().toLowerCase(), value, isOpenToPublic);
         }
-
         configRepository.save(configEntity);
     }
 }
