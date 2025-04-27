@@ -38,14 +38,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/init")
+                        .requestMatchers("/api/v1/init/**")
                         .access(((authentication, object) -> {
                             Optional<String> result = configService.get(ConfigField.INITIALIZED);
                             return new AuthorizationDecision(result.isEmpty());
                         }))
                         .requestMatchers("/api/v1/login", "/api/v1/status", "/public/**", "/error/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/post/**", "/api/v1/comment/", "/api/v1/tag").permitAll()
-                        .requestMatchers("/api/v1/post/**/comment", "/api/v1/post/**/like", "/api/v1/comment/", "/api/v1/user/me").authenticated()
+                        .requestMatchers("/api/v1/post/{postId}/comment", "/api/v1/post/{postId}/like", "/api/v1/comment/**", "/api/v1/user/me").authenticated()
                         .anyRequest().access(hasScope("admin"))
                 )
                 .sessionManagement(session -> session
