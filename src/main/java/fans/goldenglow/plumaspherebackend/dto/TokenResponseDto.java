@@ -17,6 +17,7 @@ public class TokenResponseDto {
     private TokenDetails refreshToken;
 
     @AllArgsConstructor
+    @Data
     public static class TokenDetails {
         private String token;
         private LocalDateTime expiresAt;
