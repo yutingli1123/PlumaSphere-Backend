@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.config;
 
+import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.SecretService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/init")
                         .access(((authentication, object) -> {
-                            Optional<String> result = configService.get("initialized");
+                            Optional<String> result = configService.get(ConfigField.INITIALIZED);
                             return new AuthorizationDecision(result.isEmpty());
                         }))
                         .requestMatchers("/api/v1/login", "/api/v1/status", "/public/**", "/error/**").permitAll()

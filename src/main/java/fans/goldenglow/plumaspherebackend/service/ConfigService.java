@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.service;
 
+import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.entity.Config;
 import fans.goldenglow.plumaspherebackend.repository.ConfigRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +22,8 @@ public class ConfigService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<String> get(String configKey) {
-        return configRepository.findByConfigKey(configKey).map(Config::getConfigValue);
+    public Optional<String> get(ConfigField configField) {
+        return configRepository.findByConfigKey(configField.name()).map(Config::getConfigValue);
     }
 
     @Transactional(readOnly = true)
