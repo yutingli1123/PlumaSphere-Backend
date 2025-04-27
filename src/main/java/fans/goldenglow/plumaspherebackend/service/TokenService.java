@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -35,23 +37,27 @@ public class TokenService {
         this.algorithm = Algorithm.HMAC256(secretService.getSecret().getEncoded());
     }
 
-    private String generateToken(String userId, long expirationMinutes, List<String> scopes) {
+    private TokenResponseDto.TokenDetails generateToken(String userId, long expirationMinutes, List<String> scopes) {
         Instant now = Instant.now();
-        return JWT
+
+        Instant expireAt = now.plus(expirationMinutes, ChronoUnit.MINUTES);
+
+        String token = JWT
                 .create()
                 .withIssuer(JWT_ISSUER)
                 .withIssuedAt(now)
-                .withExpiresAt(now.plus(expirationMinutes, ChronoUnit.MINUTES))
+                .withExpiresAt(expireAt)
                 .withSubject(userId)
                 .withClaim("scope", String.join(" ", scopes))
                 .sign(algorithm);
+        return new TokenResponseDto.TokenDetails(token, LocalDateTime.ofInstant(expireAt, ZoneId.systemDefault()));
     }
 
     public TokenResponseDto generateTokens(Long userId, List<String> scopes) {
         String userIdStr = userId.toString();
 
-        String accessToken = generateToken(userIdStr, ACCESS_TOKEN_EXPIRATION, scopes);
-        String refreshToken = generateToken(userIdStr, REFRESH_TOKEN_EXPIRATION, List.of("refresh_token"));
+        TokenResponseDto.TokenDetails accessToken = generateToken(userIdStr, ACCESS_TOKEN_EXPIRATION, scopes);
+        TokenResponseDto.TokenDetails refreshToken = generateToken(userIdStr, REFRESH_TOKEN_EXPIRATION, List.of("refresh_token"));
 
         return new TokenResponseDto(accessToken, refreshToken);
     }
