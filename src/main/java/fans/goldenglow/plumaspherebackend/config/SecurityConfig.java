@@ -5,6 +5,7 @@ import fans.goldenglow.plumaspherebackend.service.SecretService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -38,12 +39,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/init")
                         .access(((authentication, object) -> {
-                            Optional<String> result = configService.get("initialled");
+                            Optional<String> result = configService.get("initialized");
                             return new AuthorizationDecision(result.isEmpty());
                         }))
                         .requestMatchers("/api/v1/login", "/api/v1/status", "/public/**", "/error/**").permitAll()
-                        .requestMatchers("/api/v1/admin/**").access(hasScope("admin"))
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/post/**", "/api/v1/comment/", "/api/v1/tag").permitAll()
+                        .requestMatchers("/api/v1/post/**/comment", "/api/v1/post/**/like", "/api/v1/comment/", "/api/v1/user/me").authenticated()
+                        .anyRequest().access(hasScope("admin"))
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

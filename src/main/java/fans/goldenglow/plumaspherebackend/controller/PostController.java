@@ -96,6 +96,5 @@ public class PostController {
         newPost.setTags(tagService.dtoToEntity(postDto.getTags()));
         postService.save(newPost);
         return ResponseEntity.ok().build();
-
     }
 }
