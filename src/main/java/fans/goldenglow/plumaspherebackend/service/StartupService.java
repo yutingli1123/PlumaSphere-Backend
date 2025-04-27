@@ -24,7 +24,6 @@ public class StartupService {
 
     @PostConstruct
     public void init() {
-        String initialized = configService.get(ConfigField.INITIALIZED).orElse("");
         if (configService.get(ConfigField.INITIALIZED).isPresent()) return;
 
         String verificationCode = redisService.get(INITIALIZATION_CODE_KEY);
