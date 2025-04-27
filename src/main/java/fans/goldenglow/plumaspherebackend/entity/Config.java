@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
@@ -27,6 +28,7 @@ public class Config implements Serializable {
     @NotEmpty
     private String configValue;
 
+    @JsonIgnore
     private Boolean isOpenToPublic = false;
 
     public Config(String configKey, String configValue) {
