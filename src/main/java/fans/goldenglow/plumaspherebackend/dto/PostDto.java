@@ -23,9 +23,6 @@ public class PostDto {
 
     private Set<TagDto> tags;
 
-    @JsonProperty("liked_by")
-    private Set<Long> likedBy;
-
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
     @JsonProperty("updated_at")
