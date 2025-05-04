@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -43,8 +44,8 @@ public class PostController {
                         post.getDescription(),
                         post.getAuthor().getId(),
                         post.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
-                        post.getCreatedAt(),
-                        post.getUpdatedAt()))
+                        post.getCreatedAt().atZone(ZoneId.systemDefault()),
+                        post.getUpdatedAt().atZone(ZoneId.systemDefault())))
                 .collect(Collectors.toSet()));
     }
 
@@ -62,8 +63,8 @@ public class PostController {
                 postEntity.getDescription(),
                 postEntity.getAuthor().getId(),
                 postEntity.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
-                postEntity.getCreatedAt(),
-                postEntity.getUpdatedAt());
+                postEntity.getCreatedAt().atZone(ZoneId.systemDefault()),
+                postEntity.getUpdatedAt().atZone(ZoneId.systemDefault()));
         return ResponseEntity.ok(postDto);
     }
 

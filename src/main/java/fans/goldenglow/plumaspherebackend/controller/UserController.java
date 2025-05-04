@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +31,12 @@ public class UserController {
     public ResponseEntity<Set<UserDto>> getAllUsers() {
         List<User> users = userService.findAll();
 
-        Set<UserDto> userDtos = users.stream().map(user -> new UserDto(user.getId(), user.getUsername(), user.getNickname(), user.getAvatarUrl(), user.getDob(), user.getCreatedAt(), user.getUpdatedAt(), user.getLastLoginAt())).collect(java.util.stream.Collectors.toSet());
+        Set<UserDto> userDtos = users.stream().map(user -> new UserDto(user.getId(), user.getUsername(),
+                        user.getNickname(), user.getAvatarUrl(), user.getDob(),
+                        user.getCreatedAt().atZone(ZoneId.systemDefault()),
+                        user.getUpdatedAt().atZone(ZoneId.systemDefault()),
+                        user.getLastLoginAt().atZone(ZoneId.systemDefault())))
+                .collect(java.util.stream.Collectors.toSet());
         return ResponseEntity.ok(userDtos);
     }
 
@@ -40,6 +46,10 @@ public class UserController {
         Optional<User> user = userService.findById(userId);
         if (user.isEmpty()) return ResponseEntity.notFound().build();
         User userEntity = user.get();
-        return ResponseEntity.ok(new UserDto(userEntity.getId(), userEntity.getUsername(), userEntity.getNickname(), userEntity.getAvatarUrl(), userEntity.getDob(), userEntity.getCreatedAt(), userEntity.getUpdatedAt(), userEntity.getLastLoginAt()));
+        return ResponseEntity.ok(new UserDto(userEntity.getId(), userEntity.getUsername(), userEntity.getNickname(),
+                userEntity.getAvatarUrl(), userEntity.getDob(),
+                userEntity.getCreatedAt().atZone(ZoneId.systemDefault()),
+                userEntity.getUpdatedAt().atZone(ZoneId.systemDefault()),
+                userEntity.getLastLoginAt().atZone(ZoneId.systemDefault())));
     }
 }

@@ -60,9 +60,8 @@ public class Comment implements Serializable {
     @JoinColumn(name = "parent_id")
     private Comment parentComment;
 
-    public Comment(String content, LocalDateTime createdAt, User author) {
+    public Comment(String content, User author) {
         this.content = content;
-        this.createdAt = createdAt;
         this.author = author;
     }
 

@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,7 +38,7 @@ public class CommentController {
         if (comment.isEmpty()) return ResponseEntity.notFound().build();
 
         Comment commentEntity = comment.get();
-        CommentDto commentDto = new CommentDto(commentEntity.getId(), commentEntity.getContent(), commentEntity.getCreatedAt(), commentEntity.getAuthor().getId());
+        CommentDto commentDto = new CommentDto(commentEntity.getId(), commentEntity.getContent(), commentEntity.getCreatedAt().atZone(ZoneId.systemDefault()), commentEntity.getAuthor().getId());
         return ResponseEntity.ok(commentDto);
     }
 
@@ -49,7 +49,7 @@ public class CommentController {
 
         Post postEntity = post.get();
         Set<Comment> comment = postEntity.getComments();
-        Set<CommentDto> commentDtos = comment.stream().map(value -> new CommentDto(value.getId(), value.getContent(), value.getCreatedAt(), value.getAuthor().getId())).collect(Collectors.toSet());
+        Set<CommentDto> commentDtos = comment.stream().map(value -> new CommentDto(value.getId(), value.getContent(), value.getCreatedAt().atZone(ZoneId.systemDefault()), value.getAuthor().getId())).collect(Collectors.toSet());
         return ResponseEntity.ok(commentDtos);
     }
 
@@ -66,7 +66,7 @@ public class CommentController {
 
         Post postEntity = post.get();
         User userEntity = user.get();
-        Comment comment = new Comment(commentDto.getContent(), LocalDateTime.now(), userEntity);
+        Comment comment = new Comment(commentDto.getContent(), userEntity);
         postEntity.addComment(comment);
         postService.save(postEntity);
         return ResponseEntity.ok().build();

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 public class TokenResponseDto {
@@ -20,7 +20,7 @@ public class TokenResponseDto {
     @Data
     public static class TokenDetails {
         private String token;
-        private LocalDateTime expiresAt;
+        private ZonedDateTime expiresAt;
     }
 }
 

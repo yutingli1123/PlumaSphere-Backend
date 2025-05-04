@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor
@@ -19,9 +19,9 @@ public class UserDto {
     private String avatarUrl;
     private LocalDate dob;
     @JsonProperty("created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
     @JsonProperty("last_login_at")
-    private LocalDateTime lastLoginAt;
+    private ZonedDateTime lastLoginAt;
 }

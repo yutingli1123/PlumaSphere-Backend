@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +50,7 @@ public class TokenService {
                 .withSubject(userId)
                 .withClaim("scope", String.join(" ", scopes))
                 .sign(algorithm);
-        return new TokenResponseDto.TokenDetails(token, LocalDateTime.ofInstant(expireAt, ZoneId.systemDefault()));
+        return new TokenResponseDto.TokenDetails(token, ZonedDateTime.ofInstant(expireAt, ZoneId.systemDefault()));
     }
 
     public TokenResponseDto generateTokens(Long userId, List<String> scopes) {
