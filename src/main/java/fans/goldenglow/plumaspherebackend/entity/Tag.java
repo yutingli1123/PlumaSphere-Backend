@@ -29,4 +29,8 @@ public class Tag implements Serializable {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    public Tag(String name) {
+        this.name = name;
+    }
 }

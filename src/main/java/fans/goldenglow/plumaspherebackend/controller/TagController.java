@@ -27,8 +27,7 @@ public class TagController {
 
     @PostMapping
     public ResponseEntity<Void> addTag(@RequestBody TagDto tagDto) {
-        Tag tag = new Tag();
-        tag.setName(tagDto.getName());
+        Tag tag = new Tag(tagDto.getName());
         tagService.save(tag);
         return ResponseEntity.ok().build();
     }
