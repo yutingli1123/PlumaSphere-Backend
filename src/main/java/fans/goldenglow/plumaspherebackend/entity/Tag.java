@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,9 +16,11 @@ import java.io.Serializable;
 @Table(name = "pluma_tag", indexes = @Index(name = "idx_tag_name", columnList = "name", unique = true))
 public class Tag implements Serializable {
     @Serial
+    @JsonIgnore
     private static final long serialVersionUID = 1L;
 
     @Version
+    @JsonIgnore
     private Long version;
 
     @Id
