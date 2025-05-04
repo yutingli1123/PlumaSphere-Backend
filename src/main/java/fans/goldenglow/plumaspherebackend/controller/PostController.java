@@ -42,10 +42,7 @@ public class PostController {
                         null,
                         post.getDescription(),
                         post.getAuthor().getId(),
-                        post.getTags().stream()
-                                .map(tag -> new TagDto(tag.getId(), tag.getName()))
-                                .collect(Collectors.toSet()),
-                        null,
+                        post.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
                         post.getCreatedAt(),
                         post.getUpdatedAt()))
                 .collect(Collectors.toSet()));
@@ -65,7 +62,6 @@ public class PostController {
                 postEntity.getDescription(),
                 postEntity.getAuthor().getId(),
                 postEntity.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
-                postEntity.getLikedBy().stream().map(User::getId).collect(Collectors.toSet()),
                 postEntity.getCreatedAt(),
                 postEntity.getUpdatedAt());
         return ResponseEntity.ok(postDto);

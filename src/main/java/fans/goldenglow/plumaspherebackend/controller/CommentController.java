@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -32,15 +33,24 @@ public class CommentController {
     }
 
     @GetMapping("/comment/{commentId}")
-    public ResponseEntity<Comment> getComment(@PathVariable Long commentId) {
+    public ResponseEntity<CommentDto> getComment(@PathVariable Long commentId) {
         Optional<Comment> comment = commentService.findById(commentId);
-        return comment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        if (comment.isEmpty()) return ResponseEntity.notFound().build();
+
+        Comment commentEntity = comment.get();
+        CommentDto commentDto = new CommentDto(commentEntity.getId(), commentEntity.getContent(), commentEntity.getCreatedAt(), commentEntity.getAuthor().getId());
+        return ResponseEntity.ok(commentDto);
     }
 
     @GetMapping("/post/{postId}/comment")
-    public ResponseEntity<Set<Comment>> getComments(@PathVariable Long postId) {
+    public ResponseEntity<Set<CommentDto>> getComments(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
-        return post.map(value -> ResponseEntity.ok(value.getComments())).orElseGet(() -> ResponseEntity.notFound().build());
+        if (post.isEmpty()) return ResponseEntity.notFound().build();
+
+        Post postEntity = post.get();
+        Set<Comment> comment = postEntity.getComments();
+        Set<CommentDto> commentDtos = comment.stream().map(value -> new CommentDto(value.getId(), value.getContent(), value.getCreatedAt(), value.getAuthor().getId())).collect(Collectors.toSet());
+        return ResponseEntity.ok(commentDtos);
     }
 
     @PostMapping("/post/{postId}/comment")

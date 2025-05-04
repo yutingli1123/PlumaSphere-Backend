@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @CrossOrigin
@@ -27,12 +27,10 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
+    public ResponseEntity<Set<UserDto>> getAllUsers() {
         List<User> users = userService.findAll();
-        List<UserDto> userDtos = new ArrayList<>();
-        for (User user : users) {
-            userDtos.add(new UserDto(user.getUsername(), user.getNickname(), user.getDob()));
-        }
+
+        Set<UserDto> userDtos = users.stream().map(user -> new UserDto(user.getId(), user.getUsername(), user.getNickname(), user.getAvatarUrl(), user.getDob(), user.getCreatedAt(), user.getUpdatedAt(), user.getLastLoginAt())).collect(java.util.stream.Collectors.toSet());
         return ResponseEntity.ok(userDtos);
     }
 
@@ -42,6 +40,6 @@ public class UserController {
         Optional<User> user = userService.findById(userId);
         if (user.isEmpty()) return ResponseEntity.notFound().build();
         User userEntity = user.get();
-        return ResponseEntity.ok(new UserDto(userEntity.getUsername(), userEntity.getNickname(), userEntity.getDob()));
+        return ResponseEntity.ok(new UserDto(userEntity.getId(), userEntity.getUsername(), userEntity.getNickname(), userEntity.getAvatarUrl(), userEntity.getDob(), userEntity.getCreatedAt(), userEntity.getUpdatedAt(), userEntity.getLastLoginAt()));
     }
 }

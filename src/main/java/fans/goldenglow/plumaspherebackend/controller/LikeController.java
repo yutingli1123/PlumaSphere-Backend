@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.dto.LikeDto;
 import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -30,13 +32,27 @@ public class LikeController {
     }
 
     @GetMapping("/post/{postId}/like")
-    public ResponseEntity<Set<User>> getLikes(@PathVariable Long postId) {
+    public ResponseEntity<Set<LikeDto>> getLikes(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
-        return post.map(value -> ResponseEntity.ok(value.getLikedBy())).orElseGet(() -> ResponseEntity.notFound().build());
+        if (post.isEmpty()) return ResponseEntity.notFound().build();
+
+        Post postEntity = post.get();
+        Set<LikeDto> likes = postEntity.getLikedBy().stream().map(value -> new LikeDto(value.getId(), value.getUsername())).collect(Collectors.toSet());
+        return ResponseEntity.ok(likes);
+    }
+
+    @GetMapping("/comment/{commentId}/like")
+    public ResponseEntity<Set<LikeDto>> getCommentLikes(@PathVariable Long commentId) {
+        Optional<Comment> comment = commentService.findById(commentId);
+        if (comment.isEmpty()) return ResponseEntity.notFound().build();
+
+        Comment commentEntity = comment.get();
+        Set<LikeDto> likes = commentEntity.getLikedBy().stream().map(value -> new LikeDto(value.getId(), value.getUsername())).collect(Collectors.toSet());
+        return ResponseEntity.ok(likes);
     }
 
     @PostMapping("/post/{postId}/like")
-    public ResponseEntity<Void> postLike(@PathVariable Long postId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
 
@@ -55,7 +71,7 @@ public class LikeController {
     }
 
     @PostMapping("/comment/{commentId}/like")
-    public ResponseEntity<Void> commentLike(@PathVariable Long commentId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> likeComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
 
