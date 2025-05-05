@@ -4,7 +4,6 @@ import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.SecretService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -30,13 +29,13 @@ import static org.springframework.security.oauth2.core.authorization.OAuth2Autho
 public class SecurityConfig {
     private final SecretService secretService;
     private final ConfigService configService;
-    private final String[] allowedOrigin;
+    private final CorsProperties corsProperties;
 
     @Autowired
-    public SecurityConfig(SecretService secretService, ConfigService configService, @Value("${config.cors.allowed_origins}") String[] allowedOrigin) {
+    public SecurityConfig(SecretService secretService, ConfigService configService, CorsProperties corsProperties) {
         this.secretService = secretService;
         this.configService = configService;
-        this.allowedOrigin = allowedOrigin;
+        this.corsProperties = corsProperties;
     }
 
     @Bean
@@ -67,7 +66,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(allowedOrigin));
+        configuration.setAllowedOrigins(corsProperties.getAllowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

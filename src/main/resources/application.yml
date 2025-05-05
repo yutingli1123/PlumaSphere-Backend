@@ -10,4 +10,5 @@ config:
       access_token: 5
       refresh_token: 15
   cors:
-    allowed_origins: [ ]
+    allowed_origins:
+      - http://example.com
