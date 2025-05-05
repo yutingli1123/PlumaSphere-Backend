@@ -14,4 +14,5 @@ public class CommentDto {
     private String content;
     private ZonedDateTime createdAt;
     private Long authorId;
+    private String authorNickname;
 }

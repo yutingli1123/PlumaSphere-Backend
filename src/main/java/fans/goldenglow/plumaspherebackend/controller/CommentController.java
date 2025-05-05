@@ -38,7 +38,9 @@ public class CommentController {
         if (comment.isEmpty()) return ResponseEntity.notFound().build();
 
         Comment commentEntity = comment.get();
-        CommentDto commentDto = new CommentDto(commentEntity.getId(), commentEntity.getContent(), commentEntity.getCreatedAt().atZone(ZoneId.systemDefault()), commentEntity.getAuthor().getId());
+        User author = commentEntity.getAuthor();
+        CommentDto commentDto = new CommentDto(commentEntity.getId(), commentEntity.getContent(),
+                commentEntity.getCreatedAt().atZone(ZoneId.systemDefault()), author.getId(), author.getNickname());
         return ResponseEntity.ok(commentDto);
     }
 
@@ -49,7 +51,12 @@ public class CommentController {
 
         Post postEntity = post.get();
         Set<Comment> comment = postEntity.getComments();
-        Set<CommentDto> commentDtos = comment.stream().map(value -> new CommentDto(value.getId(), value.getContent(), value.getCreatedAt().atZone(ZoneId.systemDefault()), value.getAuthor().getId())).collect(Collectors.toSet());
+        Set<CommentDto> commentDtos = comment.stream().map(value -> {
+            User author = value.getAuthor();
+            return new CommentDto(value.getId(),
+                    value.getContent(), value.getCreatedAt().atZone(ZoneId.systemDefault()),
+                    author.getId(), author.getNickname());
+        }).collect(Collectors.toSet());
         return ResponseEntity.ok(commentDtos);
     }
 
