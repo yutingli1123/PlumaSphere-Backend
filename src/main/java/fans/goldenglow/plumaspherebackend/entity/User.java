@@ -39,6 +39,7 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String password;
     private String nickname;
+    private String bio;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRoles role;
