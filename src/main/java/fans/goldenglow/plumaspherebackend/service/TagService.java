@@ -35,6 +35,7 @@ public class TagService {
 
     @Transactional
     public Set<Tag> dtoToEntity(Set<TagDto> tagDtos) {
+        if (tagDtos == null || tagDtos.isEmpty()) return Set.of();
         return tagDtos.stream().map(tagDto -> {
             Optional<Tag> tag = tagRepository.findById(tagDto.getId());
             if (tag.isPresent()) {
