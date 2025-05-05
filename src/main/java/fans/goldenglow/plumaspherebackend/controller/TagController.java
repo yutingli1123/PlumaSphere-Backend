@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -21,8 +23,10 @@ public class TagController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Tag>> getAllTags() {
-        return ResponseEntity.ok(tagService.findAll());
+    public ResponseEntity<Set<TagDto>> getAllTags() {
+        List<Tag> tags = tagService.findAll();
+        Set<TagDto> setDtos = tags.stream().map(tag -> new TagDto(tag.getId(), tag.getName(), tag.getPosts().size())).collect(Collectors.toSet());
+        return ResponseEntity.ok(setDtos);
     }
 
     @PostMapping
