@@ -11,4 +11,5 @@ public class InitDto {
     public String blogSubtitle;
     public String adminUsername;
     public String adminPassword;
+    public String adminNickname;
 }

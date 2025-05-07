@@ -54,7 +54,7 @@ public class SystemController {
             boolean verified = verify(verificationCode);
             if (!verified) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-            User user = new User(initDto.adminUsername, passwordService.encodePassword(initDto.adminPassword));
+            User user = new User(initDto.adminUsername, passwordService.encodePassword(initDto.adminPassword), initDto.getAdminNickname());
             user.setRole(UserRoles.ADMIN);
             userService.save(user);
             configService.set(ConfigField.BLOG_TITLE, initDto.getBlogTitle());
