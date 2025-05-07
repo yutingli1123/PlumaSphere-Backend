@@ -7,6 +7,7 @@ import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.PasswordService;
 import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
+import fans.goldenglow.plumaspherebackend.util.RandomUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +58,16 @@ public class LoginController {
     public ResponseEntity<TokenResponseDto> refreshToken(@RequestBody String refreshToken) {
         TokenResponseDto responseDto = tokenService.refreshToken(refreshToken);
         if (responseDto == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("/get-identity")
+    public ResponseEntity<TokenResponseDto> getIdentity() {
+        String username = RandomUtil.generateRandomUsername();
+        while (userService.existByUsername(username)) username = RandomUtil.generateRandomUsername();
+        User user = new User(username, passwordService.generateRandomPassword());
+        userService.save(user);
+        TokenResponseDto responseDto = tokenService.generateTokens(user.getId(), List.of(user.getRole().toString().toLowerCase()));
         return ResponseEntity.ok(responseDto);
     }
 

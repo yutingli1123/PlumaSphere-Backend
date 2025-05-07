@@ -24,6 +24,7 @@ repositories {
 }
 
 dependencies {
+	implementation 'com.oblac:nomen-est-omen:2.2.1'
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
 	implementation 'org.springframework.security:spring-security-oauth2-resource-server'
 	implementation 'org.springframework.boot:spring-boot-starter-web'

@@ -12,8 +12,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
@@ -62,5 +64,14 @@ public class User implements Serializable {
         this.username = username;
         this.password = password;
         this.nickname = nickname;
+    }
+
+    public User(String username, String password) {
+        this.username = username;
+        this.nickname = Arrays.stream(username.split("_"))
+                .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
+                .collect(Collectors.joining(" "));
+        this.role = UserRoles.REGULAR;
+        this.password = password;
     }
 }

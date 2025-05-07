@@ -35,6 +35,11 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    @Transactional(readOnly = true)
+    public boolean existByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
     @Transactional
     public void save(User user) {
         userRepository.save(user);
