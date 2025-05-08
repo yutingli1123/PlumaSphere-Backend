@@ -8,6 +8,7 @@ import fans.goldenglow.plumaspherebackend.service.PasswordService;
 import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import fans.goldenglow.plumaspherebackend.util.RandomUtil;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +63,7 @@ public class LoginController {
     }
 
     @GetMapping("/get-identity")
+    @RateLimiter(name = "get-identity", fallbackMethod = "getIdentityFallback")
     public ResponseEntity<TokenResponseDto> getIdentity() {
         String username = RandomUtil.generateRandomUsername();
         while (userService.existByUsername(username)) username = RandomUtil.generateRandomUsername();
@@ -69,6 +71,10 @@ public class LoginController {
         userService.save(user);
         TokenResponseDto responseDto = tokenService.generateTokens(user.getId(), List.of(user.getRole().toString().toLowerCase()));
         return ResponseEntity.ok(responseDto);
+    }
+
+    public ResponseEntity<String> getIdentityFallback(Exception exception) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("API rate limit reached. The service is currently experiencing high demand. Please try again later.");
     }
 
 }

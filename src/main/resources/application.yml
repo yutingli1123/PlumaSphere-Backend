@@ -12,3 +12,11 @@ config:
   cors:
     allowed_origins:
       - http://example.com
+resilience4j:
+  ratelimiter:
+    instances:
+      get-identity:
+        limitForPeriod: 10
+        limitRefreshPeriod: 1s
+        timeoutDuration: 10ms
+        registerHealthIndicator: true
