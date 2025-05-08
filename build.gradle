@@ -24,6 +24,9 @@ repositories {
 }
 
 dependencies {
+	implementation "io.github.resilience4j:resilience4j-spring-boot3:2.2.0"
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	implementation "org.springframework.boot:spring-boot-starter-aop"
 	implementation 'com.oblac:nomen-est-omen:2.2.1'
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
 	implementation 'org.springframework.security:spring-security-oauth2-resource-server'
