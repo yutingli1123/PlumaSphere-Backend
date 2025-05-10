@@ -37,11 +37,6 @@ public class SystemController {
         this.userService = userService;
     }
 
-    @GetMapping("/check-token-validation")
-    public ResponseEntity<Void> validateToken() {
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/status")
     public ResponseEntity<List<Config>> getStatus(JwtAuthenticationToken token) {
         if (token != null) {
