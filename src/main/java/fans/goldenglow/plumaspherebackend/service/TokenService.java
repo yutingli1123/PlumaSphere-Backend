@@ -63,21 +63,26 @@ public class TokenService {
     }
 
     public TokenResponseDto refreshToken(String refreshTokenValue) {
-        JWTVerifier jwtVerifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).build();
-        DecodedJWT decodedJWT = jwtVerifier.verify(refreshTokenValue);
+        try {
+            JWTVerifier jwtVerifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).build();
+            DecodedJWT decodedJWT = jwtVerifier.verify(refreshTokenValue);
 
-        String scopeValue = decodedJWT.getClaim("scope").asString();
-        if (scopeValue == null || !scopeValue.contains("refresh_token")) return null;
+            String scopeValue = decodedJWT.getClaim("scope").asString();
+            if (scopeValue == null || !scopeValue.contains("refresh_token")) return null;
 
-        String userId = decodedJWT.getSubject();
+            String userId = decodedJWT.getSubject();
 
-        Optional<User> user = userService.findById(Long.parseLong(userId));
-        if (user.isEmpty()) return null;
+            Optional<User> user = userService.findById(Long.parseLong(userId));
+            if (user.isEmpty()) return null;
 
-        User userEntity = user.get();
+            User userEntity = user.get();
 
-        UserRoles userRole = userEntity.getRole();
+            UserRoles userRole = userEntity.getRole();
 
-        return generateTokens(Long.parseLong(userId), List.of(userRole.toString().toLowerCase()));
+            return generateTokens(Long.parseLong(userId), List.of(userRole.toString().toLowerCase()));
+        } catch (Exception e) {
+            log.error("Failed to verify refresh token", e);
+            return null;
+        }
     }
 }
