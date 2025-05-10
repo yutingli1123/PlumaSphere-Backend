@@ -8,7 +8,7 @@ config:
     iss: your_iss
     expiration:
       access_token: 5
-      refresh_token: 15
+      refresh_token: 0
   cors:
     allowed_origins:
       - http://example.com

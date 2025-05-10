@@ -39,18 +39,28 @@ public class TokenService {
 
     private TokenResponseDto.TokenDetails generateToken(String userId, long expirationMinutes, List<String> scopes) {
         Instant now = Instant.now();
+        if (expirationMinutes != 0) {
+            Instant expireAt = now.plus(expirationMinutes, ChronoUnit.MINUTES);
 
-        Instant expireAt = now.plus(expirationMinutes, ChronoUnit.MINUTES);
-
-        String token = JWT
-                .create()
-                .withIssuer(JWT_ISSUER)
-                .withIssuedAt(now)
-                .withExpiresAt(expireAt)
-                .withSubject(userId)
-                .withClaim("scope", String.join(" ", scopes))
-                .sign(algorithm);
-        return new TokenResponseDto.TokenDetails(token, ZonedDateTime.ofInstant(expireAt, ZoneId.systemDefault()));
+            String token = JWT
+                    .create()
+                    .withIssuer(JWT_ISSUER)
+                    .withIssuedAt(now)
+                    .withExpiresAt(expireAt)
+                    .withSubject(userId)
+                    .withClaim("scope", String.join(" ", scopes))
+                    .sign(algorithm);
+            return new TokenResponseDto.TokenDetails(token, ZonedDateTime.ofInstant(expireAt, ZoneId.systemDefault()));
+        } else {
+            String token = JWT
+                    .create()
+                    .withIssuer(JWT_ISSUER)
+                    .withIssuedAt(now)
+                    .withSubject(userId)
+                    .withClaim("scope", String.join(" ", scopes))
+                    .sign(algorithm);
+            return new TokenResponseDto.TokenDetails(token, null);
+        }
     }
 
     public TokenResponseDto generateTokens(Long userId, List<String> scopes) {
