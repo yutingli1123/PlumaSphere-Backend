@@ -49,9 +49,9 @@ public class SecurityConfig {
                             Optional<String> result = configService.get(ConfigField.INITIALIZED);
                             return new AuthorizationDecision(result.isEmpty());
                         }))
-                        .requestMatchers("/api/v1/login", "/api/v1/status", "/public/**", "/error/**", "/api/v1/get-identity").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/post/**", "/api/v1/comment/", "/api/v1/tag", "/api/v1/user/{userId}").permitAll()
-                        .requestMatchers("/api/v1/post/{postId}/comment", "/api/v1/post/{postId}/like", "/api/v1/comment/**", "/api/v1/user/me").authenticated()
+                        .requestMatchers("/api/v1/login", "/api/v1/status", "/public/**", "/error/**", "/api/v1/get-identity", "/api/v1/refresh-token").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/post/**", "/api/v1/comment/**", "/api/v1/tag", "/api/v1/user/{userId}").permitAll()
+                        .requestMatchers("/api/v1/post/{postId}/comment", "/api/v1/post/{postId}/like", "/api/v1/comment/**", "/api/v1/user/me", "/api/v1/check-token-validation").authenticated()
                         .anyRequest().access(hasScope("admin"))
                 )
                 .sessionManagement(session -> session
