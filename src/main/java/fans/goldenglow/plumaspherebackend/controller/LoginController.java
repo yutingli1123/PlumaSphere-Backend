@@ -1,6 +1,7 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
+import fans.goldenglow.plumaspherebackend.dto.StringDto;
 import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
 import fans.goldenglow.plumaspherebackend.dto.UserLoginDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
@@ -56,7 +57,8 @@ public class LoginController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<TokenResponseDto> refreshToken(@RequestBody String refreshToken) {
+    public ResponseEntity<TokenResponseDto> refreshToken(@RequestBody StringDto dto) {
+        String refreshToken = dto.getValue();
         TokenResponseDto responseDto = tokenService.refreshToken(refreshToken);
         if (responseDto == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(responseDto);

@@ -3,6 +3,7 @@ package fans.goldenglow.plumaspherebackend.controller;
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.dto.InitDto;
+import fans.goldenglow.plumaspherebackend.dto.StringDto;
 import fans.goldenglow.plumaspherebackend.entity.Config;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
@@ -75,7 +76,8 @@ public class SystemController {
     }
 
     @PostMapping("/init/verify-code")
-    public ResponseEntity<Boolean> verifyCode(@RequestBody String verifyCode) {
+    public ResponseEntity<Boolean> verifyCode(@RequestBody StringDto dto) {
+        String verifyCode = dto.getValue();
         try {
             return ResponseEntity.ok(verify(verifyCode));
         } catch (IllegalStateException e) {
