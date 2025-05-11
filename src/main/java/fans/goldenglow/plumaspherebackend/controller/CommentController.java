@@ -10,6 +10,7 @@ import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
@@ -45,6 +46,7 @@ public class CommentController {
     }
 
     @GetMapping("/post/{postId}/comment")
+    @Transactional(readOnly = true)
     public ResponseEntity<Set<CommentDto>> getComments(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
         if (post.isEmpty()) return ResponseEntity.notFound().build();
@@ -61,6 +63,7 @@ public class CommentController {
     }
 
     @PostMapping("/post/{postId}/comment")
+    @Transactional
     public ResponseEntity<Void> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
         Optional<Post> post = postService.findById(postId);
 
