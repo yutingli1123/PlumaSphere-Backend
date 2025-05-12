@@ -21,10 +21,10 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-//    @Transactional(readOnly = true)
-//    public List<Post> findAll() {
-//        return postRepository.findAll();
-//    }
+    @Transactional(readOnly = true)
+    public long countPosts() {
+        return postRepository.count();
+    }
 
     @Transactional(readOnly = true)
     public Page<Post> findAll(Pageable pageable) {

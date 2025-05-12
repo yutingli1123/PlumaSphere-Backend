@@ -57,6 +57,12 @@ public class PostController {
                 .collect(Collectors.toList()));
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long> getPostsCount() {
+        long count = postService.countPosts();
+        return ResponseEntity.ok(count);
+    }
+
     @GetMapping("/{postId}")
     public ResponseEntity<PostDto> getPost(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
