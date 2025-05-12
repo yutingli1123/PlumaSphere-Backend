@@ -12,12 +12,12 @@ import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +42,7 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<List<PostDto>> getPosts(@RequestParam int page) {
-        Page<Post> postsPage = postService.findAll(PageRequest.of(page, pageSize));
+        Page<Post> postsPage = postService.findAll(PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
         return ResponseEntity.ok(postsPage.getContent().stream()
                 .map(post -> new PostDto(
                         post.getId(),
@@ -53,7 +53,6 @@ public class PostController {
                         post.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
                         post.getCreatedAt().atZone(ZoneId.systemDefault()),
                         post.getUpdatedAt().atZone(ZoneId.systemDefault())))
-                .sorted(Comparator.comparing(PostDto::getCreatedAt).reversed())
                 .collect(Collectors.toList()));
     }
 
