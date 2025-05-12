@@ -13,9 +13,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,7 +34,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<Set<PostDto>> getPosts() {
+    public ResponseEntity<List<PostDto>> getPosts() {
         List<Post> posts = postService.findAll();
         return ResponseEntity.ok(posts.stream()
                 .map(post -> new PostDto(
@@ -46,7 +46,8 @@ public class PostController {
                         post.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
                         post.getCreatedAt().atZone(ZoneId.systemDefault()),
                         post.getUpdatedAt().atZone(ZoneId.systemDefault())))
-                .collect(Collectors.toSet()));
+                .sorted(Comparator.comparing(PostDto::getCreatedAt).reversed())
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/{postId}")
