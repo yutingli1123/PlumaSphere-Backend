@@ -1,13 +1,17 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.dto.PostDto;
 import fans.goldenglow.plumaspherebackend.dto.TagDto;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.TagService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -25,18 +29,21 @@ public class PostController {
     private final PostService postService;
     private final UserService userService;
     private final TagService tagService;
+    private final int pageSize;
 
     @Autowired
-    public PostController(PostService postService, UserService userService, TagService tagService) {
+    public PostController(PostService postService, UserService userService, TagService tagService, ConfigService configService) {
         this.postService = postService;
         this.userService = userService;
         this.tagService = tagService;
+        Optional<String> pageSizeConfig = configService.get(ConfigField.PAGE_SIZE);
+        pageSize = pageSizeConfig.map(Integer::parseInt).orElse(5);
     }
 
     @GetMapping
-    public ResponseEntity<List<PostDto>> getPosts() {
-        List<Post> posts = postService.findAll();
-        return ResponseEntity.ok(posts.stream()
+    public ResponseEntity<List<PostDto>> getPosts(@RequestParam int page) {
+        Page<Post> postsPage = postService.findAll(PageRequest.of(page, pageSize));
+        return ResponseEntity.ok(postsPage.getContent().stream()
                 .map(post -> new PostDto(
                         post.getId(),
                         post.getTitle(),

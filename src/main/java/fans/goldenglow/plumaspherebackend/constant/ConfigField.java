@@ -1,5 +1,5 @@
 package fans.goldenglow.plumaspherebackend.constant;
 
 public enum ConfigField {
-    INITIALIZED, BLOG_TITLE, BLOG_SUBTITLE
+    INITIALIZED, BLOG_TITLE, BLOG_SUBTITLE, PAGE_SIZE
 }
