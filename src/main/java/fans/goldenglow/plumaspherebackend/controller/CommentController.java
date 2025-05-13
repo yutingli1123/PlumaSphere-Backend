@@ -16,8 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -51,18 +52,18 @@ public class CommentController {
 
     @GetMapping("/post/{postId}/comment")
     @Transactional(readOnly = true)
-    public ResponseEntity<Set<CommentDto>> getComments(@PathVariable Long postId) {
+    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
         if (post.isEmpty()) return ResponseEntity.notFound().build();
 
         Post postEntity = post.get();
-        Set<Comment> comment = postEntity.getComments();
-        Set<CommentDto> commentDtos = comment.stream().map(value -> {
+        List<Comment> comment = postEntity.getComments();
+        List<CommentDto> commentDtos = comment.stream().map(value -> {
             User author = value.getAuthor();
             return new CommentDto(value.getId(),
                     value.getContent(), value.getCreatedAt().atZone(ZoneId.systemDefault()),
                     author.getId(), author.getNickname());
-        }).collect(Collectors.toSet());
+        }).sorted(Comparator.comparing(CommentDto::getCreatedAt).reversed()).collect(Collectors.toList());
         return ResponseEntity.ok(commentDtos);
     }
 
