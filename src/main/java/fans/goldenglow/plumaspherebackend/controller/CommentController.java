@@ -1,9 +1,11 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
 import fans.goldenglow.plumaspherebackend.dto.CommentDto;
 import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import fans.goldenglow.plumaspherebackend.handler.WebSocketHandler;
 import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
@@ -25,12 +27,14 @@ public class CommentController {
     private final PostService postService;
     private final CommentService commentService;
     private final UserService userService;
+    private final WebSocketHandler webSocketHandler;
 
     @Autowired
-    public CommentController(PostService postService, CommentService commentService, UserService userService) {
+    public CommentController(PostService postService, CommentService commentService, UserService userService, WebSocketHandler webSocketHandler) {
         this.postService = postService;
         this.commentService = commentService;
         this.userService = userService;
+        this.webSocketHandler = webSocketHandler;
     }
 
     @GetMapping("/comment/{commentId}")
@@ -79,6 +83,9 @@ public class CommentController {
         Comment comment = new Comment(commentDto.getContent(), userEntity);
         postEntity.addComment(comment);
         postService.save(postEntity);
+
+        webSocketHandler.sendMessageToPost(postId, WebSocketMessageType.NEW_COMMENT);
+
         return ResponseEntity.ok().build();
     }
 }
