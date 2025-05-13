@@ -21,6 +21,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler, "/ws").setAllowedOrigins(String.valueOf(corsProperties.getAllowedOrigins()));
+        registry.addHandler(webSocketHandler, "/ws")
+                .setAllowedOrigins(corsProperties.getAllowedOrigins().toArray(String[]::new))
+                .withSockJS();
     }
 }

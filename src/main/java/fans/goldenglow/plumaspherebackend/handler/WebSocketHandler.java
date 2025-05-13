@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.handler;
 
+import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
 import io.micrometer.common.lang.NonNullApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -44,13 +45,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    public void sendMessageToPost(Long postId, String message) {
+    public void sendMessageToPost(Long postId, WebSocketMessageType message) {
         CopyOnWriteArraySet<WebSocketSession> webSocketSessions = webSocketSessionMap.get(postId);
         if (webSocketSessions != null) {
             for (WebSocketSession session : webSocketSessions) {
                 if (session.isOpen()) {
                     try {
-                        session.sendMessage(new TextMessage(message));
+                        session.sendMessage(new TextMessage(message.toString()));
                     } catch (IOException e) {
                         log.warn("WebSocket: ", e);
                     }
