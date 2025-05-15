@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
 import fans.goldenglow.plumaspherebackend.dto.CommentDto;
 import fans.goldenglow.plumaspherebackend.entity.Comment;
@@ -7,16 +8,19 @@ import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.handler.WebSocketHandler;
 import fans.goldenglow.plumaspherebackend.service.CommentService;
+import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,13 +33,16 @@ public class CommentController {
     private final CommentService commentService;
     private final UserService userService;
     private final WebSocketHandler webSocketHandler;
+    private final int pageSize;
 
     @Autowired
-    public CommentController(PostService postService, CommentService commentService, UserService userService, WebSocketHandler webSocketHandler) {
+    public CommentController(PostService postService, CommentService commentService, UserService userService, WebSocketHandler webSocketHandler, ConfigService configService) {
         this.postService = postService;
         this.commentService = commentService;
         this.userService = userService;
         this.webSocketHandler = webSocketHandler;
+        Optional<String> pageSizeConfig = configService.get(ConfigField.PAGE_SIZE);
+        pageSize = pageSizeConfig.map(Integer::parseInt).orElse(5);
     }
 
     @GetMapping("/comment/{commentId}")
@@ -52,19 +59,20 @@ public class CommentController {
 
     @GetMapping("/post/{postId}/comment")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long postId) {
-        Optional<Post> post = postService.findById(postId);
-        if (post.isEmpty()) return ResponseEntity.notFound().build();
-
-        Post postEntity = post.get();
-        List<Comment> comment = postEntity.getComments();
-        List<CommentDto> commentDtos = comment.stream().map(value -> {
+    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long postId, @RequestParam int page) {
+        Page<Comment> comments = commentService.findByPostId(postId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return ResponseEntity.ok(comments.getContent().stream().map(value -> {
             User author = value.getAuthor();
             return new CommentDto(value.getId(),
                     value.getContent(), value.getCreatedAt().atZone(ZoneId.systemDefault()),
                     author.getId(), author.getNickname());
-        }).sorted(Comparator.comparing(CommentDto::getCreatedAt).reversed()).collect(Collectors.toList());
-        return ResponseEntity.ok(commentDtos);
+        }).collect(Collectors.toList()));
+    }
+
+    @GetMapping("/post/{postId}/comment/count")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Long> getCommentsCount(@PathVariable Long postId) {
+        return ResponseEntity.ok(commentService.countByPostId(postId));
     }
 
     @PostMapping("/post/{postId}/comment")

@@ -4,6 +4,8 @@ import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.repository.CommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,16 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Optional<Comment> findById(Long id) {
         return commentRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Comment> findByPostId(Long postId, Pageable pageable) {
+        return commentRepository.findByPostId(postId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public long countByPostId(Long postId) {
+        return commentRepository.countByPostId(postId);
     }
 
     @Transactional
