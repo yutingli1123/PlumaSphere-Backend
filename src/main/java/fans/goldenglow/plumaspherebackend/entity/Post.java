@@ -70,12 +70,6 @@ public class Post implements Serializable {
     @Column(updatable = false)
     private LocalDateTime updatedAt;
 
-    public Post(String title, String content, User author) {
-        this.title = title;
-        this.content = content;
-        this.author = author;
-    }
-
     public void addComment(Comment comment) {
         comments.add(comment);
         comment.setPost(this);
