@@ -32,6 +32,7 @@ public class LikeCacheService {
         this.userService = userService;
     }
 
+    @Transactional(readOnly = true)
     public Set<Long> getPostLikes(long postId) {
         String key = POST_LIKES_KEY + postId;
 
@@ -42,6 +43,7 @@ public class LikeCacheService {
         return stringSetToLongSet(redisService.getSetMembers(key));
     }
 
+    @Transactional(readOnly = true)
     public Set<Long> getCommentLikes(long commentId) {
         String key = COMMENT_LIKES_KEY + commentId;
 
@@ -52,6 +54,7 @@ public class LikeCacheService {
         return stringSetToLongSet(redisService.getSetMembers(key));
     }
 
+    @Transactional(readOnly = true)
     public long getPostLikesCount(long postId) {
         String key = POST_LIKES_KEY + postId;
 
@@ -64,6 +67,7 @@ public class LikeCacheService {
         return count != null ? count : 0L;
     }
 
+    @Transactional(readOnly = true)
     public long getCommentLikesCount(Long commentId) {
         String key = COMMENT_LIKES_KEY + commentId;
 
@@ -102,7 +106,6 @@ public class LikeCacheService {
         redisService.removeFromSet(key, userId.toString());
     }
 
-    @Transactional(readOnly = true)
     protected Set<Long> loadPostLikesToRedis(Long postId) {
         String key = POST_LIKES_KEY + postId;
         return postService.findById(postId)
@@ -110,7 +113,6 @@ public class LikeCacheService {
                 .orElse(new HashSet<>());
     }
 
-    @Transactional(readOnly = true)
     protected Set<Long> loadCommentLikesToRedis(Long commentId) {
         String key = COMMENT_LIKES_KEY + commentId;
         return commentService.findById(commentId)
