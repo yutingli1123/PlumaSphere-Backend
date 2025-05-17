@@ -82,7 +82,7 @@ public class LikeCacheService {
     }
 
     public void switchPostLike(Long postId, Long userId) {
-        if (!redisService.existsInSet(POST_LIKES_LOADED, postId.toString())) loadPostLikesToRedis(postId);
+        ensurePostLikesLoaded(postId);
 
         String key = POST_LIKES_KEY + postId;
         if (redisService.existsInSet(key, userId.toString())) {
@@ -93,7 +93,7 @@ public class LikeCacheService {
     }
 
     public void switchCommentLike(Long commentId, Long userId) {
-        if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) loadCommentLikesToRedis(commentId);
+        ensureCommentLikesLoaded(commentId);
 
         String key = COMMENT_LIKES_KEY + commentId;
         if (redisService.existsInSet(key, userId.toString())) {
@@ -104,20 +104,20 @@ public class LikeCacheService {
     }
 
     public boolean isPostLiked(Long postId, Long userId) {
-        if (!redisService.existsInSet(POST_LIKES_LOADED, postId.toString())) loadPostLikesToRedis(postId);
+        ensurePostLikesLoaded(postId);
 
         String key = POST_LIKES_KEY + postId;
         return redisService.existsInSet(key, userId.toString());
     }
 
     public boolean isCommentLiked(Long commentId, Long userId) {
-        if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) loadCommentLikesToRedis(commentId);
+        ensureCommentLikesLoaded(commentId);
 
         String key = COMMENT_LIKES_KEY + commentId;
         return redisService.existsInSet(key, userId.toString());
     }
 
-    protected Set<Long> loadPostLikesToRedis(Long postId) {
+    private Set<Long> loadPostLikesToRedis(Long postId) {
         redisService.addToSet(POST_LIKES_LOADED, postId.toString());
 
         String key = POST_LIKES_KEY + postId;
@@ -126,13 +126,25 @@ public class LikeCacheService {
                 .orElse(new HashSet<>());
     }
 
-    protected Set<Long> loadCommentLikesToRedis(Long commentId) {
+    private Set<Long> loadCommentLikesToRedis(Long commentId) {
         redisService.addToSet(COMMENT_LIKES_LOADED, commentId.toString());
 
         String key = COMMENT_LIKES_KEY + commentId;
         return commentService.findById(commentId)
                 .map(comment -> saveUsersToRedis(key, comment.getLikedBy()))
                 .orElse(new HashSet<>());
+    }
+
+    private void ensurePostLikesLoaded(Long postId) {
+        if (!redisService.existsInSet(POST_LIKES_LOADED, postId.toString())) {
+            loadPostLikesToRedis(postId);
+        }
+    }
+
+    private void ensureCommentLikesLoaded(Long commentId) {
+        if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) {
+            loadCommentLikesToRedis(commentId);
+        }
     }
 
     private Set<Long> saveUsersToRedis(String key, Set<User> users) {
