@@ -1,6 +1,5 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
-import fans.goldenglow.plumaspherebackend.dto.LikeDto;
 import fans.goldenglow.plumaspherebackend.service.LikeCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,25 +27,31 @@ public class LikeController {
         return ResponseEntity.ok(likeCacheService.getCommentLikesCount(commentId));
     }
 
+    @GetMapping("/post/{postId}/like/state")
+    public ResponseEntity<Boolean> getPostLikeState(@PathVariable Long postId, JwtAuthenticationToken token) {
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        return ResponseEntity.ok(likeCacheService.isPostLiked(postId, userId));
+    }
+
+    @GetMapping("/comment/{commentId}/like/state")
+    public ResponseEntity<Boolean> getCommentLikeState(@PathVariable Long commentId, JwtAuthenticationToken token) {
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        return ResponseEntity.ok(likeCacheService.isCommentLiked(commentId, userId));
+    }
+
     @PostMapping("/post/{postId}/like")
-    public ResponseEntity<LikeDto> likePost(@PathVariable Long postId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         likeCacheService.switchPostLike(postId, userId);
 
-        Long count = likeCacheService.getPostLikesCount(postId);
-        boolean isLiked = likeCacheService.isPostLiked(postId, userId);
-
-        return ResponseEntity.ok(new LikeDto(count, isLiked));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/comment/{commentId}/like")
-    public ResponseEntity<LikeDto> likeComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> likeComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         likeCacheService.switchCommentLike(commentId, userId);
 
-        Long count = likeCacheService.getCommentLikesCount(commentId);
-        boolean isLiked = likeCacheService.isCommentLiked(commentId, userId);
-
-        return ResponseEntity.ok(new LikeDto(count, isLiked));
+        return ResponseEntity.ok().build();
     }
 }
