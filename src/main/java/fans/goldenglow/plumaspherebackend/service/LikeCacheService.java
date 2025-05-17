@@ -157,12 +157,14 @@ public class LikeCacheService {
     }
 
     @Scheduled(fixedRate = 300000)
+    @Transactional
     public void syncLikesToDatabase() {
         syncPostLikes();
         syncCommentLikes();
     }
 
     @PreDestroy
+    @Transactional
     public void destroy() {
         syncLikesToDatabase();
     }
