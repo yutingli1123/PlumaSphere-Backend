@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 public class LikeCacheService {
     private static final String POST_LIKES_KEY = "post:like:";
     private static final String COMMENT_LIKES_KEY = "comment:like:";
+    private static final String POST_LIKES_LOADED = "post:likes:loaded";
+    private static final String COMMENT_LIKES_LOADED = "comment:likes:loaded";
 
     private final RedisService redisService;
     private final PostService postService;
@@ -33,50 +35,44 @@ public class LikeCacheService {
     }
 
     @Transactional(readOnly = true)
-    public Set<Long> getPostLikes(long postId) {
-        String key = POST_LIKES_KEY + postId;
-
-        if (!redisService.exists(key)) {
+    public Set<Long> getPostLikes(Long postId) {
+        if (!redisService.existsInSet(POST_LIKES_LOADED, postId.toString())) {
             return loadPostLikesToRedis(postId);
         }
 
+        String key = POST_LIKES_KEY + postId;
         return stringSetToLongSet(redisService.getSetMembers(key));
     }
 
     @Transactional(readOnly = true)
-    public Set<Long> getCommentLikes(long commentId) {
-        String key = COMMENT_LIKES_KEY + commentId;
-
-        if (!redisService.exists(key)) {
+    public Set<Long> getCommentLikes(Long commentId) {
+        if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) {
             return loadCommentLikesToRedis(commentId);
         }
 
+        String key = COMMENT_LIKES_KEY + commentId;
         return stringSetToLongSet(redisService.getSetMembers(key));
     }
 
     @Transactional(readOnly = true)
-    public long getPostLikesCount(long postId) {
-        String key = POST_LIKES_KEY + postId;
-
-        if (!redisService.exists(key)) {
+    public long getPostLikesCount(Long postId) {
+        if (!redisService.existsInSet(POST_LIKES_LOADED, postId.toString())) {
             return loadPostLikesToRedis(postId).size();
         }
 
+        String key = POST_LIKES_KEY + postId;
         Long count = redisService.getSetSize(key);
-
         return count != null ? count : 0L;
     }
 
     @Transactional(readOnly = true)
     public long getCommentLikesCount(Long commentId) {
-        String key = COMMENT_LIKES_KEY + commentId;
-
-        if (!redisService.exists(key)) {
+        if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) {
             return loadCommentLikesToRedis(commentId).size();
         }
 
+        String key = COMMENT_LIKES_KEY + commentId;
         Long count = redisService.getSetSize(key);
-
         return count != null ? count : 0L;
     }
 
@@ -85,28 +81,45 @@ public class LikeCacheService {
         return stringSet.stream().map(Long::valueOf).collect(Collectors.toSet());
     }
 
+    public void switchPostLike(Long postId, Long userId) {
+        if (!redisService.existsInSet(POST_LIKES_LOADED, postId.toString())) loadPostLikesToRedis(postId);
 
-    public void likePost(Long postId, Long userId) {
         String key = POST_LIKES_KEY + postId;
-        redisService.addToSet(key, userId.toString());
+        if (redisService.existsInSet(key, userId.toString())) {
+            redisService.removeFromSet(key, userId.toString());
+        } else {
+            redisService.addToSet(key, userId.toString());
+        }
     }
 
-    public void likeComment(Long commentId, Long userId) {
+    public void switchCommentLike(Long commentId, Long userId) {
+        if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) loadCommentLikesToRedis(commentId);
+
         String key = COMMENT_LIKES_KEY + commentId;
-        redisService.addToSet(key, userId.toString());
+        if (redisService.existsInSet(key, userId.toString())) {
+            redisService.removeFromSet(key, userId.toString());
+        } else {
+            redisService.addToSet(key, userId.toString());
+        }
     }
 
-    public void unlikePost(Long postId, Long userId) {
+    public boolean isPostLiked(Long postId, Long userId) {
+        if (!redisService.existsInSet(POST_LIKES_LOADED, postId.toString())) loadPostLikesToRedis(postId);
+
         String key = POST_LIKES_KEY + postId;
-        redisService.removeFromSet(key, userId.toString());
+        return redisService.existsInSet(key, userId.toString());
     }
 
-    public void unlikeComment(Long commentId, Long userId) {
+    public boolean isCommentLiked(Long commentId, Long userId) {
+        if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) loadCommentLikesToRedis(commentId);
+
         String key = COMMENT_LIKES_KEY + commentId;
-        redisService.removeFromSet(key, userId.toString());
+        return redisService.existsInSet(key, userId.toString());
     }
 
     protected Set<Long> loadPostLikesToRedis(Long postId) {
+        redisService.addToSet(POST_LIKES_LOADED, postId.toString());
+
         String key = POST_LIKES_KEY + postId;
         return postService.findById(postId)
                 .map(post -> saveUsersToRedis(key, post.getLikedBy()))
@@ -114,6 +127,8 @@ public class LikeCacheService {
     }
 
     protected Set<Long> loadCommentLikesToRedis(Long commentId) {
+        redisService.addToSet(COMMENT_LIKES_LOADED, commentId.toString());
+
         String key = COMMENT_LIKES_KEY + commentId;
         return commentService.findById(commentId)
                 .map(comment -> saveUsersToRedis(key, comment.getLikedBy()))
