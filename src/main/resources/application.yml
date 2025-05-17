@@ -3,6 +3,7 @@ spring:
     name: PlumaSphere-Backend
   jpa:
     hibernate.ddl-auto: update
+    open-in-view: false
 config:
   jwt:
     iss: your_iss
