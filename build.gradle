@@ -24,6 +24,7 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.mapstruct:mapstruct:1.6.3'
 	implementation "io.github.resilience4j:resilience4j-spring-boot3:2.2.0"
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -43,6 +44,7 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.security:spring-security-test'

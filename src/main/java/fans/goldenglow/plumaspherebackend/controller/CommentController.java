@@ -7,6 +7,7 @@ import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.handler.WebSocketHandler;
+import fans.goldenglow.plumaspherebackend.mapper.CommentMapper;
 import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
@@ -20,10 +21,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -33,14 +32,16 @@ public class CommentController {
     private final CommentService commentService;
     private final UserService userService;
     private final WebSocketHandler webSocketHandler;
+    private final CommentMapper commentMapper;
     private final int pageSize;
 
     @Autowired
-    public CommentController(PostService postService, CommentService commentService, UserService userService, WebSocketHandler webSocketHandler, ConfigService configService) {
+    public CommentController(PostService postService, CommentService commentService, UserService userService, WebSocketHandler webSocketHandler, CommentMapper commentMapper, ConfigService configService) {
         this.postService = postService;
         this.commentService = commentService;
         this.userService = userService;
         this.webSocketHandler = webSocketHandler;
+        this.commentMapper = commentMapper;
         Optional<String> pageSizeConfig = configService.get(ConfigField.PAGE_SIZE);
         pageSize = pageSizeConfig.map(Integer::parseInt).orElse(5);
     }
@@ -48,25 +49,14 @@ public class CommentController {
     @GetMapping("/comment/{commentId}")
     public ResponseEntity<CommentDto> getComment(@PathVariable Long commentId) {
         Optional<Comment> comment = commentService.findById(commentId);
-        if (comment.isEmpty()) return ResponseEntity.notFound().build();
-
-        Comment commentEntity = comment.get();
-        User author = commentEntity.getAuthor();
-        CommentDto commentDto = new CommentDto(commentEntity.getId(), commentEntity.getContent(),
-                commentEntity.getCreatedAt().atZone(ZoneId.systemDefault()), author.getId(), author.getNickname());
-        return ResponseEntity.ok(commentDto);
+        return comment.map(value -> ResponseEntity.ok(commentMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/post/{postId}/comment")
     @Transactional(readOnly = true)
     public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long postId, @RequestParam int page) {
         Page<Comment> comments = commentService.findByPostId(postId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
-        return ResponseEntity.ok(comments.getContent().stream().map(value -> {
-            User author = value.getAuthor();
-            return new CommentDto(value.getId(),
-                    value.getContent(), value.getCreatedAt().atZone(ZoneId.systemDefault()),
-                    author.getId(), author.getNickname());
-        }).collect(Collectors.toList()));
+        return ResponseEntity.ok(commentMapper.toDto(comments.getContent()));
     }
 
     @GetMapping("/post/{postId}/comment/count")

@@ -2,9 +2,9 @@ package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.dto.PostDto;
-import fans.goldenglow.plumaspherebackend.dto.TagDto;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import fans.goldenglow.plumaspherebackend.mapper.PostMapper;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.TagService;
@@ -17,10 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -29,13 +27,15 @@ public class PostController {
     private final PostService postService;
     private final UserService userService;
     private final TagService tagService;
+    private final PostMapper postMapper;
     private final int pageSize;
 
     @Autowired
-    public PostController(PostService postService, UserService userService, TagService tagService, ConfigService configService) {
+    public PostController(PostService postService, UserService userService, TagService tagService, ConfigService configService, PostMapper postMapper) {
         this.postService = postService;
         this.userService = userService;
         this.tagService = tagService;
+        this.postMapper = postMapper;
         Optional<String> pageSizeConfig = configService.get(ConfigField.PAGE_SIZE);
         pageSize = pageSizeConfig.map(Integer::parseInt).orElse(5);
     }
@@ -43,17 +43,7 @@ public class PostController {
     @GetMapping
     public ResponseEntity<List<PostDto>> getPosts(@RequestParam int page) {
         Page<Post> postsPage = postService.findAll(PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
-        return ResponseEntity.ok(postsPage.getContent().stream()
-                .map(post -> new PostDto(
-                        post.getId(),
-                        post.getTitle(),
-                        null,
-                        post.getDescription(),
-                        post.getAuthor().getId(),
-                        post.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
-                        post.getCreatedAt().atZone(ZoneId.systemDefault()),
-                        post.getUpdatedAt().atZone(ZoneId.systemDefault())))
-                .collect(Collectors.toList()));
+        return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
     }
 
     @GetMapping("/count")
@@ -65,20 +55,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostDto> getPost(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
-
-        if (post.isEmpty()) return ResponseEntity.notFound().build();
-
-        Post postEntity = post.get();
-        PostDto postDto = new PostDto(
-                postEntity.getId(),
-                postEntity.getTitle(),
-                postEntity.getContent(),
-                postEntity.getDescription(),
-                postEntity.getAuthor().getId(),
-                postEntity.getTags().stream().map(tag -> new TagDto(tag.getId(), tag.getName())).collect(Collectors.toSet()),
-                postEntity.getCreatedAt().atZone(ZoneId.systemDefault()),
-                postEntity.getUpdatedAt().atZone(ZoneId.systemDefault()));
-        return ResponseEntity.ok(postDto);
+        return post.map(value -> ResponseEntity.ok(postMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -87,30 +64,38 @@ public class PostController {
         Optional<User> user = userService.findById(userId);
         if (user.isEmpty()) return ResponseEntity.notFound().build();
         User userEntity = user.get();
-        Long postId = postDto.getId();
-        Post postEntity;
-        if (postId != null) {
-            Optional<Post> post = postService.findById(postId);
-            if (post.isPresent()) {
-                String content = postDto.getContent();
-                postEntity = post.get();
-                postEntity.setTitle(postDto.getTitle());
-                postEntity.setContent(content);
-                postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
-                postEntity.setDescription(content.substring(0, Math.min(content.length(), 300)) + "...");
-                postService.save(postEntity);
-                return ResponseEntity.ok().build();
-            }
-        }
         String content = postDto.getContent();
-        postEntity = new Post();
+        Post postEntity = new Post();
         postEntity.setTitle(postDto.getTitle());
         postEntity.setContent(content);
         postEntity.setAuthor(userEntity);
         postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
-        postEntity.setDescription(content.substring(0, Math.min(content.length(), 300)) + "...");
+        postEntity.setDescription(generateDescription(content));
         postService.save(postEntity);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> updatePost(@RequestBody PostDto postDto) {
+        Long postId = postDto.getId();
+        if (postId != null) {
+            Optional<Post> post = postService.findById(postId);
+            if (post.isPresent()) {
+                String content = postDto.getContent();
+                Post postEntity = post.get();
+                postEntity.setTitle(postDto.getTitle());
+                postEntity.setContent(content);
+                postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
+                postEntity.setDescription(generateDescription(content));
+                postService.save(postEntity);
+                return ResponseEntity.ok().build();
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    private String generateDescription(String content) {
+        return content.length() > 300 ? content.substring(0, 300) + "..." : content;
     }
 
     @DeleteMapping("/{postId}")
