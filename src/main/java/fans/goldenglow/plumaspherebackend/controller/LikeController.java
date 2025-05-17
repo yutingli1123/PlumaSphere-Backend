@@ -2,6 +2,7 @@ package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.service.LikeCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -29,12 +30,14 @@ public class LikeController {
 
     @GetMapping("/post/{postId}/like/state")
     public ResponseEntity<Boolean> getPostLikeState(@PathVariable Long postId, JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return ResponseEntity.ok(likeCacheService.isPostLiked(postId, userId));
     }
 
     @GetMapping("/comment/{commentId}/like/state")
     public ResponseEntity<Boolean> getCommentLikeState(@PathVariable Long commentId, JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return ResponseEntity.ok(likeCacheService.isCommentLiked(commentId, userId));
     }
