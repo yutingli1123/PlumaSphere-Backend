@@ -23,20 +23,22 @@ public class LikeCacheService {
     private final PostService postService;
     private final CommentService commentService;
     private final UserService userService;
+    private final LikeCacheService self;
 
     @Autowired
-    public LikeCacheService(RedisService redisService, PostService postService, CommentService commentService, UserService userService) {
+    public LikeCacheService(RedisService redisService, PostService postService, CommentService commentService, UserService userService, LikeCacheService likeCacheService) {
         this.redisService = redisService;
         this.postService = postService;
         this.commentService = commentService;
         this.userService = userService;
+        this.self = likeCacheService;
     }
 
     public Set<Long> getPostLikes(long postId) {
         String key = POST_LIKES_KEY + postId;
 
         if (!redisService.exists(key)) {
-            return loadPostLikesToRedis(postId);
+            return self.loadPostLikesToRedis(postId);
         }
 
         return stringSetToLongSet(redisService.getSetMembers(key));
@@ -46,7 +48,7 @@ public class LikeCacheService {
         String key = COMMENT_LIKES_KEY + commentId;
 
         if (!redisService.exists(key)) {
-            return loadCommentLikesToRedis(commentId);
+            return self.loadCommentLikesToRedis(commentId);
         }
 
         return stringSetToLongSet(redisService.getSetMembers(key));
@@ -56,7 +58,7 @@ public class LikeCacheService {
         String key = POST_LIKES_KEY + postId;
 
         if (!redisService.exists(key)) {
-            return loadPostLikesToRedis(postId).size();
+            return self.loadPostLikesToRedis(postId).size();
         }
 
         Long count = redisService.getSetSize(key);
@@ -68,7 +70,7 @@ public class LikeCacheService {
         String key = COMMENT_LIKES_KEY + commentId;
 
         if (!redisService.exists(key)) {
-            return loadCommentLikesToRedis(commentId).size();
+            return self.loadCommentLikesToRedis(commentId).size();
         }
 
         Long count = redisService.getSetSize(key);
