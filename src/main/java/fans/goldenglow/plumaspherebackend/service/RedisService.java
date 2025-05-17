@@ -47,6 +47,10 @@ public class RedisService {
         return redisTemplate.hasKey(key);
     }
 
+    public boolean existsInSet(String key, String value) {
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key, value));
+    }
+
     public Long getSetSize(String key) {
         return redisTemplate.opsForSet().size(key);
     }
