@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.dto.LikeDto;
 import fans.goldenglow.plumaspherebackend.service.LikeCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,18 +29,24 @@ public class LikeController {
     }
 
     @PostMapping("/post/{postId}/like")
-    public ResponseEntity<Void> likePost(@PathVariable Long postId, JwtAuthenticationToken token) {
+    public ResponseEntity<LikeDto> likePost(@PathVariable Long postId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
-        likeCacheService.likePost(postId, userId);
+        likeCacheService.switchPostLike(postId, userId);
 
-        return ResponseEntity.ok().build();
+        Long count = likeCacheService.getPostLikesCount(postId);
+        boolean isLiked = likeCacheService.isPostLiked(postId, userId);
+
+        return ResponseEntity.ok(new LikeDto(count, isLiked));
     }
 
     @PostMapping("/comment/{commentId}/like")
-    public ResponseEntity<Void> likeComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
+    public ResponseEntity<LikeDto> likeComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
-        likeCacheService.likeComment(commentId, userId);
+        likeCacheService.switchCommentLike(commentId, userId);
 
-        return ResponseEntity.ok().build();
+        Long count = likeCacheService.getCommentLikesCount(commentId);
+        boolean isLiked = likeCacheService.isCommentLiked(commentId, userId);
+
+        return ResponseEntity.ok(new LikeDto(count, isLiked));
     }
 }
