@@ -3,9 +3,11 @@ package fans.goldenglow.plumaspherebackend.service;
 import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -100,14 +102,16 @@ public class LikeCacheService {
         redisService.removeFromSet(key, userId.toString());
     }
 
-    private Set<Long> loadPostLikesToRedis(Long postId) {
+    @Transactional(readOnly = true)
+    protected Set<Long> loadPostLikesToRedis(Long postId) {
         String key = POST_LIKES_KEY + postId;
         return postService.findById(postId)
                 .map(post -> saveUsersToRedis(key, post.getLikedBy()))
                 .orElse(new HashSet<>());
     }
 
-    private Set<Long> loadCommentLikesToRedis(Long commentId) {
+    @Transactional(readOnly = true)
+    protected Set<Long> loadCommentLikesToRedis(Long commentId) {
         String key = COMMENT_LIKES_KEY + commentId;
         return commentService.findById(commentId)
                 .map(comment -> saveUsersToRedis(key, comment.getLikedBy()))
@@ -127,6 +131,11 @@ public class LikeCacheService {
     public void syncLikesToDatabase() {
         syncPostLikes();
         syncCommentLikes();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        syncLikesToDatabase();
     }
 
     private void syncPostLikes() {

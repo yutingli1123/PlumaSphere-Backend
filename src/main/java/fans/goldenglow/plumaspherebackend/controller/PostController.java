@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class PostController {
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<List<PostDto>> getPosts(@RequestParam int page) {
         Page<Post> postsPage = postService.findAll(PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
         return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
@@ -53,6 +55,7 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
+    @Transactional(readOnly = true)
     public ResponseEntity<PostDto> getPost(@PathVariable Long postId) {
         Optional<Post> post = postService.findById(postId);
         return post.map(value -> ResponseEntity.ok(postMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
