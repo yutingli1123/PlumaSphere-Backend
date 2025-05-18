@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -177,14 +179,8 @@ public class LikeCacheService {
 
             Optional<Post> post = postService.findById(postId);
             if (post.isEmpty()) continue;
-            Post postEntity = post.get();
 
-            if (userIds != null && !userIds.isEmpty()) {
-                for (String userId : userIds) {
-                    userService.findById(Long.valueOf(userId)).ifPresent(postEntity::addLikedBy);
-                }
-                postService.save(postEntity);
-            }
+            updateEntityLikes(post.get(), userIds, Post::setLikedBy, postService::save);
         }
     }
 
@@ -196,14 +192,17 @@ public class LikeCacheService {
 
             Optional<Comment> comment = commentService.findById(commentId);
             if (comment.isEmpty()) continue;
-            Comment commentEntity = comment.get();
 
-            if (userIds != null && !userIds.isEmpty()) {
-                for (String userId : userIds) {
-                    userService.findById(Long.valueOf(userId)).ifPresent(commentEntity::addLikedBy);
-                }
-                commentService.save(commentEntity);
-            }
+            updateEntityLikes(comment.get(), userIds, Comment::setLikedBy, commentService::save);
+        }
+    }
+
+    private <T> void updateEntityLikes(T entity, Set<String> userIds, BiConsumer<T, Set<User>> setLikedByMethod, Consumer<T> saveMethod) {
+        if (userIds != null && !userIds.isEmpty()) {
+            Set<User> users = new HashSet<>();
+            userIds.forEach(userId -> userService.findById(Long.valueOf(userId)).ifPresent(users::add));
+            setLikedByMethod.accept(entity, users);
+            saveMethod.accept(entity);
         }
     }
 }
