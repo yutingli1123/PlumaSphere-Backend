@@ -8,9 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @CrossOrigin
@@ -25,9 +26,9 @@ public class TagController {
 
     @GetMapping
     @Transactional(readOnly = true)
-    public ResponseEntity<Set<TagDto>> getAllTags() {
-        List<Tag> tags = tagService.findAll();
-        Set<TagDto> setDtos = tags.stream().map(tag -> new TagDto(tag.getId(), tag.getName(), tag.getPosts().size())).collect(Collectors.toSet());
+    public ResponseEntity<List<TagDto>> getAllTags() {
+        Stream<Tag> tags = tagService.findAll().stream().sorted(Comparator.comparing(tag -> tag.getPosts().size()));
+        List<TagDto> setDtos = tags.map(tag -> new TagDto(tag.getId(), tag.getName(), tag.getPosts().size())).collect(Collectors.toList());
         return ResponseEntity.ok(setDtos);
     }
 
