@@ -51,7 +51,6 @@ public class User implements Serializable {
     @Column(updatable = false)
     private LocalDateTime createdAt;
     @LastModifiedDate
-    @Column(updatable = false)
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
 

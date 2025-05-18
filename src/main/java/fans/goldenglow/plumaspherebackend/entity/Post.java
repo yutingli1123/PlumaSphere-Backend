@@ -67,7 +67,6 @@ public class Post implements Serializable {
     @Column(updatable = false)
     private LocalDateTime createdAt;
     @LastModifiedDate
-    @Column(updatable = false)
     private LocalDateTime updatedAt;
 
     public void addComment(Comment comment) {
