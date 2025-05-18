@@ -59,9 +59,17 @@ public class CommentController {
         return ResponseEntity.ok(commentMapper.toDto(comments.getContent()));
     }
 
+    @GetMapping("/post/{postId}/comment/count-page")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Long> getCommentPageCount(@PathVariable Long postId) {
+        long totalComments = commentService.countByPostId(postId);
+        long totalPages = (long) Math.ceil((double) totalComments / (double) pageSize);
+        return ResponseEntity.ok(totalPages);
+    }
+
     @GetMapping("/post/{postId}/comment/count")
     @Transactional(readOnly = true)
-    public ResponseEntity<Long> getCommentsCount(@PathVariable Long postId) {
+    public ResponseEntity<Long> getCommentCount(@PathVariable Long postId) {
         return ResponseEntity.ok(commentService.countByPostId(postId));
     }
 

@@ -48,10 +48,18 @@ public class PostController {
         return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
     }
 
+    @GetMapping("/count-page")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Long> getPostPageCount() {
+        long totalPosts = postService.countPosts();
+        long totalPages = (long) Math.ceil((double) totalPosts / (double) pageSize);
+        return ResponseEntity.ok(totalPages);
+    }
+
     @GetMapping("/count")
-    public ResponseEntity<Long> getPostsCount() {
-        long count = postService.countPosts();
-        return ResponseEntity.ok(count);
+    @Transactional(readOnly = true)
+    public ResponseEntity<Long> getPostCount() {
+        return ResponseEntity.ok(postService.countPosts());
     }
 
     @GetMapping("/{postId}")
