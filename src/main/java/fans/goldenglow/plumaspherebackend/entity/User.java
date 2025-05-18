@@ -54,9 +54,9 @@ public class User implements Serializable {
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
 
-    @OneToMany(mappedBy = "author", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private Set<Post> posts = new HashSet<>();
-    @OneToMany(mappedBy = "author", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private Set<Comment> comments = new HashSet<>();
 
     public User(String username, String password, String nickname) {

@@ -45,14 +45,14 @@ public class Comment implements Serializable {
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "pluma_comment_like",
             joinColumns = @JoinColumn(name = "comment_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> likedBy = new HashSet<>();
-    @OneToMany(mappedBy = "parentComment", cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+    @OneToMany(mappedBy = "parentComment",
             fetch = FetchType.LAZY,
             orphanRemoval = true)
     private Set<Comment> comments = new HashSet<>();
@@ -73,13 +73,5 @@ public class Comment implements Serializable {
     public void removeComment(Comment comment) {
         comments.remove(comment);
         comment.setParentComment(null);
-    }
-
-    public void addLikedBy(User user) {
-        likedBy.add(user);
-    }
-
-    public void removeLikedBy(User user) {
-        likedBy.remove(user);
     }
 }

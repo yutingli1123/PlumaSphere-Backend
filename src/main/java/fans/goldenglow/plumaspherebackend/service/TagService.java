@@ -1,6 +1,5 @@
 package fans.goldenglow.plumaspherebackend.service;
 
-import fans.goldenglow.plumaspherebackend.dto.TagDto;
 import fans.goldenglow.plumaspherebackend.entity.Tag;
 import fans.goldenglow.plumaspherebackend.repository.TagRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,23 +27,21 @@ public class TagService {
     }
 
     @Transactional
-    public void save(Tag tag) {
-        tagRepository.save(tag);
+    public Tag save(Tag tag) {
+        return tagRepository.save(tag);
     }
 
     @Transactional
-    public Set<Tag> dtoToEntity(Set<TagDto> tagDtos) {
-        if (tagDtos == null || tagDtos.isEmpty()) return Set.of();
-        return tagDtos.stream().map(tagDto -> {
-            Optional<Tag> tag = tagRepository.findById(tagDto.getId());
-            if (tag.isPresent()) {
-                return tag.get();
-            } else {
-                Tag tagEntity = new Tag();
-                tagEntity.setName(tagDto.getName());
-                save(tagEntity);
-                return tagEntity;
+    public Set<Tag> dtoToEntity(List<String> tags) {
+        if (tags == null || tags.isEmpty()) return Set.of();
+
+        return tags.stream().map(tagName -> {
+            Tag tag = tagRepository.findByName(tagName);
+            if (tag == null) {
+                tag = new Tag(tagName);
+                tag = tagRepository.save(tag);
             }
+            return tag;
         }).collect(Collectors.toSet());
     }
 }

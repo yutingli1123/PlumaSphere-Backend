@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +17,7 @@ public class PostDto {
     private String content;
     private String description;
     private Long authorId;
-    private Set<TagDto> tags;
+    private List<String> tags;
 
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;

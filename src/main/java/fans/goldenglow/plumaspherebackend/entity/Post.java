@@ -45,16 +45,16 @@ public class Post implements Serializable {
     @ManyToOne(optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "pluma_post_tags",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags = new HashSet<>();
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "pluma_post_likes",
             joinColumns = @JoinColumn(name = "post_id"),
@@ -77,21 +77,5 @@ public class Post implements Serializable {
     public void removeComment(Comment comment) {
         comments.remove(comment);
         comment.setPost(null);
-    }
-
-    public void addTag(Tag tag) {
-        tags.add(tag);
-    }
-
-    public void removeTag(Tag tag) {
-        tags.remove(tag);
-    }
-
-    public void addLikedBy(User user) {
-        likedBy.add(user);
-    }
-
-    public void removeLikedBy(User user) {
-        likedBy.remove(user);
     }
 }
