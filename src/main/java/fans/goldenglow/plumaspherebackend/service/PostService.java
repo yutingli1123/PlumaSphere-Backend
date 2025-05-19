@@ -36,6 +36,16 @@ public class PostService {
         return postRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
+    public Page<Post> findByTagName(String tagName, Pageable pageable) {
+        return postRepository.findBytagsName(tagName, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public long countByTagName(String tagName) {
+        return postRepository.countByTagsName(tagName);
+    }
+
     @Transactional
     public void save(Post post) {
         postRepository.save(post);

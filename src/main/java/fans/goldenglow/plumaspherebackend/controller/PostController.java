@@ -47,6 +47,28 @@ public class PostController {
         return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
     }
 
+    @GetMapping("/tag")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<PostDto>> getPostsByTag(@RequestParam String tagName, @RequestParam int page) {
+        Page<Post> postsPage = postService.findByTagName(tagName, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
+    }
+
+    @GetMapping("/tag/count")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Long> getPostCountByTag(@RequestParam String tagName) {
+        long totalPosts = postService.countByTagName(tagName);
+        return ResponseEntity.ok(totalPosts);
+    }
+
+    @GetMapping("/tag/count-page")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Long> getPostPageCountByTag(@RequestParam String tagName) {
+        long totalPosts = postService.countByTagName(tagName);
+        long totalPages = (long) Math.ceil((double) totalPosts / (double) pageSize);
+        return ResponseEntity.ok(totalPages);
+    }
+
     @GetMapping("/count-page")
     @Transactional(readOnly = true)
     public ResponseEntity<Long> getPostPageCount() {
