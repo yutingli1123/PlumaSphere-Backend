@@ -58,8 +58,8 @@ public class SystemController {
             User user = new User(initDto.adminUsername, passwordService.encodePassword(initDto.adminPassword), initDto.getAdminNickname());
             user.setRole(UserRoles.ADMIN);
             userService.save(user);
-            configService.set(ConfigField.BLOG_TITLE, initDto.getBlogTitle());
-            configService.set(ConfigField.BLOG_SUBTITLE, initDto.getBlogSubtitle());
+            configService.set(ConfigField.BLOG_TITLE, initDto.getBlogTitle(), true);
+            configService.set(ConfigField.BLOG_SUBTITLE, initDto.getBlogSubtitle(), true);
 
             configService.set(ConfigField.INITIALIZED, "true", true);
             redisService.delete(INITIALIZATION_CODE_KEY);
