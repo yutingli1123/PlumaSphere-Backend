@@ -48,6 +48,11 @@ public class SystemController {
         return ResponseEntity.ok(configService.getAllPublic());
     }
 
+    @GetMapping("/status/version")
+    public ResponseEntity<String> getStatusVersion() {
+        return ResponseEntity.ok(configService.get(ConfigField.CONFIG_VERSION).orElse("1"));
+    }
+
     @PostMapping("/init")
     public ResponseEntity<Void> initSystem(@RequestBody InitDto initDto) {
         try {
@@ -60,7 +65,6 @@ public class SystemController {
             userService.save(user);
             configService.set(ConfigField.BLOG_TITLE, initDto.getBlogTitle(), true);
             configService.set(ConfigField.BLOG_SUBTITLE, initDto.getBlogSubtitle(), true);
-
             configService.set(ConfigField.INITIALIZED, "true", true);
             redisService.delete(INITIALIZATION_CODE_KEY);
 

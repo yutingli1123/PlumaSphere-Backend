@@ -53,5 +53,25 @@ public class ConfigService {
             configEntity = new Config(configField.name().toLowerCase(), value, isOpenToPublic);
         }
         configRepository.save(configEntity);
+
+        if (configField != ConfigField.CONFIG_VERSION) {
+            incrementConfigVersion();
+        }
+    }
+
+    @Transactional
+    protected void incrementConfigVersion() {
+        Optional<Config> versionConfig = configRepository.findByConfigKey(ConfigField.CONFIG_VERSION.name().toLowerCase());
+        long version = versionConfig.map(config -> {
+            try {
+                return Long.parseLong(config.getConfigValue());
+            } catch (NumberFormatException e) {
+                return 0L;
+            }
+        }).orElse(0L);
+        version++;
+        Config configEntity = versionConfig.orElseGet(() -> new Config(ConfigField.CONFIG_VERSION.name().toLowerCase(), "1", false));
+        configEntity.setConfigValue(String.valueOf(version));
+        configRepository.save(configEntity);
     }
 }
