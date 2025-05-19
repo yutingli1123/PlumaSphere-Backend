@@ -27,8 +27,8 @@ public class TagController {
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<List<TagDto>> getAllTags() {
-        Stream<Tag> tags = tagService.findAll().stream().sorted(Comparator.comparing(tag -> tag.getPosts().size()));
-        List<TagDto> setDtos = tags.map(tag -> new TagDto(tag.getId(), tag.getName(), tag.getPosts().size())).collect(Collectors.toList());
+        Stream<Tag> tags = tagService.findAll().stream();
+        List<TagDto> setDtos = tags.map(tag -> new TagDto(tag.getId(), tag.getName(), tag.getPosts().size())).sorted(Comparator.comparing(TagDto::getPostCount).reversed()).collect(Collectors.toList());
         return ResponseEntity.ok(setDtos);
     }
 
