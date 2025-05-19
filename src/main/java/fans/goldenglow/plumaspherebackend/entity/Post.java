@@ -45,7 +45,7 @@ public class Post implements Serializable {
     @ManyToOne(optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
-    @OneToMany(mappedBy = "post", orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "post", orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

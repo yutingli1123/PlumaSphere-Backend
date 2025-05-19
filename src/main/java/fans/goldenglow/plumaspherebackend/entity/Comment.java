@@ -53,6 +53,7 @@ public class Comment implements Serializable {
     )
     private Set<User> likedBy = new HashSet<>();
     @OneToMany(mappedBy = "parentComment",
+            cascade = CascadeType.ALL,
             fetch = FetchType.LAZY,
             orphanRemoval = true)
     private Set<Comment> comments = new HashSet<>();
