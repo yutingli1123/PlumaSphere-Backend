@@ -1,5 +1,8 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
+import fans.goldenglow.plumaspherebackend.dto.websocket.WebSocketMessageDto;
+import fans.goldenglow.plumaspherebackend.handler.WebSocketHandler;
 import fans.goldenglow.plumaspherebackend.service.LikeCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,10 +15,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 public class LikeController {
     private final LikeCacheService likeCacheService;
+    private final WebSocketHandler webSocketHandler;
 
     @Autowired
-    public LikeController(LikeCacheService likeCacheService) {
+    public LikeController(LikeCacheService likeCacheService, WebSocketHandler webSocketHandler) {
         this.likeCacheService = likeCacheService;
+        this.webSocketHandler = webSocketHandler;
     }
 
     @GetMapping("/post/{postId}/like")
@@ -46,6 +51,7 @@ public class LikeController {
     public ResponseEntity<Void> likePost(@PathVariable Long postId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         likeCacheService.switchPostLike(postId, userId);
+        webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.LIKE_POST));
 
         return ResponseEntity.ok().build();
     }
