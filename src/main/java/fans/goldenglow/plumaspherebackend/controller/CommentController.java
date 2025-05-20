@@ -3,6 +3,7 @@ package fans.goldenglow.plumaspherebackend.controller;
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
 import fans.goldenglow.plumaspherebackend.dto.CommentDto;
+import fans.goldenglow.plumaspherebackend.dto.websocket.WebSocketMessageDto;
 import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
@@ -91,7 +92,7 @@ public class CommentController {
         postEntity.addComment(comment);
         postService.save(postEntity);
 
-        webSocketHandler.sendMessageToPost(postId, WebSocketMessageType.NEW_COMMENT);
+        webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.NEW_COMMENT));
 
         return ResponseEntity.ok().build();
     }
