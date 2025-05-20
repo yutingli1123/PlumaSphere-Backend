@@ -8,7 +8,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class WebSocketMessageDto implements BaseWebSocketMessageDto {
     private WebSocketMessageType type;
-    private String data;
+    private Object data;
 
     public WebSocketMessageDto(WebSocketMessageType type) {
         this.type = type;
