@@ -39,7 +39,6 @@ public class TagService {
             Tag tag = tagRepository.findByName(tagName);
             if (tag == null) {
                 tag = new Tag(tagName);
-                tag = tagRepository.save(tag);
             }
             return tag;
         }).collect(Collectors.toSet());

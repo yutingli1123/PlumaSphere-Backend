@@ -47,7 +47,7 @@ public class Post implements Serializable {
     private User author;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "post", orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinTable(
             name = "pluma_post_tags",
             joinColumns = @JoinColumn(name = "post_id"),
