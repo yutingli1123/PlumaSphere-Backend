@@ -91,7 +91,7 @@ public class TokenService {
 
             return generateTokens(Long.parseLong(userId), List.of(userRole.toString().toLowerCase()));
         } catch (Exception e) {
-            log.error("Failed to verify refresh token", e);
+            log.error("Failed to verify refresh token");
             return null;
         }
     }
