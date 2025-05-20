@@ -3,7 +3,7 @@ package fans.goldenglow.plumaspherebackend.dto.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public interface BaseWebSocketMessageDto {
-    default public String toJson() {
+    default String toJson() {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.writeValueAsString(this);
