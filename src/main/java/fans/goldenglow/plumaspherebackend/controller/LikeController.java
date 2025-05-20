@@ -1,8 +1,10 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
+import fans.goldenglow.plumaspherebackend.dto.websocket.CommentLikeMessageDto;
 import fans.goldenglow.plumaspherebackend.dto.websocket.WebSocketMessageDto;
 import fans.goldenglow.plumaspherebackend.handler.WebSocketHandler;
+import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.LikeCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,11 +18,13 @@ import org.springframework.web.bind.annotation.*;
 public class LikeController {
     private final LikeCacheService likeCacheService;
     private final WebSocketHandler webSocketHandler;
+    private final CommentService commentService;
 
     @Autowired
-    public LikeController(LikeCacheService likeCacheService, WebSocketHandler webSocketHandler) {
+    public LikeController(LikeCacheService likeCacheService, WebSocketHandler webSocketHandler, CommentService commentService) {
         this.likeCacheService = likeCacheService;
         this.webSocketHandler = webSocketHandler;
+        this.commentService = commentService;
     }
 
     @GetMapping("/post/{postId}/like")
@@ -60,6 +64,11 @@ public class LikeController {
     public ResponseEntity<Void> likeComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         likeCacheService.switchCommentLike(commentId, userId);
+
+        Long postId = commentService.findPostId(commentId);
+        if (postId != null) {
+            webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.LIKE_COMMENT, new CommentLikeMessageDto(commentId)));
+        }
 
         return ResponseEntity.ok().build();
     }
