@@ -36,6 +36,12 @@ public class CommentService {
         return commentRepository.countByPostId(postId);
     }
 
+    @Transactional(readOnly = true)
+    public Long findPostId(Long commentId) {
+        Optional<Comment> comment = commentRepository.findById(commentId);
+        return comment.map(value -> value.getPost().getId()).orElse(null);
+    }
+
     @Transactional
     public void save(Comment comment) {
         commentRepository.save(comment);
