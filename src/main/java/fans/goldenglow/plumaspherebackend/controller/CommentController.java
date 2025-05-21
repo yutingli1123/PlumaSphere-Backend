@@ -76,7 +76,7 @@ public class CommentController {
 
     @PostMapping("/post/{postId}/comment")
     @Transactional
-    public ResponseEntity<Void> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> replyPost(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
         Optional<Post> post = postService.findById(postId);
 
         if (post.isEmpty()) return ResponseEntity.notFound().build();
@@ -94,6 +94,26 @@ public class CommentController {
 
         webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.NEW_COMMENT));
 
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/comment/{commentId}/reply")
+    @Transactional
+    public ResponseEntity<Void> replyComment(@PathVariable Long commentId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
+        Optional<Comment> comment = commentService.findById(commentId);
+        if (comment.isEmpty()) return ResponseEntity.notFound().build();
+
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        Optional<User> user = userService.findById(userId);
+        if (user.isEmpty()) return ResponseEntity.notFound().build();
+
+        Comment commentEntity = comment.get();
+        Comment newComment = new Comment(commentDto.getContent(), user.get());
+        newComment.setParentComment(commentEntity);
+        commentEntity.addComment(newComment);
+
+//        webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.UPDATE_COMMENT));
+        commentService.save(commentEntity);
         return ResponseEntity.ok().build();
     }
 }
