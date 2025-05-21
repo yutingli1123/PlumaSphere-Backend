@@ -1,6 +1,7 @@
 package fans.goldenglow.plumaspherebackend.service;
 
 import fans.goldenglow.plumaspherebackend.entity.Comment;
+import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.repository.CommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,10 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Long findPostId(Long commentId) {
         Optional<Comment> comment = commentRepository.findById(commentId);
-        return comment.map(value -> value.getPost().getId()).orElse(null);
+        return comment
+                .map(Comment::getPost)
+                .map(Post::getId)
+                .orElse(null);
     }
 
     @Transactional

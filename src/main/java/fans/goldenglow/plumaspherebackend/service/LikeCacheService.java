@@ -94,6 +94,7 @@ public class LikeCacheService {
         }
     }
 
+    @Transactional(readOnly = true)
     public void switchCommentLike(Long commentId, Long userId) {
         ensureCommentLikesLoaded(commentId);
 
@@ -112,6 +113,7 @@ public class LikeCacheService {
         return redisService.existsInSet(key, userId.toString());
     }
 
+    @Transactional(readOnly = true)
     public boolean isCommentLiked(Long commentId, Long userId) {
         ensureCommentLikesLoaded(commentId);
 
@@ -128,7 +130,8 @@ public class LikeCacheService {
                 .orElse(new HashSet<>());
     }
 
-    private Set<Long> loadCommentLikesToRedis(Long commentId) {
+    @Transactional(readOnly = true)
+    protected Set<Long> loadCommentLikesToRedis(Long commentId) {
         redisService.addToSet(COMMENT_LIKES_LOADED, commentId.toString());
 
         String key = COMMENT_LIKES_KEY + commentId;
@@ -143,7 +146,8 @@ public class LikeCacheService {
         }
     }
 
-    private void ensureCommentLikesLoaded(Long commentId) {
+    @Transactional(readOnly = true)
+    protected void ensureCommentLikesLoaded(Long commentId) {
         if (!redisService.existsInSet(COMMENT_LIKES_LOADED, commentId.toString())) {
             loadCommentLikesToRedis(commentId);
         }
