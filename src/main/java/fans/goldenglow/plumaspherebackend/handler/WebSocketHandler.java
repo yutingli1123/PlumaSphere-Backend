@@ -130,14 +130,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
         return connectionInfo;
     }
 
-    enum ConnectionType {
+    private enum ConnectionType {
         POST,
         COMMENT
     }
 
     @Data
     @AllArgsConstructor
-    static class ConnectionInfo {
+    private static class ConnectionInfo {
         private ConnectionType connectionType;
         private Long targetId;
     }
