@@ -46,4 +46,9 @@ public class CommentService {
     public void save(Comment comment) {
         commentRepository.save(comment);
     }
+
+    @Transactional(readOnly = true)
+    public Page<Comment> findByParentCommentId(Long parentCommentId, Pageable pageable) {
+        return commentRepository.findByParentCommentId(parentCommentId, pageable);
+    }
 }

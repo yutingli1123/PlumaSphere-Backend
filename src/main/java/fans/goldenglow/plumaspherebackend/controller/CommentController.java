@@ -116,4 +116,11 @@ public class CommentController {
         commentService.save(commentEntity);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/comment/{commentId}/reply")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<CommentDto>> getCommentReplies(@PathVariable Long commentId, @RequestParam int page) {
+        Page<Comment> replies = commentService.findByParentCommentId(commentId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return ResponseEntity.ok(commentMapper.toDto(replies.getContent()));
+    }
 }
