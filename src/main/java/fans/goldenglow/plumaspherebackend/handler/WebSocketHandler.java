@@ -137,7 +137,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Data
     @AllArgsConstructor
-    class ConnectionInfo {
+    static class ConnectionInfo {
         private ConnectionType connectionType;
         private Long targetId;
     }
