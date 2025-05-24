@@ -17,7 +17,13 @@ public interface PostMapper extends BaseMapper {
     @Mapping(target = "authorId", source = "author.id")
     PostDto toDto(Post post);
 
-    List<PostDto> toDto(List<Post> posts);
+    @Mapping(target = "authorId", source = "author.id")
+    @Mapping(target = "content", ignore = true)
+    PostDto toDtoIgnoringContent(Post post);
+
+    default List<PostDto> toDto(List<Post> posts) {
+        return posts.stream().map(this::toDtoIgnoringContent).collect(Collectors.toList());
+    }
 
     default List<String> map(Set<Tag> tags) {
         return tags.stream().sorted(Comparator.comparing(tag -> tag.getPosts().size())).map(Tag::getName).collect(Collectors.toList());
