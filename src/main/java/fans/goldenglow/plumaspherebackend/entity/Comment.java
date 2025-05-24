@@ -52,6 +52,7 @@ public class Comment implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> likedBy = new HashSet<>();
+    private Integer likedCount = 0;
     @OneToMany(mappedBy = "parentComment",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY,
@@ -74,5 +75,10 @@ public class Comment implements Serializable {
     public void removeComment(Comment comment) {
         comments.remove(comment);
         comment.setParentComment(null);
+    }
+
+    public void setLikedBy(Set<User> likedBy) {
+        this.likedBy = likedBy;
+        this.likedCount = likedBy.size();
     }
 }

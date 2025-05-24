@@ -57,8 +57,13 @@ public class CommentController {
 
     @GetMapping("/post/{postId}/comment")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long postId, @RequestParam int page) {
-        Page<Comment> comments = commentService.findByPostId(postId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long postId, @RequestParam int page, @RequestParam(required = false, defaultValue = "time") String sortBy) {
+        String sortField = switch (sortBy) {
+            case "like" -> "likedCount";
+            case "time" -> "createdAt";
+            default -> "createdAt";
+        };
+        Page<Comment> comments = commentService.findByPostId(postId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, sortField)));
         return ResponseEntity.ok(commentMapper.toDto(comments.getContent()));
     }
 
@@ -122,8 +127,13 @@ public class CommentController {
 
     @GetMapping("/comment/{commentId}/reply")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CommentDto>> getCommentReplies(@PathVariable Long commentId, @RequestParam int page) {
-        Page<Comment> replies = commentService.findByParentCommentId(commentId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+    public ResponseEntity<List<CommentDto>> getCommentReplies(@PathVariable Long commentId, @RequestParam int page, @RequestParam(required = false, defaultValue = "time") String sortBy) {
+        String sortField = switch (sortBy) {
+            case "like" -> "likedCount";
+            case "time" -> "createdAt";
+            default -> "createdAt";
+        };
+        Page<Comment> replies = commentService.findByParentCommentId(commentId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, sortField)));
         return ResponseEntity.ok(commentMapper.toDto(replies.getContent()));
     }
 
