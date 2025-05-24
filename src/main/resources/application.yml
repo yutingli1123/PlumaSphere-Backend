@@ -21,3 +21,6 @@ resilience4j:
         limitRefreshPeriod: 1s
         timeoutDuration: 10ms
         registerHealthIndicator: true
+server:
+  address: your_server_address
+  port: your_server_port
