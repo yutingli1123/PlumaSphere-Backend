@@ -91,6 +91,7 @@ public class PostController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<Void> createPost(@RequestBody PostDto postDto, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
@@ -108,6 +109,7 @@ public class PostController {
     }
 
     @PutMapping
+    @Transactional
     public ResponseEntity<Void> updatePost(@RequestBody PostDto postDto) {
         Long postId = postDto.getId();
         if (postId != null) {
