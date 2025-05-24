@@ -13,7 +13,7 @@ config:
   cors:
     allowed_origins:
       - http://example.com
-    server_full_address: http://example.com:8080
+  server_full_address: http://example.com:8080
 resilience4j:
   ratelimiter:
     instances:
