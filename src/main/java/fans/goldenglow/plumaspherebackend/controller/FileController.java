@@ -18,11 +18,11 @@ import java.util.*;
 @RequestMapping("/api/v1/file")
 public class FileController {
     private static final String UPLOAD_DIR = "upload";
+    private final String accessUrl;
 
-    @Value("${server.address}")
-    private String serverAddress;
-    @Value("${server.port}")
-    private Integer serverPort;
+    public FileController(@Value("${config.server_full_address}") String serverFullAddress) {
+        this.accessUrl = serverFullAddress + "/" + UPLOAD_DIR + "/";
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadFiles(@RequestParam("file[]") MultipartFile[] files) {
@@ -34,15 +34,20 @@ public class FileController {
         }
 
         for (MultipartFile file : files) {
-            if (file.getOriginalFilename() == null) continue;
-            String ext = getExtFromString(file.getOriginalFilename());
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null) continue;
+            String ext = getExtFromString(originalFilename);
+            if (ext == null) {
+                errFiles.add(originalFilename);
+                continue;
+            }
             String filename = UUID.randomUUID() + "." + ext;
             File dest = new File(dir, filename);
             try (InputStream in = file.getInputStream(); OutputStream out = new FileOutputStream(dest)) {
                 StreamUtils.copy(in, out);
-                succMap.put(filename, serverAddress + serverPort + UPLOAD_DIR + "/" + filename);
+                succMap.put(filename, accessUrl + filename);
             } catch (Exception e) {
-                errFiles.add(filename);
+                errFiles.add(originalFilename);
             }
         }
         Map<String, Object> data = new HashMap<>();
@@ -65,7 +70,7 @@ public class FileController {
             if (!dir.mkdirs()) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
         File dest = new File(dir, filename);
-        String localUrl = serverAddress + serverPort + UPLOAD_DIR + "/" + filename;
+        String localUrl = accessUrl + filename;
         try (InputStream in = new URI(originalURL).toURL().openStream(); OutputStream out = new FileOutputStream(dest)) {
             StreamUtils.copy(in, out);
         } catch (Exception e) {
@@ -86,9 +91,11 @@ public class FileController {
     }
 
     private String getExtFromString(String s) {
-        if (s == null || s.isEmpty()) return "";
+        if (s == null || s.isEmpty()) return null;
         int lastDotIndex = s.lastIndexOf('.');
-        if (lastDotIndex == -1 || lastDotIndex == s.length() - 1) return "";
-        return s.substring(lastDotIndex + 1).toLowerCase();
+        if (lastDotIndex == -1 || lastDotIndex == s.length() - 1) return null;
+        String ext = s.substring(lastDotIndex + 1).toLowerCase();
+        if (!ext.matches("^[a-zA-Z0-9]+$")) return null;
+        return ext;
     }
 }
