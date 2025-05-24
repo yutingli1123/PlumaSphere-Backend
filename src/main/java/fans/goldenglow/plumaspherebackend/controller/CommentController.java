@@ -111,7 +111,9 @@ public class CommentController {
         Comment newComment = new Comment(commentDto.getContent(), user.get());
         newComment.setParentComment(commentEntity);
 
-//        webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.UPDATE_COMMENT));
+        Long parentCommentId = commentEntity.getId();
+
+        webSocketHandler.sendMessageToComment(parentCommentId, new WebSocketMessageDto(WebSocketMessageType.NEW_COMMENT));
         commentService.save(newComment);
         return ResponseEntity.ok().build();
     }
