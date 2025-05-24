@@ -16,6 +16,8 @@ public class UserDto {
     private String nickname;
     private String bio;
     private String avatarUrl;
+    private String avatarColor;
+    private String initials;
     private LocalDate dob;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;

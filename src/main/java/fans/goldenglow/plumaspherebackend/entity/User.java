@@ -1,6 +1,7 @@
 package fans.goldenglow.plumaspherebackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fans.goldenglow.plumaspherebackend.constant.AvatarColor;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,6 +48,8 @@ public class User implements Serializable {
     private UserRoles role;
     private LocalDate dob;
     private String avatarUrl;
+    private String avatarColor;
+    private String initials;
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -72,5 +75,20 @@ public class User implements Serializable {
                 .collect(Collectors.joining(" "));
         this.role = UserRoles.REGULAR;
         this.password = password;
+        setInitials();
+    }
+
+    private void setInitials() {
+        if (nickname == null || nickname.isEmpty()) return;
+
+        String[] parts = nickname.trim().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+        for (int i = 0; i < Math.min(2, parts.length); i++) {
+            if (!parts[i].isEmpty()) {
+                initials.append(Character.toUpperCase(parts[i].charAt(0)));
+            }
+        }
+        this.initials = initials.toString();
+        this.avatarColor = AvatarColor.getRandomColor().getHex();
     }
 }
