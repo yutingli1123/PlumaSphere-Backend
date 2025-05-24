@@ -1,6 +1,7 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
 import fans.goldenglow.plumaspherebackend.dto.CommentDto;
 import fans.goldenglow.plumaspherebackend.dto.websocket.WebSocketMessageDto;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
@@ -123,5 +125,21 @@ public class CommentController {
     public ResponseEntity<List<CommentDto>> getCommentReplies(@PathVariable Long commentId, @RequestParam int page) {
         Page<Comment> replies = commentService.findByParentCommentId(commentId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
         return ResponseEntity.ok(commentMapper.toDto(replies.getContent()));
+    }
+
+    @DeleteMapping("/comment/{commentId}")
+    @Transactional
+    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        Optional<User> user = userService.findById(userId);
+        if (user.isEmpty()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        Optional<Comment> comment = commentService.findById(commentId);
+        if (comment.isEmpty()) return ResponseEntity.notFound().build();
+        User userEntity = user.get();
+        Comment commentEntity = comment.get();
+        if (userEntity.getRole() != UserRoles.ADMIN && !commentEntity.getAuthor().equals(userEntity))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        commentService.delete(commentEntity);
+        return ResponseEntity.ok().build();
     }
 }

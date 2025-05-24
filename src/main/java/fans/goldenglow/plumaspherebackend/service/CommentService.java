@@ -55,4 +55,9 @@ public class CommentService {
     public Page<Comment> findByParentCommentId(Long parentCommentId, Pageable pageable) {
         return commentRepository.findByParentCommentId(parentCommentId, pageable);
     }
+
+    @Transactional
+    public void delete(Comment comment) {
+        commentRepository.delete(comment);
+    }
 }
