@@ -89,8 +89,8 @@ public class CommentController {
         Post postEntity = post.get();
         User userEntity = user.get();
         Comment comment = new Comment(commentDto.getContent(), userEntity);
-        postEntity.addComment(comment);
-        postService.save(postEntity);
+        comment.setPost(postEntity);
+        commentService.save(comment);
 
         webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.NEW_COMMENT));
 
@@ -110,10 +110,9 @@ public class CommentController {
         Comment commentEntity = comment.get();
         Comment newComment = new Comment(commentDto.getContent(), user.get());
         newComment.setParentComment(commentEntity);
-        commentEntity.addComment(newComment);
 
 //        webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.UPDATE_COMMENT));
-        commentService.save(commentEntity);
+        commentService.save(newComment);
         return ResponseEntity.ok().build();
     }
 
