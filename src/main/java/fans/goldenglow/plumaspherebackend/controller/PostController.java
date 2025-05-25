@@ -49,22 +49,22 @@ public class PostController {
 
     @GetMapping("/search")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<PostDto>> searchPosts(@RequestParam String keyword, @RequestParam int page) {
-        Page<Post> postsPage = postService.searchPosts(keyword, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+    public ResponseEntity<List<PostDto>> searchPosts(@RequestParam String query, @RequestParam int page) {
+        Page<Post> postsPage = postService.searchPosts(query, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
         return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
     }
 
     @GetMapping("/search/count")
     @Transactional(readOnly = true)
-    public ResponseEntity<Long> getSearchPostCount(@RequestParam String keyword) {
-        long totalPosts = postService.countSearchPosts(keyword);
+    public ResponseEntity<Long> getSearchPostCount(@RequestParam String query) {
+        long totalPosts = postService.countSearchPosts(query);
         return ResponseEntity.ok(totalPosts);
     }
 
     @GetMapping("/search/count-page")
     @Transactional(readOnly = true)
-    public ResponseEntity<Long> getSearchPostPageCount(@RequestParam String keyword) {
-        long totalPosts = postService.countSearchPosts(keyword);
+    public ResponseEntity<Long> getSearchPostPageCount(@RequestParam String query) {
+        long totalPosts = postService.countSearchPosts(query);
         long totalPages = (long) Math.ceil((double) totalPosts / (double) pageSize);
         return ResponseEntity.ok(totalPages);
     }
