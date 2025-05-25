@@ -11,4 +11,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findBytagsName(String tagName, Pageable pageable);
 
     long countByTagsName(String tagsName);
+
+    Page<Post> findByTitleContainsIgnoreCaseOrContentContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String title, String content, String description, Pageable pageable);
 }

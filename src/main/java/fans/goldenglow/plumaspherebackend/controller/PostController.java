@@ -47,6 +47,13 @@ public class PostController {
         return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
     }
 
+    @GetMapping("/search")
+    @Transactional
+    public ResponseEntity<List<PostDto>> searchPosts(@RequestParam String keyword, @RequestParam int page) {
+        Page<Post> postsPage = postService.searchPosts(keyword, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return ResponseEntity.ok(postMapper.toDto(postsPage.getContent()));
+    }
+
     @GetMapping("/tag")
     @Transactional(readOnly = true)
     public ResponseEntity<List<PostDto>> getPostsByTag(@RequestParam String tagName, @RequestParam int page) {

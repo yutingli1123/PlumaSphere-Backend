@@ -55,4 +55,9 @@ public class PostService {
     public void delete(Long id) {
         postRepository.deleteById(id);
     }
+
+    @Transactional(readOnly = true)
+    public Page<Post> searchPosts(String keyword, Pageable pageable) {
+        return postRepository.findByTitleContainsIgnoreCaseOrContentContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, keyword, pageable);
+    }
 }
