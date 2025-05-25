@@ -33,7 +33,6 @@ public class Comment implements Serializable {
     @Id
     @GeneratedValue
     private Long id;
-    @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
     @CreatedDate
