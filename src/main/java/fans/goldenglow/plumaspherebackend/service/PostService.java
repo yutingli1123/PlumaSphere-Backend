@@ -58,6 +58,11 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Page<Post> searchPosts(String keyword, Pageable pageable) {
-        return postRepository.findByTitleContainsIgnoreCaseOrContentContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, keyword, pageable);
+        return postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(keyword, keyword, keyword, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Long countSearchPosts(String keyword) {
+        return postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(keyword, keyword, keyword);
     }
 }
