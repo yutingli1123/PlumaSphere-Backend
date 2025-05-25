@@ -66,16 +66,6 @@ public class Comment implements Serializable {
         this.author = author;
     }
 
-    public void addComment(Comment comment) {
-        comments.add(comment);
-        comment.setParentComment(this);
-    }
-
-    public void removeComment(Comment comment) {
-        comments.remove(comment);
-        comment.setParentComment(null);
-    }
-
     public void setLikedBy(Set<User> likedBy) {
         this.likedBy = likedBy;
         this.likedCount = likedBy.size();
