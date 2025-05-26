@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static fans.goldenglow.plumaspherebackend.constant.RedisKey.INITIALIZATION_CODE_KEY;
 
@@ -63,9 +64,9 @@ public class SystemController {
             User user = new User(initDto.adminUsername, passwordService.encodePassword(initDto.adminPassword), initDto.getAdminNickname());
             user.setRole(UserRoles.ADMIN);
             userService.save(user);
-            configService.set(ConfigField.BLOG_TITLE, initDto.getBlogTitle(), true);
-            configService.set(ConfigField.BLOG_SUBTITLE, initDto.getBlogSubtitle(), true);
-            configService.set(ConfigField.INITIALIZED, "true", true);
+            configService.set(ConfigField.BLOG_TITLE, initDto.getBlogTitle());
+            configService.set(ConfigField.BLOG_SUBTITLE, initDto.getBlogSubtitle());
+            configService.set(ConfigField.INITIALIZED, "true");
             redisService.delete(INITIALIZATION_CODE_KEY);
 
             return ResponseEntity.ok().build();
@@ -82,6 +83,20 @@ public class SystemController {
         } catch (IllegalStateException e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @PostMapping("/settings")
+    public ResponseEntity<Void> setSystemConfig(@RequestBody Config[] config) {
+        for (Config configItem : config) {
+            Optional<ConfigField> configFieldOpt = ConfigField.tryParse(configItem.getConfigKey());
+            if (configFieldOpt.isPresent()) {
+                ConfigField configField = configFieldOpt.get();
+                configService.set(configField, configItem.getConfigValue());
+            } else {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        return ResponseEntity.ok().build();
     }
 
     private boolean verify(String verificationCode) throws IllegalStateException {

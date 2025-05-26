@@ -10,11 +10,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
 public class ConfigService {
     private final ConfigRepository configRepository;
+
+    private static final Set<ConfigField> IMMUTABLE_CONFIG_FIELDS = Set.of(
+            ConfigField.CONFIG_VERSION
+    );
 
     @Autowired
     public ConfigService(ConfigRepository configRepository) {
@@ -39,24 +44,28 @@ public class ConfigService {
 
     @Transactional
     public void set(ConfigField configField, String value) {
-        set(configField, value, false);
-    }
+        if (configField == ConfigField.INITIALIZED) {
+            Optional<Config> initializedConfig = configRepository.findByConfigKey(configField.name().toLowerCase());
+            if (initializedConfig.isPresent()) {
+                log.warn("System already initialized, cannot set INITIALIZED field again");
+                return;
+            }
+        } else if (IMMUTABLE_CONFIG_FIELDS.contains(configField)) {
+            log.warn("Attempted to modify immutable config field: {}", configField);
+            return;
+        }
 
-    @Transactional
-    public void set(ConfigField configField, String value, boolean isOpenToPublic) {
         Optional<Config> config = configRepository.findByConfigKey(configField.name().toLowerCase());
         Config configEntity;
         if (config.isPresent()) {
             configEntity = config.get();
             configEntity.setConfigValue(value);
         } else {
-            configEntity = new Config(configField.name().toLowerCase(), value, isOpenToPublic);
+            configEntity = new Config(configField.name().toLowerCase(), value, configField.isOpenToPublic());
         }
         configRepository.save(configEntity);
 
-        if (configField != ConfigField.CONFIG_VERSION) {
-            incrementConfigVersion();
-        }
+        incrementConfigVersion();
     }
 
     @Transactional
