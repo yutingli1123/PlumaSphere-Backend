@@ -114,8 +114,9 @@ public class CommentController {
         Optional<User> user = userService.findById(userId);
         if (user.isEmpty()) return ResponseEntity.notFound().build();
 
+        User userEntity = user.get();
         Comment commentEntity = comment.get();
-        Comment newComment = new Comment(commentDto.getContent(), user.get());
+        Comment newComment = new Comment(commentDto.getContent(), userEntity);
         newComment.setParentComment(commentEntity);
 
         Long parentCommentId = commentEntity.getId();
