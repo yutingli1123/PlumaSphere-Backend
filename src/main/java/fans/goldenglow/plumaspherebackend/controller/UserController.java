@@ -2,13 +2,16 @@ package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.dto.UserDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import fans.goldenglow.plumaspherebackend.exceptions.FileSaveException;
 import fans.goldenglow.plumaspherebackend.mapper.UserMapper;
+import fans.goldenglow.plumaspherebackend.service.FileService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,11 +22,13 @@ import java.util.Optional;
 public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
+    private final FileService fileService;
 
     @Autowired
-    public UserController(UserService userService, UserMapper userMapper) {
+    public UserController(UserService userService, UserMapper userMapper, FileService fileService) {
         this.userService = userService;
         this.userMapper = userMapper;
+        this.fileService = fileService;
     }
 
     @GetMapping
@@ -42,6 +47,43 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long userId) {
         return getUserDtoResponseEntityFromUserId(userId);
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> updateUserInfo(@RequestBody UserDto userDto, JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        Optional<User> userOptional = userService.findById(userId);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setNickname(userDto.getNickname());
+            user.setBio(userDto.getBio());
+            user.setDob(userDto.getDob());
+            userService.save(user);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/avatar")
+    public ResponseEntity<Void> updateUserAvatar(@RequestParam("file") MultipartFile file, JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Long userId = Long.parseLong(token.getToken().getSubject());
+        Optional<User> userOptional = userService.findById(userId);
+
+        if (userOptional.isPresent()) {
+            try {
+                String newAvatarUrl = fileService.saveFile(file);
+                User user = userOptional.get();
+                user.setAvatarUrl(newAvatarUrl);
+                userService.save(user);
+                return ResponseEntity.ok().build();
+            } catch (FileSaveException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+        return ResponseEntity.notFound().build();
     }
 
     private ResponseEntity<UserDto> getUserDtoResponseEntityFromUserId(Long userId) {

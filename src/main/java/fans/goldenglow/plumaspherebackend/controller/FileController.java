@@ -1,53 +1,38 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+import fans.goldenglow.plumaspherebackend.exceptions.FileSaveException;
+import fans.goldenglow.plumaspherebackend.service.FileService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/file")
 public class FileController {
-    private static final String UPLOAD_DIR = "upload";
-    private final String accessUrl;
+    private final FileService fileService;
 
-    public FileController(@Value("${config.server_full_address}") String serverFullAddress) {
-        this.accessUrl = serverFullAddress + "/" + UPLOAD_DIR + "/";
+    @Autowired
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
     }
 
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadFiles(@RequestParam("file[]") MultipartFile[] files) {
         List<String> errFiles = new ArrayList<>();
         Map<String, String> succMap = new HashMap<>();
-        File dir = new File(UPLOAD_DIR);
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
         for (MultipartFile file : files) {
-            String originalFilename = file.getOriginalFilename();
-            if (originalFilename == null) continue;
-            String ext = getExtFromString(originalFilename);
-            if (ext == null) {
-                errFiles.add(originalFilename);
-                continue;
-            }
-            String filename = UUID.randomUUID() + "." + ext;
-            File dest = new File(dir, filename);
-            try (InputStream in = file.getInputStream(); OutputStream out = new FileOutputStream(dest)) {
-                StreamUtils.copy(in, out);
-                succMap.put(filename, accessUrl + filename);
-            } catch (Exception e) {
-                errFiles.add(originalFilename);
+            try {
+                String accessUrl = fileService.saveFile(file);
+                if (accessUrl == null) continue;
+                succMap.put(file.getOriginalFilename(), accessUrl);
+            } catch (FileSaveException e) {
+                errFiles.add(e.getFileName());
             }
         }
         Map<String, Object> data = new HashMap<>();
@@ -63,17 +48,10 @@ public class FileController {
     @PostMapping("/fetch")
     public ResponseEntity<Map<String, Object>> fetchImage(@RequestBody Map<String, String> body) {
         String originalURL = body.get("url");
-        String ext = getExtFromString(originalURL);
-        String filename = UUID.randomUUID() + "." + ext;
-        File dir = new File(UPLOAD_DIR);
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-        File dest = new File(dir, filename);
-        String localUrl = accessUrl + filename;
-        try (InputStream in = new URI(originalURL).toURL().openStream(); OutputStream out = new FileOutputStream(dest)) {
-            StreamUtils.copy(in, out);
-        } catch (Exception e) {
+        String localUrl;
+        try {
+            localUrl = fileService.fetchImage(originalURL);
+        } catch (Exception | FileSaveException e) {
             Map<String, Object> result = new HashMap<>();
             result.put("msg", "download image failed");
             result.put("code", 1);
@@ -90,12 +68,5 @@ public class FileController {
         return ResponseEntity.ok(result);
     }
 
-    private String getExtFromString(String s) {
-        if (s == null || s.isEmpty()) return null;
-        int lastDotIndex = s.lastIndexOf('.');
-        if (lastDotIndex == -1 || lastDotIndex == s.length() - 1) return null;
-        String ext = s.substring(lastDotIndex + 1).toLowerCase();
-        if (!ext.matches("^[a-zA-Z0-9]+$")) return null;
-        return ext;
-    }
+
 }
