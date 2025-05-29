@@ -62,6 +62,15 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private Set<Comment> comments = new HashSet<>();
 
+    private Boolean isBanned = false;
+    private String banReason;
+    private LocalDateTime bannedAt;
+    private LocalDateTime banExpiresAt;
+
+    private Boolean isPendingIpBan = false;
+    private String ipBanReason;
+    private LocalDateTime ipBanExpiresAt;
+
     public User(String username, String password, String nickname) {
         this.username = username;
         this.password = password;
@@ -90,5 +99,52 @@ public class User implements Serializable {
         }
         this.initials = initials.toString();
         this.avatarColor = AvatarColor.getRandomColor().getHex();
+    }
+
+    public void ban(String reason) {
+        this.isBanned = true;
+        this.banReason = reason;
+        this.bannedAt = LocalDateTime.now();
+        this.banExpiresAt = null;
+    }
+
+    public void banTemporary(String reason, LocalDateTime expiresAt) {
+        this.isBanned = true;
+        this.banReason = reason;
+        this.bannedAt = LocalDateTime.now();
+        this.banExpiresAt = expiresAt;
+    }
+
+    public void unban() {
+        this.isBanned = false;
+        this.banReason = null;
+        this.bannedAt = null;
+        this.banExpiresAt = null;
+    }
+
+    public boolean isBanExpired() {
+        return banExpiresAt != null && LocalDateTime.now().isAfter(banExpiresAt);
+    }
+
+    public boolean isCurrentlyBanned() {
+        return isBanned && !isBanExpired();
+    }
+
+    public void markForIpBan(String reason) {
+        this.isPendingIpBan = true;
+        this.ipBanReason = reason;
+        this.ipBanExpiresAt = null;
+    }
+
+    public void markForTemporaryIpBan(String reason, LocalDateTime expiresAt) {
+        this.isPendingIpBan = true;
+        this.ipBanReason = reason;
+        this.ipBanExpiresAt = expiresAt;
+    }
+
+    public void clearIpBanMark() {
+        this.isPendingIpBan = false;
+        this.ipBanReason = null;
+        this.ipBanExpiresAt = null;
     }
 }

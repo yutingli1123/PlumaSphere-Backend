@@ -1,0 +1,13 @@
+package fans.goldenglow.plumaspherebackend.annotation;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+
+@Target(METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CheckUserBan {
+    String message() default "Account is banned";
+}
