@@ -17,46 +17,47 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class UserBanService {
-
     private final UserRepository userRepository;
 
     @Transactional
-    public void banUser(String username, String reason, Long adminId) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+    public void banUser(Long id, String reason) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
 
         user.ban(reason);
         userRepository.save(user);
-        log.info("User {} banned permanently by admin {}. Reason: {}", username, adminId, reason);
+        log.info("User {} banned permanently. Reason: {}", id, reason);
     }
 
     @Transactional
-    public void banUserTemporary(String username, String reason, LocalDateTime expiresAt) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+    public void banUserTemporary(Long id, String reason, LocalDateTime expiresAt) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
 
         user.banTemporary(reason, expiresAt);
         userRepository.save(user);
         log.info("User {} banned temporarily until {}. Reason: {}",
-                username, expiresAt, reason);
+                id, expiresAt, reason);
     }
 
     @Transactional
-    public void unbanUser(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+    public void unbanUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
 
         user.unban();
         userRepository.save(user);
-        log.info("User {} has been unbanned", username);
+        log.info("User {} has been unbanned", id);
     }
 
-    public boolean isUserBanned(String username) {
-        return userRepository.findByUsername(username)
+    @Transactional(readOnly = true)
+    public boolean isUserBanned(Long id) {
+        return userRepository.findById(id)
                 .map(User::isCurrentlyBanned)
                 .orElse(false);
     }
 
+    @Transactional(readOnly = true)
     public Page<User> getBannedUsers(Pageable pageable) {
         return userRepository.findByIsBannedTrueOrderByBannedAtDesc(pageable);
     }
@@ -68,7 +69,7 @@ public class UserBanService {
 
         for (User user : expiredBannedUsers) {
             user.unban();
-            log.info("Automatically unbanned user {} due to ban expiration", user.getUsername());
+            log.info("Automatically unbanned user {} due to ban expiration", user.getId());
         }
 
         if (!expiredBannedUsers.isEmpty()) {

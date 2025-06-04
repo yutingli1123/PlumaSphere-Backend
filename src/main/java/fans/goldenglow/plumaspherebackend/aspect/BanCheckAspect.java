@@ -105,18 +105,7 @@ public class BanCheckAspect {
 
     private Long extractUserIdFromJwt(JwtAuthenticationToken jwtToken) {
         try {
-            Object subject = jwtToken.getTokenAttributes().get("sub");
-            if (subject != null) {
-                return Long.parseLong(subject.toString());
-            }
-
-            String name = jwtToken.getName();
-            if (name != null) {
-                return Long.parseLong(name);
-            }
-
-            return null;
-
+            return Long.parseLong(jwtToken.getToken().getSubject());
         } catch (NumberFormatException e) {
             log.error("Error parsing user ID from JWT subject: {}", e.getMessage());
             return null;

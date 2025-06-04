@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin")
@@ -25,16 +26,16 @@ public class AdminController {
     private final UserBanService userBanService;
 
     @PostMapping("/ban-user")
-    public ResponseEntity<String> banUser(@RequestParam String username,
+    public ResponseEntity<String> banUser(@RequestParam Long id,
                                           @RequestParam String reason,
                                           @RequestParam(required = false) LocalDateTime expiresAt) {
         try {
             if (expiresAt != null) {
-                userBanService.banUserTemporary(username, reason, expiresAt);
-                return ResponseEntity.ok("User " + username + " banned temporarily until " + expiresAt);
+                userBanService.banUserTemporary(id, reason, expiresAt);
+                return ResponseEntity.ok("User " + id + " banned temporarily until " + expiresAt);
             } else {
-                userBanService.banUser(username, reason, currentAdmin.getId());
-                return ResponseEntity.ok("User " + username + " banned permanently");
+                userBanService.banUser(id, reason);
+                return ResponseEntity.ok("User " + id + " banned permanently");
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error banning user: " + e.getMessage());
@@ -42,10 +43,10 @@ public class AdminController {
     }
 
     @DeleteMapping("/unban-user")
-    public ResponseEntity<String> unbanUser(@RequestParam String username) {
+    public ResponseEntity<String> unbanUser(@RequestParam Long id) {
         try {
-            userBanService.unbanUser(username);
-            return ResponseEntity.ok("User " + username + " has been unbanned");
+            userBanService.unbanUser(id);
+            return ResponseEntity.ok("User " + id + " has been unbanned");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error unbanning user: " + e.getMessage());
         }
@@ -53,43 +54,51 @@ public class AdminController {
 
     @GetMapping("/banned-users")
     public ResponseEntity<Page<User>> getBannedUsers(Pageable pageable) {
-        Page<User> bannedUsers = userBanService.getBannedUsers(pageable);
-        return ResponseEntity.ok(bannedUsers);
+        return ResponseEntity.ok(userBanService.getBannedUsers(pageable));
     }
 
     @GetMapping("/user-ban-status")
-    public ResponseEntity<Boolean> checkUserBanStatus(@RequestParam String username) {
-        boolean isBanned = userBanService.isUserBanned(username);
-        return ResponseEntity.ok(isBanned);
+    public ResponseEntity<Boolean> checkUserBanStatus(@RequestParam Long id) {
+        return ResponseEntity.ok(userBanService.isUserBanned(id));
     }
 
     @PostMapping("/mark-user-for-ip-ban")
-    public ResponseEntity<String> markUserForIpBan(@RequestParam String username,
+    public ResponseEntity<String> markUserForIpBan(@RequestParam Long id,
                                                    @RequestParam String reason,
                                                    @RequestParam(required = false) LocalDateTime expiresAt) {
         try {
-            User user = userService.findByUsername(username);
+            Optional<User> user = userService.findById(id);
 
-            if (expiresAt != null) {
-                user.markForTemporaryIpBan(reason, expiresAt);
-            } else {
-                user.markForIpBan(reason);
+            if (user.isEmpty()) {
+                return ResponseEntity.badRequest().body("User not found with ID: " + id);
             }
 
-            userService.save(user);
-            return ResponseEntity.ok("User " + username + " marked for IP ban. Reason: " + reason);
+            User userEntity = user.get();
+
+            if (expiresAt != null) {
+                userEntity.markForTemporaryIpBan(reason, expiresAt);
+            } else {
+                userEntity.markForIpBan(reason);
+            }
+
+            userService.save(userEntity);
+            return ResponseEntity.ok("User " + id + " marked for IP ban. Reason: " + reason);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error marking user: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/unmark-user-ip-ban")
-    public ResponseEntity<String> unmarkUserIpBan(@RequestParam String username) {
+    public ResponseEntity<String> unmarkUserIpBan(@RequestParam Long id) {
         try {
-            User user = userService.findByUsername(username);
-            user.clearIpBanMark();
-            userService.save(user);
-            return ResponseEntity.ok("User " + username + " unmarked for IP ban");
+            Optional<User> user = userService.findById(id);
+            if (user.isEmpty()) {
+                return ResponseEntity.badRequest().body("User not found with ID: " + id);
+            }
+            User userEntity = user.get();
+            userEntity.clearIpBanMark();
+            userService.save(userEntity);
+            return ResponseEntity.ok("User " + id + " unmarked for IP ban");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error unmarking user: " + e.getMessage());
         }
@@ -99,11 +108,9 @@ public class AdminController {
     public ResponseEntity<BannedIp> banIp(@RequestParam String ipAddress,
                                           @RequestParam String reason,
                                           @RequestParam(required = false) LocalDateTime expiresAt) {
-        User currentAdmin = userService.getCurrentUser();
-
         BannedIp bannedIp = expiresAt != null
-                ? bannedIpService.banIpTemporary(ipAddress, reason, expiresAt, currentAdmin)
-                : bannedIpService.banIp(ipAddress, reason, currentAdmin);
+                ? bannedIpService.banIpTemporary(ipAddress, reason, expiresAt)
+                : bannedIpService.banIp(ipAddress, reason);
 
         return ResponseEntity.ok(bannedIp);
     }
