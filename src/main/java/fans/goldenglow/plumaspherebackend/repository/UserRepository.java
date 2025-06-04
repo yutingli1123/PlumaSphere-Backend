@@ -18,13 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByUsername(String username);
 
-    void deleteByUsername(String username);
-
     Page<User> findByIsBannedTrueOrderByBannedAtDesc(Pageable pageable);
 
     @Query("SELECT u FROM User u WHERE u.isBanned = true AND u.banExpiresAt IS NOT NULL AND u.banExpiresAt <= :now")
     List<User> findExpiredBannedUsers(@Param("now") LocalDateTime now);
-
-    @Query("SELECT COUNT(u) FROM User u WHERE u.isBanned = true")
-    long countBannedUsers();
 }

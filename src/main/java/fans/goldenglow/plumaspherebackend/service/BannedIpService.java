@@ -16,9 +16,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Slf4j
 public class BannedIpService {
-
     private final BannedIpRepository bannedIpRepository;
 
+    @Transactional(readOnly = true)
     public boolean isIpBanned(String ipAddress) {
         boolean isBanned = bannedIpRepository.findActiveBanByIp(ipAddress, LocalDateTime.now()).isPresent();
         if (isBanned) {
@@ -29,7 +29,6 @@ public class BannedIpService {
 
     @Transactional
     public BannedIp banIp(String ipAddress, String reason) {
-        // 检查是否已经被封禁
         if (isIpBanned(ipAddress)) {
             log.warn("IP {} is already banned", ipAddress);
             return bannedIpRepository.findActiveBanByIp(ipAddress, LocalDateTime.now()).orElse(null);
@@ -69,7 +68,7 @@ public class BannedIpService {
         return bannedIpRepository.findByIsActiveTrueOrderByBannedAtDesc(pageable);
     }
 
-    @Scheduled(fixedRate = 3600000) // 每小时清理一次过期封禁
+    @Scheduled(fixedRate = 3600000)
     @Transactional
     public void cleanupExpiredBans() {
         bannedIpRepository.deactivateExpiredBans(LocalDateTime.now());

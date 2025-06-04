@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 public class BannedIp {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -47,7 +47,4 @@ public class BannedIp {
         this.expiresAt = expiresAt;
     }
 
-    public boolean isExpired() {
-        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
-    }
 }
