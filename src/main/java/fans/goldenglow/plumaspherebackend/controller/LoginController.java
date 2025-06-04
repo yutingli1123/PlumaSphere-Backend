@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.annotation.CheckIpBan;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.dto.StringDto;
 import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
@@ -56,6 +57,7 @@ public class LoginController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    @CheckIpBan
     @PostMapping("/refresh-token")
     public ResponseEntity<TokenResponseDto> refreshToken(@RequestBody StringDto dto) {
         String refreshToken = dto.getValue();
@@ -64,6 +66,7 @@ public class LoginController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @CheckIpBan
     @GetMapping("/get-identity")
     @RateLimiter(name = "get-identity", fallbackMethod = "getIdentityFallback")
     public ResponseEntity<TokenResponseDto> getIdentity() {
