@@ -1,5 +1,7 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.annotation.CheckIpBan;
+import fans.goldenglow.plumaspherebackend.annotation.CheckUserBan;
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.constant.WebSocketMessageType;
@@ -81,6 +83,8 @@ public class CommentController {
         return ResponseEntity.ok(commentService.countByPostId(postId));
     }
 
+    @CheckIpBan
+    @CheckUserBan
     @PostMapping("/post/{postId}/comment")
     @Transactional
     public ResponseEntity<Void> replyPost(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
@@ -104,6 +108,8 @@ public class CommentController {
         return ResponseEntity.ok().build();
     }
 
+    @CheckIpBan
+    @CheckUserBan
     @PostMapping("/comment/{commentId}/reply")
     @Transactional
     public ResponseEntity<Void> replyComment(@PathVariable Long commentId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
