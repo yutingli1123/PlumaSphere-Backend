@@ -1,5 +1,7 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.dto.BanIPRequestDto;
+import fans.goldenglow.plumaspherebackend.dto.BanRequestDto;
 import fans.goldenglow.plumaspherebackend.entity.BannedIp;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.BannedIpService;
@@ -9,16 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final BannedIpService bannedIpService;
@@ -26,12 +27,13 @@ public class AdminController {
     private final UserBanService userBanService;
 
     @PostMapping("/ban-user")
-    public ResponseEntity<String> banUser(@RequestParam Long id,
-                                          @RequestParam String reason,
-                                          @RequestParam(required = false) LocalDateTime expiresAt) {
+    public ResponseEntity<String> banUser(@RequestBody BanRequestDto banRequestDto) {
         try {
+            Long id = banRequestDto.getUserId();
+            String reason = banRequestDto.getReason();
+            ZonedDateTime expiresAt = banRequestDto.getExpiresAt();
             if (expiresAt != null) {
-                userBanService.banUserTemporary(id, reason, expiresAt);
+                userBanService.banUserTemporary(id, reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
                 return ResponseEntity.ok("User " + id + " banned temporarily until " + expiresAt);
             } else {
                 userBanService.banUser(id, reason);
@@ -63,10 +65,12 @@ public class AdminController {
     }
 
     @PostMapping("/mark-user-for-ip-ban")
-    public ResponseEntity<String> markUserForIpBan(@RequestParam Long id,
-                                                   @RequestParam String reason,
-                                                   @RequestParam(required = false) LocalDateTime expiresAt) {
+    public ResponseEntity<String> markUserForIpBan(@RequestBody BanRequestDto banRequestDto) {
         try {
+            Long id = banRequestDto.getUserId();
+            String reason = banRequestDto.getReason();
+            ZonedDateTime expiresAt = banRequestDto.getExpiresAt();
+
             Optional<User> user = userService.findById(id);
 
             if (user.isEmpty()) {
@@ -76,7 +80,7 @@ public class AdminController {
             User userEntity = user.get();
 
             if (expiresAt != null) {
-                userEntity.markForTemporaryIpBan(reason, expiresAt);
+                userEntity.markForTemporaryIpBan(reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
             } else {
                 userEntity.markForIpBan(reason);
             }
@@ -105,11 +109,13 @@ public class AdminController {
     }
 
     @PostMapping("/ban-ip")
-    public ResponseEntity<BannedIp> banIp(@RequestParam String ipAddress,
-                                          @RequestParam String reason,
-                                          @RequestParam(required = false) LocalDateTime expiresAt) {
+    public ResponseEntity<BannedIp> banIp(@RequestBody BanIPRequestDto banIPRequestDto) {
+        String ipAddress = banIPRequestDto.getIpAddress();
+        String reason = banIPRequestDto.getReason();
+        ZonedDateTime expiresAt = banIPRequestDto.getExpiresAt();
+
         BannedIp bannedIp = expiresAt != null
-                ? bannedIpService.banIpTemporary(ipAddress, reason, expiresAt)
+                ? bannedIpService.banIpTemporary(ipAddress, reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime())
                 : bannedIpService.banIp(ipAddress, reason);
 
         return ResponseEntity.ok(bannedIp);
