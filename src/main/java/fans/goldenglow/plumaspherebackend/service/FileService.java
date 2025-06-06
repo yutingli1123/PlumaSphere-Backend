@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.UUID;
 
 @Service
 public class FileService {
@@ -30,10 +31,14 @@ public class FileService {
             if (!dir.mkdirs()) throw new RuntimeException("Failed to create upload directory");
         }
 
-        String filename = file.getOriginalFilename();
-        if (filename == null) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isEmpty()) {
             throw new FileSaveException();
         }
+
+        String extension = FilenameUtils.getExtension(originalFilename);
+        String filename = UUID.randomUUID() + "." + extension;
+
         File dest = new File(dir, filename);
         try (InputStream in = file.getInputStream(); OutputStream out = new FileOutputStream(dest)) {
             StreamUtils.copy(in, out);
@@ -46,7 +51,8 @@ public class FileService {
     public String fetchImage(String originalURL) throws FileSaveException {
         if (!checkURLValidation(originalURL)) throw new FileSaveException();
 
-        String filename = FilenameUtils.getName(originalURL);
+        String extension = FilenameUtils.getExtension(originalURL);
+        String filename = (extension == null || extension.isEmpty()) ? UUID.randomUUID().toString() : UUID.randomUUID() + "." + extension;
         File dir = new File(UPLOAD_DIR);
         if (!dir.exists()) {
             if (!dir.mkdirs()) throw new RuntimeException("Failed to create upload directory");
