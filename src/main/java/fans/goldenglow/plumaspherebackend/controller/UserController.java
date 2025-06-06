@@ -6,7 +6,7 @@ import fans.goldenglow.plumaspherebackend.exceptions.FileSaveException;
 import fans.goldenglow.plumaspherebackend.mapper.UserMapper;
 import fans.goldenglow.plumaspherebackend.service.FileService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -19,17 +19,11 @@ import java.util.Optional;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/user")
+@RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final FileService fileService;
-
-    @Autowired
-    public UserController(UserService userService, UserMapper userMapper, FileService fileService) {
-        this.userService = userService;
-        this.userMapper = userMapper;
-        this.fileService = fileService;
-    }
 
     @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers() {

@@ -5,8 +5,12 @@ import fans.goldenglow.plumaspherebackend.dto.PostDto;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.mapper.PostMapper;
-import fans.goldenglow.plumaspherebackend.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import fans.goldenglow.plumaspherebackend.service.ConfigService;
+import fans.goldenglow.plumaspherebackend.service.PostService;
+import fans.goldenglow.plumaspherebackend.service.TagService;
+import fans.goldenglow.plumaspherebackend.service.UserService;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,21 +25,17 @@ import java.util.Optional;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/post")
+@RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
     private final UserService userService;
     private final TagService tagService;
     private final PostMapper postMapper;
-    private final MarkdownService markdownService;
-    private final int pageSize;
+    private final ConfigService configService;
+    private int pageSize;
 
-    @Autowired
-    public PostController(PostService postService, UserService userService, TagService tagService, ConfigService configService, PostMapper postMapper, MarkdownService markdownService) {
-        this.postService = postService;
-        this.userService = userService;
-        this.tagService = tagService;
-        this.postMapper = postMapper;
-        this.markdownService = markdownService;
+    @PostConstruct
+    private void init() {
         Optional<String> pageSizeConfig = configService.get(ConfigField.PAGE_SIZE);
         pageSize = pageSizeConfig.map(Integer::parseInt).orElse(5);
     }

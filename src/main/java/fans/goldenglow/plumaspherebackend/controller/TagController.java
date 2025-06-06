@@ -3,7 +3,7 @@ package fans.goldenglow.plumaspherebackend.controller;
 import fans.goldenglow.plumaspherebackend.dto.TagDto;
 import fans.goldenglow.plumaspherebackend.entity.Tag;
 import fans.goldenglow.plumaspherebackend.service.TagService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +16,9 @@ import java.util.stream.Stream;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/tag")
+@RequiredArgsConstructor
 public class TagController {
     private final TagService tagService;
-
-    @Autowired
-    public TagController(TagService tagService) {
-        this.tagService = tagService;
-    }
 
     @GetMapping
     @Transactional(readOnly = true)

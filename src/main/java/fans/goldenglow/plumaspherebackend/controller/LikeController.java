@@ -7,7 +7,7 @@ import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.handler.WebSocketHandler;
 import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.LikeCacheService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -18,17 +18,11 @@ import java.util.Optional;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class LikeController {
     private final LikeCacheService likeCacheService;
     private final WebSocketHandler webSocketHandler;
     private final CommentService commentService;
-
-    @Autowired
-    public LikeController(LikeCacheService likeCacheService, WebSocketHandler webSocketHandler, CommentService commentService) {
-        this.likeCacheService = likeCacheService;
-        this.webSocketHandler = webSocketHandler;
-        this.commentService = commentService;
-    }
 
     @GetMapping("/post/{postId}/like")
     public ResponseEntity<Long> getLikes(@PathVariable Long postId) {

@@ -11,7 +11,7 @@ import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import fans.goldenglow.plumaspherebackend.util.RandomUtil;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,17 +23,11 @@ import java.util.Optional;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class LoginController {
     private final UserService userService;
     private final TokenService tokenService;
     private final PasswordService passwordService;
-
-    @Autowired
-    public LoginController(UserService userService, TokenService tokenService, PasswordService passwordService) {
-        this.userService = userService;
-        this.tokenService = tokenService;
-        this.passwordService = passwordService;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponseDto> login(@RequestBody UserLoginDto loginData) {

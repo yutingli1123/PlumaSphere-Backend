@@ -10,7 +10,7 @@ import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.PasswordService;
 import fans.goldenglow.plumaspherebackend.service.RedisService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -24,19 +24,12 @@ import static fans.goldenglow.plumaspherebackend.constant.RedisKey.INITIALIZATIO
 
 @RestController
 @RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class SystemController {
     private final ConfigService configService;
     private final RedisService redisService;
     private final PasswordService passwordService;
     private final UserService userService;
-
-    @Autowired
-    public SystemController(ConfigService configService, RedisService redisService, PasswordService passwordService, UserService userService) {
-        this.configService = configService;
-        this.redisService = redisService;
-        this.passwordService = passwordService;
-        this.userService = userService;
-    }
 
     @GetMapping("/status")
     public ResponseEntity<List<Config>> getStatus(JwtAuthenticationToken token) {

@@ -3,7 +3,7 @@ package fans.goldenglow.plumaspherebackend.config;
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.SecretService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -26,17 +26,11 @@ import static org.springframework.security.oauth2.core.authorization.OAuth2Autho
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
     private final SecretService secretService;
     private final ConfigService configService;
     private final CorsProperties corsProperties;
-
-    @Autowired
-    public SecurityConfig(SecretService secretService, ConfigService configService, CorsProperties corsProperties) {
-        this.secretService = secretService;
-        this.configService = configService;
-        this.corsProperties = corsProperties;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

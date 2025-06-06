@@ -16,7 +16,8 @@ import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.PostService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,21 +33,18 @@ import java.util.Optional;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class CommentController {
     private final PostService postService;
     private final CommentService commentService;
     private final UserService userService;
     private final WebSocketHandler webSocketHandler;
     private final CommentMapper commentMapper;
-    private final int pageSize;
+    private final ConfigService configService;
+    private int pageSize;
 
-    @Autowired
-    public CommentController(PostService postService, CommentService commentService, UserService userService, WebSocketHandler webSocketHandler, CommentMapper commentMapper, ConfigService configService) {
-        this.postService = postService;
-        this.commentService = commentService;
-        this.userService = userService;
-        this.webSocketHandler = webSocketHandler;
-        this.commentMapper = commentMapper;
+    @PostConstruct
+    private void init() {
         Optional<String> pageSizeConfig = configService.get(ConfigField.PAGE_SIZE);
         pageSize = pageSizeConfig.map(Integer::parseInt).orElse(5);
     }

@@ -4,7 +4,7 @@ import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import jakarta.annotation.PreDestroy;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class LikeCacheService {
     private static final String POST_LIKES_KEY = "post:like:";
     private static final String COMMENT_LIKES_KEY = "comment:like:";
@@ -27,14 +28,6 @@ public class LikeCacheService {
     private final PostService postService;
     private final CommentService commentService;
     private final UserService userService;
-
-    @Autowired
-    public LikeCacheService(RedisService redisService, PostService postService, CommentService commentService, UserService userService) {
-        this.redisService = redisService;
-        this.postService = postService;
-        this.commentService = commentService;
-        this.userService = userService;
-    }
 
     @Transactional(readOnly = true)
     public Set<Long> getPostLikes(Long postId) {

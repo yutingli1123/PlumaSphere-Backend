@@ -7,8 +7,9 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +22,11 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class TokenService {
     private final UserService userService;
-    private final Algorithm algorithm;
+    private final SecretService secretService;
+    private Algorithm algorithm;
     @Value("${config.jwt.iss}")
     private String JWT_ISSUER;
     @Value("${config.jwt.expiration.access_token}")
@@ -31,9 +34,8 @@ public class TokenService {
     @Value("${config.jwt.expiration.refresh_token}")
     private long REFRESH_TOKEN_EXPIRATION;
 
-    @Autowired
-    public TokenService(UserService userService, SecretService secretService) {
-        this.userService = userService;
+    @PostConstruct
+    private void init() {
         this.algorithm = Algorithm.HMAC256(secretService.getSecret().getEncoded());
     }
 
