@@ -37,7 +37,7 @@ public class FileService {
         }
 
         String extension = FilenameUtils.getExtension(originalFilename);
-        String filename = UUID.randomUUID() + "." + extension;
+        String filename = extension.isEmpty() ? UUID.randomUUID().toString() : UUID.randomUUID() + "." + extension;
 
         File dest = new File(dir, filename);
         try (InputStream in = file.getInputStream(); OutputStream out = new FileOutputStream(dest)) {
@@ -51,15 +51,16 @@ public class FileService {
     public String fetchImage(String originalURL) throws FileSaveException {
         if (!checkURLValidation(originalURL)) throw new FileSaveException();
 
-        String extension = FilenameUtils.getExtension(originalURL);
-        String filename = (extension == null || extension.isEmpty()) ? UUID.randomUUID().toString() : UUID.randomUUID() + "." + extension;
         File dir = new File(UPLOAD_DIR);
         if (!dir.exists()) {
             if (!dir.mkdirs()) throw new RuntimeException("Failed to create upload directory");
         }
+
+        String extension = FilenameUtils.getExtension(originalURL);
+        String filename = extension.isEmpty() ? UUID.randomUUID().toString() : UUID.randomUUID() + "." + extension;
+
         File dest = new File(dir, filename);
-        try (InputStream in = new URI(originalURL).toURL().openStream();
-             OutputStream out = new FileOutputStream(dest)) {
+        try (InputStream in = new URI(originalURL).toURL().openStream(); OutputStream out = new FileOutputStream(dest)) {
             StreamUtils.copy(in, out);
             return accessUrl + filename;
         } catch (Exception e) {
