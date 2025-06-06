@@ -58,7 +58,7 @@ public class SystemController {
     public ResponseEntity<Void> initSystem(@RequestBody InitDto initDto) {
         try {
             String verificationCode = initDto.getVerificationCode();
-            boolean verified = verify(verificationCode);
+            boolean verified = configService.checkVerificationCode(verificationCode);
             if (!verified) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
             User user = new User(initDto.adminUsername, passwordService.encodePassword(initDto.adminPassword), initDto.getAdminNickname());
@@ -79,7 +79,7 @@ public class SystemController {
     public ResponseEntity<Boolean> verifyCode(@RequestBody StringDto dto) {
         String verifyCode = dto.getValue();
         try {
-            return ResponseEntity.ok(verify(verifyCode));
+            return ResponseEntity.ok(configService.checkVerificationCode(verifyCode));
         } catch (IllegalStateException e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -97,11 +97,5 @@ public class SystemController {
             }
         }
         return ResponseEntity.ok().build();
-    }
-
-    private boolean verify(String verificationCode) throws IllegalStateException {
-        String redisVerificationCode = redisService.get(INITIALIZATION_CODE_KEY);
-        if (redisVerificationCode == null) throw new IllegalStateException("Initialization code is not set yet.");
-        return redisVerificationCode.equals(verificationCode);
     }
 }

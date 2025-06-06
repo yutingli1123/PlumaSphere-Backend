@@ -3,8 +3,8 @@ package fans.goldenglow.plumaspherebackend.service;
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.entity.Config;
 import fans.goldenglow.plumaspherebackend.repository.ConfigRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,19 +12,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static fans.goldenglow.plumaspherebackend.constant.RedisKey.INITIALIZATION_CODE_KEY;
+
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ConfigService {
     private final ConfigRepository configRepository;
+    private final RedisService redisService;
 
     private static final Set<ConfigField> IMMUTABLE_CONFIG_FIELDS = Set.of(
             ConfigField.CONFIG_VERSION
     );
-
-    @Autowired
-    public ConfigService(ConfigRepository configRepository) {
-        this.configRepository = configRepository;
-    }
 
     @Transactional(readOnly = true)
     public Optional<String> get(ConfigField configField) {
@@ -82,5 +81,11 @@ public class ConfigService {
         Config configEntity = versionConfig.orElseGet(() -> new Config(ConfigField.CONFIG_VERSION.name().toLowerCase(), "1", false));
         configEntity.setConfigValue(String.valueOf(version));
         configRepository.save(configEntity);
+    }
+
+    public boolean checkVerificationCode(String verificationCode) throws IllegalStateException {
+        String redisVerificationCode = redisService.get(INITIALIZATION_CODE_KEY);
+        if (redisVerificationCode == null) throw new IllegalStateException("Initialization code is not set yet.");
+        return redisVerificationCode.equals(verificationCode);
     }
 }
