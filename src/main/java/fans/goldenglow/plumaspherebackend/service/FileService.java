@@ -1,6 +1,7 @@
 package fans.goldenglow.plumaspherebackend.service;
 
 import fans.goldenglow.plumaspherebackend.exceptions.FileSaveException;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
@@ -13,7 +14,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.UUID;
 
 @Service
 public class FileService {
@@ -30,13 +30,10 @@ public class FileService {
             if (!dir.mkdirs()) throw new RuntimeException("Failed to create upload directory");
         }
 
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) return null;
-        String ext = getExtFromString(originalFilename);
-        if (ext == null) {
+        String filename = file.getOriginalFilename();
+        if (filename == null) {
             throw new FileSaveException();
         }
-        String filename = UUID.randomUUID() + "." + ext;
         File dest = new File(dir, filename);
         try (InputStream in = file.getInputStream(); OutputStream out = new FileOutputStream(dest)) {
             StreamUtils.copy(in, out);
@@ -49,9 +46,7 @@ public class FileService {
     public String fetchImage(String originalURL) throws FileSaveException {
         if (!checkURLValidation(originalURL)) throw new FileSaveException();
 
-        String ext = getExtFromString(originalURL);
-        if (ext == null) throw new FileSaveException();
-        String filename = UUID.randomUUID() + "." + ext;
+        String filename = FilenameUtils.getName(originalURL);
         File dir = new File(UPLOAD_DIR);
         if (!dir.exists()) {
             if (!dir.mkdirs()) throw new RuntimeException("Failed to create upload directory");
@@ -84,14 +79,5 @@ public class FileService {
         if (host == null || host.isEmpty()) return false;
         InetAddress addr = InetAddress.getByName(host);
         return addr.isLoopbackAddress() || addr.isLinkLocalAddress() || addr.isSiteLocalAddress();
-    }
-
-    private String getExtFromString(String s) {
-        if (s == null || s.isEmpty()) return null;
-        int lastDotIndex = s.lastIndexOf('.');
-        if (lastDotIndex == -1 || lastDotIndex == s.length() - 1) return null;
-        String ext = s.substring(lastDotIndex + 1).toLowerCase();
-        if (!ext.matches("^[a-zA-Z0-9]+$")) return null;
-        return ext;
     }
 }
