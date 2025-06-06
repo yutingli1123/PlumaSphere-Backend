@@ -2,8 +2,8 @@ package fans.goldenglow.plumaspherebackend.service;
 
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,13 +13,10 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
-
-    @Autowired
-    public PostService(PostRepository postRepository) {
-        this.postRepository = postRepository;
-    }
+    private final MarkdownService markdownService;
 
     @Transactional(readOnly = true)
     public long countPosts() {
@@ -64,5 +61,10 @@ public class PostService {
     @Transactional(readOnly = true)
     public Long countSearchPosts(String keyword) {
         return postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(keyword, keyword, keyword);
+    }
+
+    public String generateDescription(String content) {
+        String plainText = markdownService.convertMarkdownToPlainText(content);
+        return plainText.length() > 300 ? plainText.substring(0, 300) + "..." : plainText;
     }
 }

@@ -125,7 +125,7 @@ public class PostController {
         postEntity.setContent(content);
         postEntity.setAuthor(userEntity);
         postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
-        postEntity.setDescription(generateDescription(content));
+        postEntity.setDescription(postService.generateDescription(content));
         postService.save(postEntity);
         return ResponseEntity.ok().build();
     }
@@ -142,17 +142,12 @@ public class PostController {
                 postEntity.setTitle(postDto.getTitle());
                 postEntity.setContent(content);
                 postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
-                postEntity.setDescription(generateDescription(content));
+                postEntity.setDescription(postService.generateDescription(content));
                 postService.save(postEntity);
                 return ResponseEntity.ok().build();
             }
         }
         return ResponseEntity.notFound().build();
-    }
-
-    private String generateDescription(String content) {
-        String plainText = markdownService.convertMarkdownToPlainText(content);
-        return plainText.length() > 300 ? plainText.substring(0, 300) + "..." : plainText;
     }
 
     @DeleteMapping("/{postId}")
