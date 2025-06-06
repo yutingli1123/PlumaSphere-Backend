@@ -1,7 +1,6 @@
 package fans.goldenglow.plumaspherebackend.aspect;
 
 import fans.goldenglow.plumaspherebackend.annotation.CheckIpBan;
-import fans.goldenglow.plumaspherebackend.annotation.CheckUserBan;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.BannedIpService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
@@ -31,8 +30,8 @@ public class BanCheckAspect {
     private final UserService userService;
     private final BannedIpService bannedIpService;
 
-    @Before("@annotation(checkUserBan)")
-    public void checkUserBan(JoinPoint joinPoint, CheckUserBan checkUserBan) {
+    @Before("@annotation(fans.goldenglow.plumaspherebackend.annotation.CheckUserBan)")
+    public void checkUserBan(JoinPoint joinPoint) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth instanceof JwtAuthenticationToken jwtToken) {
