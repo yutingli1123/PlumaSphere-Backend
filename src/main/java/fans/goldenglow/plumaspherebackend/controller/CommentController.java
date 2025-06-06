@@ -144,6 +144,8 @@ public class CommentController {
         return ResponseEntity.ok(commentMapper.toDto(replies.getContent()));
     }
 
+    @CheckUserBan
+    @CheckIpBan
     @DeleteMapping("/comment/{commentId}")
     @Transactional
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
