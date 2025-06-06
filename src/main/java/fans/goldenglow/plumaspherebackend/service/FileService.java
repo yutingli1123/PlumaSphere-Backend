@@ -10,7 +10,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
 @Service
@@ -32,7 +34,7 @@ public class FileService {
         if (originalFilename == null) return null;
         String ext = getExtFromString(originalFilename);
         if (ext == null) {
-            throw new FileSaveException(originalFilename);
+            throw new FileSaveException();
         }
         String filename = UUID.randomUUID() + "." + ext;
         File dest = new File(dir, filename);
@@ -40,13 +42,15 @@ public class FileService {
             StreamUtils.copy(in, out);
             return accessUrl + filename;
         } catch (Exception e) {
-            throw new FileSaveException(originalFilename);
+            throw new FileSaveException();
         }
     }
 
     public String fetchImage(String originalURL) throws FileSaveException {
+        if (!checkURLValidation(originalURL)) throw new FileSaveException();
+
         String ext = getExtFromString(originalURL);
-        if (ext == null) throw new FileSaveException(null);
+        if (ext == null) throw new FileSaveException();
         String filename = UUID.randomUUID() + "." + ext;
         File dir = new File(UPLOAD_DIR);
         if (!dir.exists()) {
@@ -58,8 +62,28 @@ public class FileService {
             StreamUtils.copy(in, out);
             return accessUrl + filename;
         } catch (Exception e) {
-            throw new FileSaveException(null);
+            throw new FileSaveException();
         }
+    }
+
+    public boolean checkURLValidation(String url) {
+        if (url == null || url.isEmpty()) return false;
+        try {
+            URI uri = new URI(url);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            if (scheme == null || host == null) return false;
+            if (!"https".equalsIgnoreCase(scheme) && !"http".equalsIgnoreCase(scheme)) return false;
+            return !isLocalAddress(host);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean isLocalAddress(String host) throws UnknownHostException {
+        if (host == null || host.isEmpty()) return false;
+        InetAddress addr = InetAddress.getByName(host);
+        return addr.isLoopbackAddress() || addr.isLinkLocalAddress() || addr.isSiteLocalAddress();
     }
 
     private String getExtFromString(String s) {

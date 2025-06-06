@@ -1,12 +1,10 @@
 package fans.goldenglow.plumaspherebackend.exceptions;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class FileSaveException extends Throwable {
-    private final String fileName;
-
-    public FileSaveException(String fileName) {
-        this.fileName = fileName;
-    }
+    private final String fileName = null;
 }
