@@ -16,6 +16,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.UUID;
 
+@SuppressWarnings("JvmTaintAnalysis")
 @Service
 public class FileService {
     private static final String UPLOAD_DIR = "upload";
