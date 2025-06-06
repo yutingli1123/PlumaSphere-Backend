@@ -55,33 +55,45 @@ public class BanCheckAspect {
                         log.info("User {} (ID: {}) ban has expired and been automatically lifted", user.getUsername(), userId);
                     }
 
+                    boolean isUserBanned = false;
+                    String banMessage = null;
+
                     if (user.isCurrentlyBanned()) {
                         log.info("Blocked banned user {} (ID: {}) from accessing {}",
                                 user.getUsername(), userId, joinPoint.getSignature().getName());
 
-                        String message = user.getBanExpiresAt() != null
+                        banMessage = user.getBanExpiresAt() != null
                                 ? String.format("Account banned until %s. Reason: %s", user.getBanExpiresAt(), user.getBanReason())
                                 : String.format("Account permanently banned. Reason: %s", user.getBanReason());
 
-                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
+                        isUserBanned = true;
                     }
 
                     if (user.getIsPendingIpBan()) {
                         String clientIp = getClientIpAddress();
-                        log.info("Collecting IP {} for user {} (ID: {}) and adding to ban list. Reason: {}",
-                                clientIp, user.getUsername(), userId, user.getIpBanReason());
-
-                        if (user.getIpBanExpiresAt() != null) {
-                            bannedIpService.banIpTemporary(clientIp, user.getIpBanReason(),
-                                    user.getIpBanExpiresAt());
+                        if (clientIp == null) {
+                            log.warn("Could not determine client IP address for user ID {}", userId);
                         } else {
-                            bannedIpService.banIp(clientIp, user.getIpBanReason());
+                            log.info("Collecting IP {} for user {} (ID: {}) and adding to ban list. Reason: {}",
+                                    clientIp, user.getUsername(), userId, user.getIpBanReason());
+
+                            if (user.getIpBanExpiresAt() != null) {
+                                bannedIpService.banIpTemporary(clientIp, user.getIpBanReason(),
+                                        user.getIpBanExpiresAt());
+                            } else {
+                                bannedIpService.banIp(clientIp, user.getIpBanReason());
+                            }
+
+                            user.clearIpBanMark();
+                            userService.save(user);
+
+                            isUserBanned = true;
+                            banMessage = "Your IP has been banned: " + user.getIpBanReason();
                         }
+                    }
 
-                        user.clearIpBanMark();
-                        userService.save(user);
-
-                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your IP has been banned: " + user.getIpBanReason());
+                    if (isUserBanned) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, banMessage);
                     }
 
                 } catch (ResponseStatusException e) {
@@ -96,6 +108,11 @@ public class BanCheckAspect {
     @Before("@annotation(checkIpBan)")
     public void checkIpBan(JoinPoint joinPoint, CheckIpBan checkIpBan) {
         String clientIp = getClientIpAddress();
+
+        if (clientIp == null) {
+            log.warn("Could not determine client IP address for request to {}", joinPoint.getSignature().getName());
+            return;
+        }
 
         if (bannedIpService.isIpBanned(clientIp)) {
             log.info("Blocked request from banned IP: {} accessing {}", clientIp, joinPoint.getSignature().getName());
@@ -118,7 +135,7 @@ public class BanCheckAspect {
     private String getClientIpAddress() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
-            return "unknown";
+            return null;
         }
 
         HttpServletRequest request = attributes.getRequest();
@@ -133,6 +150,6 @@ public class BanCheckAspect {
             return xRealIp;
         }
 
-        return request.getRemoteAddr();
+        return null;
     }
 }
