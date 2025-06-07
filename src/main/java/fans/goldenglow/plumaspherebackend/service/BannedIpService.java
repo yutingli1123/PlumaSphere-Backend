@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,18 +21,23 @@ public class BannedIpService {
 
     @Transactional(readOnly = true)
     public boolean isIpBanned(String ipAddress) {
-        boolean isBanned = bannedIpRepository.findActiveBanByIp(ipAddress, LocalDateTime.now()).isPresent();
-        if (isBanned) {
-            log.info("Blocked request from banned IP: {}", ipAddress);
+        return bannedIpRepository.existsByIpAddressAndExpiresAtAfter(ipAddress, LocalDateTime.now());
+    }
+
+    @Transactional(readOnly = true)
+    protected Optional<BannedIp> checkIfIpAlreadyBanned(String ipAddress) {
+        if (isIpBanned(ipAddress)) {
+            log.warn("IP {} is already banned", ipAddress);
+            return bannedIpRepository.findByIpAddressAndExpiresAtAfter(ipAddress, LocalDateTime.now());
         }
-        return isBanned;
+        return Optional.empty();
     }
 
     @Transactional
     public BannedIp banIp(String ipAddress, String reason) {
-        if (isIpBanned(ipAddress)) {
-            log.warn("IP {} is already banned", ipAddress);
-            return bannedIpRepository.findActiveBanByIp(ipAddress, LocalDateTime.now()).orElse(null);
+        Optional<BannedIp> existingBan = checkIfIpAlreadyBanned(ipAddress);
+        if (existingBan.isPresent()) {
+            return existingBan.get();
         }
 
         BannedIp bannedIp = new BannedIp(ipAddress, reason);
@@ -43,9 +49,9 @@ public class BannedIpService {
 
     @Transactional
     public BannedIp banIpTemporary(String ipAddress, String reason, LocalDateTime expiresAt) {
-        if (isIpBanned(ipAddress)) {
-            log.warn("IP {} is already banned", ipAddress);
-            return bannedIpRepository.findActiveBanByIp(ipAddress, LocalDateTime.now()).orElse(null);
+        Optional<BannedIp> existingBan = checkIfIpAlreadyBanned(ipAddress);
+        if (existingBan.isPresent()) {
+            return existingBan.get();
         }
 
         BannedIp bannedIp = new BannedIp(ipAddress, reason, expiresAt);
@@ -57,21 +63,22 @@ public class BannedIpService {
 
     @Transactional
     public void unbanIp(String ipAddress) {
-        bannedIpRepository.findActiveBanByIp(ipAddress, LocalDateTime.now())
-                .ifPresent(ban -> {
-                    ban.setIsActive(false);
-                    log.info("IP {} has been unbanned", ipAddress);
-                });
+        if (!bannedIpRepository.existsByIpAddress(ipAddress)) {
+            return;
+        }
+        bannedIpRepository.deleteByIpAddress(ipAddress);
+        log.info("IP {} has been unbanned", ipAddress);
     }
 
-    public Page<BannedIp> getAllActiveBans(Pageable pageable) {
-        return bannedIpRepository.findByIsActiveTrueOrderByBannedAtDesc(pageable);
+    @Transactional(readOnly = true)
+    public Page<BannedIp> getAllBans(Pageable pageable) {
+        return bannedIpRepository.findAll(pageable);
     }
 
     @Scheduled(fixedRate = 3600000)
     @Transactional
     public void cleanupExpiredBans() {
-        bannedIpRepository.deactivateExpiredBans(LocalDateTime.now());
+        bannedIpRepository.deleteAllByExpiresAtBefore(LocalDateTime.now());
         log.debug("Cleaned up expired IP bans");
     }
 }

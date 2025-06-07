@@ -34,8 +34,6 @@ public class BannedIp {
 
     private LocalDateTime expiresAt;
 
-    private Boolean isActive = true;
-
     public BannedIp(String ipAddress, String reason) {
         this.ipAddress = ipAddress;
         this.reason = reason;
