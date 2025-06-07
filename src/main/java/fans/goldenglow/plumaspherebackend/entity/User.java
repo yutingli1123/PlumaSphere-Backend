@@ -56,7 +56,6 @@ public class User implements Serializable {
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
-    private LocalDateTime lastActivityAt;
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private Set<Post> posts = new HashSet<>();
@@ -86,10 +85,6 @@ public class User implements Serializable {
         this.role = UserRoles.REGULAR;
         this.password = password;
         setInitials();
-    }
-
-    public void updateLastActivity() {
-        this.lastActivityAt = LocalDateTime.now();
     }
 
     private void setInitials() {
