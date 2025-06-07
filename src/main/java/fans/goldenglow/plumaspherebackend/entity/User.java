@@ -56,6 +56,7 @@ public class User implements Serializable {
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
+    private LocalDateTime lastActivityAt;
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private Set<Post> posts = new HashSet<>();
