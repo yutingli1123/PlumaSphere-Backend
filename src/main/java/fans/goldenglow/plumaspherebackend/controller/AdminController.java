@@ -9,22 +9,25 @@ import fans.goldenglow.plumaspherebackend.service.UserBanService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 public class AdminController {
-
     private final BannedIpService bannedIpService;
     private final UserService userService;
     private final UserBanService userBanService;
+
+    private final int PAGE_SIZE = 10;
 
     @PostMapping("/ban-user")
     public ResponseEntity<String> banUser(@RequestBody BanRequestDto banRequestDto) {
@@ -55,8 +58,20 @@ public class AdminController {
     }
 
     @GetMapping("/banned-users")
-    public ResponseEntity<Page<User>> getBannedUsers(Pageable pageable) {
-        return ResponseEntity.ok(userBanService.getBannedUsers(pageable));
+    public ResponseEntity<List<User>> getBannedUsers(@RequestParam int page) {
+        return ResponseEntity.ok(userBanService.getBannedUsers(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "banExpiresAt"))).getContent());
+    }
+
+    @GetMapping("/banned-users/count")
+    public ResponseEntity<Long> getBannedUsersCount() {
+        return ResponseEntity.ok(userBanService.countBannedUsers());
+    }
+
+    @GetMapping("/banned-users/page-count")
+    public ResponseEntity<Long> getBannedUsersPageCount() {
+        long totalBannedUsers = userBanService.countBannedUsers();
+        long pageCount = (long) Math.ceil((double) totalBannedUsers / PAGE_SIZE);
+        return ResponseEntity.ok(pageCount);
     }
 
     @GetMapping("/user-ban-status")
@@ -128,8 +143,21 @@ public class AdminController {
     }
 
     @GetMapping("/banned-ips")
-    public ResponseEntity<Page<BannedIp>> getBannedIps(Pageable pageable) {
-        Page<BannedIp> bannedIps = bannedIpService.getAllBans(pageable);
+    public ResponseEntity<Page<BannedIp>> getBannedIps(@RequestParam int page) {
+        Page<BannedIp> bannedIps = bannedIpService.getAllBans(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "expiresAt")));
         return ResponseEntity.ok(bannedIps);
+    }
+
+    @GetMapping("/banned-ips/count")
+    public ResponseEntity<Long> getBannedIpsCount() {
+        long count = bannedIpService.countBannedIps();
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/banned-ips/page-count")
+    public ResponseEntity<Long> getBannedIpsPageCount() {
+        long totalBannedIps = bannedIpService.countBannedIps();
+        long pageCount = (long) Math.ceil((double) totalBannedIps / PAGE_SIZE);
+        return ResponseEntity.ok(pageCount);
     }
 }

@@ -75,6 +75,11 @@ public class BannedIpService {
         return bannedIpRepository.findAll(pageable);
     }
 
+    @Transactional(readOnly = true)
+    public long countBannedIps() {
+        return bannedIpRepository.count();
+    }
+
     @Scheduled(fixedRate = 3600000)
     @Transactional
     public void cleanupExpiredBans() {

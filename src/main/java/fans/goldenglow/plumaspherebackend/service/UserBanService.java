@@ -59,7 +59,12 @@ public class UserBanService {
 
     @Transactional(readOnly = true)
     public Page<User> getBannedUsers(Pageable pageable) {
-        return userRepository.findByIsBannedTrueOrderByBannedAtDesc(pageable);
+        return userRepository.findByIsBannedTrue(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Long countBannedUsers() {
+        return userRepository.countByIsBannedTrue();
     }
 
     @Scheduled(fixedRate = 3600000)
