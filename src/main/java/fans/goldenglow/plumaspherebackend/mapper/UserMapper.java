@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.mapper;
 
+import fans.goldenglow.plumaspherebackend.dto.UserAdminDto;
 import fans.goldenglow.plumaspherebackend.dto.UserDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import org.mapstruct.Mapper;
@@ -12,4 +13,8 @@ public interface UserMapper extends BaseMapper {
     UserDto toDto(User user);
 
     List<UserDto> toDto(List<User> users);
+
+    UserAdminDto toAdminDto(User user);
+
+    List<UserAdminDto> toAdminDto(List<User> users);
 }
