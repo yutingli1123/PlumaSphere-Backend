@@ -65,7 +65,7 @@ public class UserBanService {
     @Scheduled(fixedRate = 3600000)
     @Transactional
     public void cleanupExpiredBans() {
-        List<User> expiredBannedUsers = userRepository.findExpiredBannedUsers(LocalDateTime.now());
+        List<User> expiredBannedUsers = userRepository.findUserByBanExpiresAtBefore(LocalDateTime.now());
 
         for (User user : expiredBannedUsers) {
             user.unban();
