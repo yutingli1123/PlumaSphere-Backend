@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,10 +19,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "pluma_banned_ip", indexes = @Index(name = "idx_banned_ip", columnList = "ipAddress", unique = true))
 public class BannedIp {
-
     @Id
     @GeneratedValue
     private Long id;
+
+    @Version
+    @JsonIgnore
+    private Long version;
 
     @Column(nullable = false, unique = true)
     private String ipAddress;

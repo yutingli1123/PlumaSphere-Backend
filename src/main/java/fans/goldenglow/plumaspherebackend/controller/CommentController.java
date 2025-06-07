@@ -122,11 +122,10 @@ public class CommentController {
         Comment commentEntity = comment.get();
         Comment newComment = new Comment(commentDto.getContent(), userEntity);
         newComment.setParentComment(commentEntity);
+        commentService.save(newComment);
 
         Long parentCommentId = commentEntity.getId();
-
         webSocketHandler.sendMessageToComment(parentCommentId, new WebSocketMessageDto(WebSocketMessageType.NEW_COMMENT));
-        commentService.save(newComment);
         return ResponseEntity.ok().build();
     }
 
