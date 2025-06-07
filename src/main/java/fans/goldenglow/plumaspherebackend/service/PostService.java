@@ -35,7 +35,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Page<Post> findByTagName(String tagName, Pageable pageable) {
-        return postRepository.findBytagsName(tagName, pageable);
+        return postRepository.findByTagsName(tagName, pageable);
     }
 
     @Transactional(readOnly = true)
