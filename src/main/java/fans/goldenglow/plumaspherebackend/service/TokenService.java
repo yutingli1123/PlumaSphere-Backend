@@ -11,6 +11,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -94,6 +95,18 @@ public class TokenService {
             return generateTokens(Long.parseLong(userId), List.of(userRole.toString().toLowerCase()));
         } catch (Exception e) {
             log.error("Failed to verify refresh token");
+            return null;
+        }
+    }
+
+    public Long extractUserIdFromJwt(JwtAuthenticationToken jwtToken) {
+        try {
+            return Long.parseLong(jwtToken.getToken().getSubject());
+        } catch (NumberFormatException e) {
+            log.error("Error parsing user ID from JWT subject: {}", e.getMessage());
+            return null;
+        } catch (Exception e) {
+            log.error("Error extracting user ID from JWT: {}", e.getMessage());
             return null;
         }
     }

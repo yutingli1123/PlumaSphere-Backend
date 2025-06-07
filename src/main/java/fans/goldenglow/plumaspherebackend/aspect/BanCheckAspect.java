@@ -2,6 +2,7 @@ package fans.goldenglow.plumaspherebackend.aspect;
 
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.BannedIpService;
+import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,16 +26,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class BanCheckAspect {
-
     private final UserService userService;
     private final BannedIpService bannedIpService;
+    private final TokenService tokenService;
 
     @Before("@annotation(fans.goldenglow.plumaspherebackend.annotation.CheckUserBan)")
     public void checkUserBan(JoinPoint joinPoint) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth instanceof JwtAuthenticationToken jwtToken) {
-            Long userId = extractUserIdFromJwt(jwtToken);
+            Long userId = tokenService.extractUserIdFromJwt(jwtToken);
 
             if (userId != null) {
                 try {
@@ -115,18 +116,6 @@ public class BanCheckAspect {
         if (bannedIpService.isIpBanned(clientIp)) {
             log.info("Blocked request from banned IP: {} accessing {}", clientIp, joinPoint.getSignature().getName());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your IP address is banned.");
-        }
-    }
-
-    private Long extractUserIdFromJwt(JwtAuthenticationToken jwtToken) {
-        try {
-            return Long.parseLong(jwtToken.getToken().getSubject());
-        } catch (NumberFormatException e) {
-            log.error("Error parsing user ID from JWT subject: {}", e.getMessage());
-            return null;
-        } catch (Exception e) {
-            log.error("Error extracting user ID from JWT: {}", e.getMessage());
-            return null;
         }
     }
 
