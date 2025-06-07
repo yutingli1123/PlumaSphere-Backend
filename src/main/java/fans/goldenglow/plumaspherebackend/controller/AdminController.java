@@ -129,7 +129,7 @@ public class AdminController {
 
     @GetMapping("/banned-ips")
     public ResponseEntity<Page<BannedIp>> getBannedIps(Pageable pageable) {
-        Page<BannedIp> bannedIps = bannedIpService.getAllActiveBans(pageable);
+        Page<BannedIp> bannedIps = bannedIpService.getAllBans(pageable);
         return ResponseEntity.ok(bannedIps);
     }
 }
