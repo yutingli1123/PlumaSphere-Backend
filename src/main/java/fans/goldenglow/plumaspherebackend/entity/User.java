@@ -88,6 +88,10 @@ public class User implements Serializable {
         setInitials();
     }
 
+    public void updateLastActivity() {
+        this.lastActivityAt = LocalDateTime.now();
+    }
+
     private void setInitials() {
         if (nickname == null || nickname.isEmpty()) return;
 

@@ -1,8 +1,10 @@
 package fans.goldenglow.plumaspherebackend.config;
 
+import fans.goldenglow.plumaspherebackend.config.filter.UserActivityFilter;
 import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
 import fans.goldenglow.plumaspherebackend.service.SecretService;
+import fans.goldenglow.plumaspherebackend.service.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,7 +36,7 @@ public class SecurityConfig {
     private final CorsProperties corsProperties;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserActivityService userActivityService) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -48,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/post/{postId}/comment", "/api/v1/post/{postId}/like", "/api/v1/comment/**", "/api/v1/user/me").authenticated()
                         .anyRequest().access(hasScope("admin"))
                 )
+                .addFilterAfter(new UserActivityFilter(userActivityService), SecurityContextHolderFilter.class)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
