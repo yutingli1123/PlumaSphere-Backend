@@ -9,5 +9,4 @@ import static java.lang.annotation.ElementType.METHOD;
 @Target(METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CheckIpBan {
-    String message() default "IP address is banned";
 }

@@ -1,6 +1,5 @@
 package fans.goldenglow.plumaspherebackend.aspect;
 
-import fans.goldenglow.plumaspherebackend.annotation.CheckIpBan;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.BannedIpService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
@@ -104,8 +103,8 @@ public class BanCheckAspect {
         }
     }
 
-    @Before("@annotation(checkIpBan)")
-    public void checkIpBan(JoinPoint joinPoint, CheckIpBan checkIpBan) {
+    @Before("@annotation(fans.goldenglow.plumaspherebackend.annotation.CheckIpBan)")
+    public void checkIpBan(JoinPoint joinPoint) {
         String clientIp = getClientIpAddress();
 
         if (clientIp == null) {
@@ -115,7 +114,7 @@ public class BanCheckAspect {
 
         if (bannedIpService.isIpBanned(clientIp)) {
             log.info("Blocked request from banned IP: {} accessing {}", clientIp, joinPoint.getSignature().getName());
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, checkIpBan.message());
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your IP address is banned.");
         }
     }
 

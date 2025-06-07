@@ -9,5 +9,4 @@ import static java.lang.annotation.ElementType.METHOD;
 @Target(METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CheckUserBan {
-    String message() default "Account is banned";
 }
