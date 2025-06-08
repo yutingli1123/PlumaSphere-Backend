@@ -19,4 +19,5 @@ public class UserAdminDto extends UserDto {
     private Boolean isPendingIpBan;
     private String ipBanReason;
     private LocalDateTime ipBanExpiresAt;
+    private Boolean isAdmin;
 }
