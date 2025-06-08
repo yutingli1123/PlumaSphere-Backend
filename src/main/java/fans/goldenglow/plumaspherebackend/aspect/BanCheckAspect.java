@@ -109,7 +109,6 @@ public class BanCheckAspect {
         String clientIp = getClientIpAddress();
 
         if (clientIp == null) {
-            log.warn("Could not determine client IP address for request to {}", joinPoint.getSignature().getName());
             return;
         }
 
