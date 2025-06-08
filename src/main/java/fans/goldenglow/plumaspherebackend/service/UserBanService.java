@@ -67,6 +67,16 @@ public class UserBanService {
         return userRepository.countByIsBannedTrue();
     }
 
+    @Transactional(readOnly = true)
+    public Page<User> getMarkedUsers(Pageable pageable) {
+        return userRepository.findByIsPendingIpBanTrue(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Long countMarkedUsers() {
+        return userRepository.countByIsPendingIpBanTrue();
+    }
+
     @Scheduled(fixedRate = 3600000)
     @Transactional
     public void cleanupExpiredBans() {

@@ -19,7 +19,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Page<User> findByIsBannedTrue(Pageable pageable);
 
+    Page<User> findByIsPendingIpBanTrue(Pageable pageable);
+
     Long countByIsBannedTrue();
+
+    Long countByIsPendingIpBanTrue();
 
     List<User> findUserByBanExpiresAtBefore(LocalDateTime banExpiresAtBefore);
 

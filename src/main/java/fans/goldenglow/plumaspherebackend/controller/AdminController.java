@@ -77,6 +77,24 @@ public class AdminController {
         return ResponseEntity.ok(pageCount);
     }
 
+    @GetMapping("/marked-users")
+    public ResponseEntity<List<UserAdminDto>> getMarkedUsers(@RequestParam int page) {
+        List<User> markedUsers = userBanService.getMarkedUsers(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "ipBanExpiresAt"))).getContent();
+        return ResponseEntity.ok(userMapper.toAdminDto(markedUsers));
+    }
+
+    @GetMapping("/marked-users/count")
+    public ResponseEntity<Long> getMarkedUsersCount() {
+        return ResponseEntity.ok(userBanService.countMarkedUsers());
+    }
+
+    @GetMapping("/marked-users/count-page")
+    public ResponseEntity<Long> getMarkedUsersPageCount() {
+        long totalMarkedUsers = userBanService.countMarkedUsers();
+        long pageCount = (long) Math.ceil((double) totalMarkedUsers / PAGE_SIZE);
+        return ResponseEntity.ok(pageCount);
+    }
+
     @GetMapping("/user-ban-status")
     public ResponseEntity<Boolean> checkUserBanStatus(@RequestParam Long id) {
         return ResponseEntity.ok(userBanService.isUserBanned(id));
@@ -127,16 +145,16 @@ public class AdminController {
     }
 
     @PostMapping("/ban-ip")
-    public ResponseEntity<BannedIp> banIp(@RequestBody BanIPRequestDto banIPRequestDto) {
+    public ResponseEntity<String> banIp(@RequestBody BanIPRequestDto banIPRequestDto) {
         String ipAddress = banIPRequestDto.getIpAddress();
         String reason = banIPRequestDto.getReason();
         ZonedDateTime expiresAt = banIPRequestDto.getExpiresAt();
 
-        BannedIp bannedIp = expiresAt != null
-                ? bannedIpService.banIpTemporary(ipAddress, reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime())
-                : bannedIpService.banIp(ipAddress, reason);
+        if (expiresAt != null) {
+            bannedIpService.banIpTemporary(ipAddress, reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
+        } else bannedIpService.banIp(ipAddress, reason);
 
-        return ResponseEntity.ok(bannedIp);
+        return ResponseEntity.ok(expiresAt != null ? "IP address " + ipAddress + " banned temporarily until" + expiresAt + ". Reason: " + reason : "IP address " + ipAddress + " banned permanently. Reason: " + reason);
     }
 
     @DeleteMapping("/unban-ip")
