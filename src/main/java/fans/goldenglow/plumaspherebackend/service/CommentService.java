@@ -29,6 +29,16 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Comment> findByUserId(Long userId, Pageable pageable) {
+        return commentRepository.findByAuthorId(userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Long countByUserId(Long userId) {
+        return commentRepository.countByAuthorId(userId);
+    }
+
+    @Transactional(readOnly = true)
     public long countByPostId(Long postId) {
         return commentRepository.countByPostId(postId);
     }

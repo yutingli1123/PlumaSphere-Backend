@@ -81,6 +81,25 @@ public class CommentController {
         return ResponseEntity.ok(commentService.countByPostId(postId));
     }
 
+    @GetMapping("/user/{userId}/comment")
+    public ResponseEntity<List<CommentDto>> getUserComments(@PathVariable Long userId, @RequestParam int page) {
+        Page<Comment> comments = commentService.findByUserId(userId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return ResponseEntity.ok(commentMapper.toDto(comments.getContent()));
+    }
+
+    @GetMapping("/user/{userId}/comment/count")
+    public ResponseEntity<Long> getUserCommentCount(@PathVariable Long userId) {
+        long count = commentService.countByUserId(userId);
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/user/{userId}/comment/count-page")
+    public ResponseEntity<Long> getUserCommentPageCount(@PathVariable Long userId) {
+        long totalComments = commentService.countByUserId(userId);
+        long totalPages = (long) Math.ceil((double) totalComments / (double) pageSize);
+        return ResponseEntity.ok(totalPages);
+    }
+
     @CheckIpBan
     @CheckUserBan
     @PostMapping("/post/{postId}/comment")
