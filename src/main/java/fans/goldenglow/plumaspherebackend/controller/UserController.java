@@ -109,6 +109,12 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        userService.deleteById(userId);
+        return ResponseEntity.ok().build();
+    }
+
     private ResponseEntity<UserDto> getUserDtoResponseEntityFromUserId(Long userId) {
         Optional<User> user = userService.findById(userId);
         return user.map(value -> ResponseEntity.ok(userMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());

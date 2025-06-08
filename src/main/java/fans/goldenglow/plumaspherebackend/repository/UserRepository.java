@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.repository;
 
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Long countByIsBannedTrue();
 
     List<User> findUserByBanExpiresAtBefore(LocalDateTime banExpiresAtBefore);
+
+    void deleteByIdAndRoleIsNot(Long id, UserRoles role);
 }

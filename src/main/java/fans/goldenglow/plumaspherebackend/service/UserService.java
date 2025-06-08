@@ -1,5 +1,6 @@
 package fans.goldenglow.plumaspherebackend.service;
 
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,6 @@ public class UserService {
 
     @Transactional
     public void deleteById(Long id) {
-        userRepository.deleteById(id);
+        userRepository.deleteByIdAndRoleIsNot(id, UserRoles.ADMIN);
     }
 }
