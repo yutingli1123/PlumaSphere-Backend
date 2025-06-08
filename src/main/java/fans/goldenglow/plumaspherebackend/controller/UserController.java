@@ -1,5 +1,7 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
+import fans.goldenglow.plumaspherebackend.dto.UserAdminDto;
 import fans.goldenglow.plumaspherebackend.dto.UserDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.exceptions.FileSaveException;
@@ -7,6 +9,8 @@ import fans.goldenglow.plumaspherebackend.mapper.UserMapper;
 import fans.goldenglow.plumaspherebackend.service.FileService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -25,10 +29,24 @@ public class UserController {
     private final UserMapper userMapper;
     private final FileService fileService;
 
+    private final int PAGE_SIZE = 10;
+
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        List<User> users = userService.findAll();
-        return ResponseEntity.ok(userMapper.toDto(users));
+    public ResponseEntity<List<UserAdminDto>> getAllUsers(@RequestParam int page) {
+        return ResponseEntity.ok(userMapper.toAdminDto(userService.findAll(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "id")))));
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> getUserCount() {
+        long totalUsers = userService.countAll();
+        return ResponseEntity.ok(totalUsers);
+    }
+
+    @GetMapping("/count-page")
+    public ResponseEntity<Long> getUserPageCount() {
+        long totalUsers = userService.countAll();
+        long pageCount = (long) Math.ceil((double) totalUsers / PAGE_SIZE); // Calculate total pages
+        return ResponseEntity.ok(pageCount);
     }
 
     @GetMapping("/me")
@@ -39,7 +57,18 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDto> getUserById(@PathVariable Long userId) {
+    public ResponseEntity<?> getUserById(@PathVariable Long userId, JwtAuthenticationToken token) {
+        if (token != null) {
+            Long tokenUserId = Long.parseLong(token.getToken().getSubject());
+            Optional<User> userOptional = userService.findById(tokenUserId);
+            if (userOptional.isPresent()) {
+                User userEntity = userOptional.get();
+                if (userEntity.getRole().equals(UserRoles.ADMIN)) {
+                    return getUserDtoResponseEntityFromUserId(userId, true);
+                }
+            }
+        }
+
         return getUserDtoResponseEntityFromUserId(userId);
     }
 
@@ -83,5 +112,13 @@ public class UserController {
     private ResponseEntity<UserDto> getUserDtoResponseEntityFromUserId(Long userId) {
         Optional<User> user = userService.findById(userId);
         return user.map(value -> ResponseEntity.ok(userMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private ResponseEntity<?> getUserDtoResponseEntityFromUserId(Long userId, boolean isAdmin) {
+        if (isAdmin) {
+            Optional<User> user = userService.findById(userId);
+            return user.map(value -> ResponseEntity.ok(userMapper.toAdminDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
+        }
+        return getUserDtoResponseEntityFromUserId(userId);
     }
 }

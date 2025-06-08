@@ -2,13 +2,14 @@ package fans.goldenglow.plumaspherebackend.controller;
 
 import fans.goldenglow.plumaspherebackend.dto.BanIPRequestDto;
 import fans.goldenglow.plumaspherebackend.dto.BanRequestDto;
+import fans.goldenglow.plumaspherebackend.dto.UserAdminDto;
 import fans.goldenglow.plumaspherebackend.entity.BannedIp;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import fans.goldenglow.plumaspherebackend.mapper.UserMapper;
 import fans.goldenglow.plumaspherebackend.service.BannedIpService;
 import fans.goldenglow.plumaspherebackend.service.UserBanService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class AdminController {
     private final BannedIpService bannedIpService;
     private final UserService userService;
     private final UserBanService userBanService;
+    private final UserMapper userMapper;
 
     private final int PAGE_SIZE = 10;
 
@@ -58,8 +60,9 @@ public class AdminController {
     }
 
     @GetMapping("/banned-users")
-    public ResponseEntity<List<User>> getBannedUsers(@RequestParam int page) {
-        return ResponseEntity.ok(userBanService.getBannedUsers(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "banExpiresAt"))).getContent());
+    public ResponseEntity<List<UserAdminDto>> getBannedUsers(@RequestParam int page) {
+        List<User> bannedUsers = userBanService.getBannedUsers(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "banExpiresAt"))).getContent();
+        return ResponseEntity.ok(userMapper.toAdminDto(bannedUsers));
     }
 
     @GetMapping("/banned-users/count")
@@ -67,7 +70,7 @@ public class AdminController {
         return ResponseEntity.ok(userBanService.countBannedUsers());
     }
 
-    @GetMapping("/banned-users/page-count")
+    @GetMapping("/banned-users/count-page")
     public ResponseEntity<Long> getBannedUsersPageCount() {
         long totalBannedUsers = userBanService.countBannedUsers();
         long pageCount = (long) Math.ceil((double) totalBannedUsers / PAGE_SIZE);
@@ -143,9 +146,8 @@ public class AdminController {
     }
 
     @GetMapping("/banned-ips")
-    public ResponseEntity<Page<BannedIp>> getBannedIps(@RequestParam int page) {
-        Page<BannedIp> bannedIps = bannedIpService.getAllBans(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "expiresAt")));
-        return ResponseEntity.ok(bannedIps);
+    public ResponseEntity<List<BannedIp>> getBannedIps(@RequestParam int page) {
+        return ResponseEntity.ok(bannedIpService.getAllBans(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "expiresAt"))).getContent());
     }
 
     @GetMapping("/banned-ips/count")
@@ -154,7 +156,7 @@ public class AdminController {
         return ResponseEntity.ok(count);
     }
 
-    @GetMapping("/banned-ips/page-count")
+    @GetMapping("/banned-ips/count-page")
     public ResponseEntity<Long> getBannedIpsPageCount() {
         long totalBannedIps = bannedIpService.countBannedIps();
         long pageCount = (long) Math.ceil((double) totalBannedIps / PAGE_SIZE);

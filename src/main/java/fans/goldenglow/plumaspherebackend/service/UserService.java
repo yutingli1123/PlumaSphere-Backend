@@ -4,6 +4,7 @@ import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +18,13 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<User> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public Long countAll() {
+        return userRepository.count();
     }
 
     @Transactional(readOnly = true)
