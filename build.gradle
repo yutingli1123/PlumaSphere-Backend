@@ -50,7 +50,11 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'com.h2database:h2'
+	testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 
 	implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.78.1'
 	implementation 'com.auth0:java-jwt:4.5.0'
