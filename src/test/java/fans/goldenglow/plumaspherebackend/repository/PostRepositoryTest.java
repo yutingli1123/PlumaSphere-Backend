@@ -34,7 +34,7 @@ public class PostRepositoryTest {
     }
 
     @BeforeEach
-    public void setUpPost() {
+    public void setupPost() {
         User user = new User(TEST_USERNAME, "testPassword");
         User savedUser = userRepository.save(user);
 
