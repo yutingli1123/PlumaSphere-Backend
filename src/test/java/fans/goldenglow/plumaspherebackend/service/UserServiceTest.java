@@ -43,13 +43,11 @@ class UserServiceTest {
 
         assertThat(users)
                 .isNotNull()
-                .hasSize(2);
-        assertThat(users)
-                .extracting(User::getUsername)
-                .containsExactly(expectedUser1.getUsername(), expectedUser2.getUsername());
-        assertThat(users)
-                .extracting(User::getPassword)
-                .containsExactly(expectedUser1.getPassword(), expectedUser2.getPassword());
+                .hasSize(2)
+                .satisfies(user -> {
+                    assertThat(user).extracting(User::getUsername).containsExactly(expectedUser1.getUsername(), expectedUser2.getUsername());
+                    assertThat(user).extracting(User::getPassword).containsExactly(expectedUser1.getPassword(), expectedUser2.getPassword());
+                });
         verify(userRepository).findAll(pageRequest);
     }
 
