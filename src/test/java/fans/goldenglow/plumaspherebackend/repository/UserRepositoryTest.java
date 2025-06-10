@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,9 +52,10 @@ public class UserRepositoryTest {
         var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
         var page = userRepository.findByIsBannedTrue(pageable);
 
-        assertThat(page.getContent()).hasSize(1);
-        assertThat(page.getContent().getFirst().getUsername()).isEqualTo("bannedUser");
-        assertThat(page.getContent().getFirst().getBanReason()).isEqualTo("reason");
+        assertThat(page.getContent()).hasSize(1).first().satisfies(user -> {
+            assertThat(user.getUsername()).isEqualTo("bannedUser");
+            assertThat(user.getBanReason()).isEqualTo("reason");
+        });
     }
 
     @Test
@@ -65,9 +67,10 @@ public class UserRepositoryTest {
         var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
         var page = userRepository.findByIsPendingIpBanTrue(pageable);
 
-        assertThat(page.getContent()).hasSize(1);
-        assertThat(page.getContent().getFirst().getUsername()).isEqualTo("pendingIpBanUser");
-        assertThat(page.getContent().getFirst().getIpBanReason()).isEqualTo("reason");
+        assertThat(page.getContent()).hasSize(1).first().satisfies(user -> {
+            assertThat(user.getUsername()).isEqualTo("pendingIpBanUser");
+            assertThat(user.getIpBanReason()).isEqualTo("reason");
+        });
     }
 
     @Test
@@ -94,13 +97,14 @@ public class UserRepositoryTest {
     public void testFindUserByBanExpiresAtBefore() {
         User user = new User("testUser", "password");
         user.ban("reason");
-        user.setBanExpiresAt(java.time.LocalDateTime.now().minusDays(1));
+        user.setBanExpiresAt(LocalDateTime.now().minusDays(1));
         userRepository.save(user);
 
-        var users = userRepository.findUserByBanExpiresAtBefore(java.time.LocalDateTime.now());
-        assertThat(users).hasSize(1);
-        assertThat(users.getFirst().getUsername()).isEqualTo("testUser");
-        assertThat(users.getFirst().getBanReason()).isEqualTo("reason");
+        var users = userRepository.findUserByBanExpiresAtBefore(LocalDateTime.now());
+        assertThat(users).hasSize(1).first().satisfies(u -> {
+            assertThat(u.getUsername()).isEqualTo("testUser");
+            assertThat(u.getBanReason()).isEqualTo("reason");
+        });
     }
 
     @Test

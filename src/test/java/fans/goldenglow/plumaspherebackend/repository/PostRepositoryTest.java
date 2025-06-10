@@ -54,14 +54,17 @@ public class PostRepositoryTest {
     public void testFindByTagsName() {
         Page<Post> foundPost = postRepository.findByTagsName(TAG_NAME, PageRequest.of(0, 10));
         assertThat(foundPost)
-                .hasSize(1);
-        assertThat(foundPost.getContent().getFirst().getTitle()).isEqualTo(TEST_TITLE);
-        assertThat(foundPost.getContent().getFirst().getContent()).isEqualTo(TEST_CONTENT);
-        assertThat(foundPost.getContent().getFirst().getDescription()).isEqualTo(TEST_DESCRIPTION);
-        assertThat(foundPost.getContent().getFirst().getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
-        assertThat(foundPost.getContent().getFirst().getTags())
-                .extracting(Tag::getName)
-                .containsExactly(TAG_NAME);
+                .hasSize(1)
+                .first()
+                .satisfies(post -> {
+                    assertThat(post.getTitle()).isEqualTo(TEST_TITLE);
+                    assertThat(post.getContent()).isEqualTo(TEST_CONTENT);
+                    assertThat(post.getDescription()).isEqualTo(TEST_DESCRIPTION);
+                    assertThat(post.getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
+                    assertThat(post.getTags())
+                            .extracting(Tag::getName)
+                            .containsExactly(TAG_NAME);
+                });
     }
 
     @Test
@@ -75,14 +78,17 @@ public class PostRepositoryTest {
         String keyword = "title";
         Page<Post> foundPost = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(keyword, null, null, PageRequest.of(0, 10));
         assertThat(foundPost)
-                .hasSize(1);
-        assertThat(foundPost.getContent().getFirst().getTitle()).isEqualTo(TEST_TITLE);
-        assertThat(foundPost.getContent().getFirst().getContent()).isEqualTo(TEST_CONTENT);
-        assertThat(foundPost.getContent().getFirst().getDescription()).isEqualTo(TEST_DESCRIPTION);
-        assertThat(foundPost.getContent().getFirst().getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
-        assertThat(foundPost.getContent().getFirst().getTags())
-                .extracting(Tag::getName)
-                .containsExactly(TAG_NAME);
+                .hasSize(1)
+                .first()
+                .satisfies(post -> {
+                    assertThat(post.getTitle()).isEqualTo(TEST_TITLE);
+                    assertThat(post.getContent()).isEqualTo(TEST_CONTENT);
+                    assertThat(post.getDescription()).isEqualTo(TEST_DESCRIPTION);
+                    assertThat(post.getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
+                    assertThat(post.getTags())
+                            .extracting(Tag::getName)
+                            .containsExactly(TAG_NAME);
+                });
 
         Long count = postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(keyword, keyword, keyword);
         assertThat(count).isEqualTo(1);
@@ -93,14 +99,17 @@ public class PostRepositoryTest {
         String keyword = "content";
         Page<Post> foundPost = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(null, keyword, null, PageRequest.of(0, 10));
         assertThat(foundPost)
-                .hasSize(1);
-        assertThat(foundPost.getContent().getFirst().getTitle()).isEqualTo(TEST_TITLE);
-        assertThat(foundPost.getContent().getFirst().getContent()).isEqualTo(TEST_CONTENT);
-        assertThat(foundPost.getContent().getFirst().getDescription()).isEqualTo(TEST_DESCRIPTION);
-        assertThat(foundPost.getContent().getFirst().getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
-        assertThat(foundPost.getContent().getFirst().getTags())
-                .extracting(Tag::getName)
-                .containsExactly(TAG_NAME);
+                .hasSize(1)
+                .first()
+                .satisfies(post -> {
+                    assertThat(post.getTitle()).isEqualTo(TEST_TITLE);
+                    assertThat(post.getContent()).isEqualTo(TEST_CONTENT);
+                    assertThat(post.getDescription()).isEqualTo(TEST_DESCRIPTION);
+                    assertThat(post.getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
+                    assertThat(post.getTags())
+                            .extracting(Tag::getName)
+                            .containsExactly(TAG_NAME);
+                });
 
         Long count = postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(keyword, keyword, keyword);
         assertThat(count).isEqualTo(1);
@@ -111,14 +120,17 @@ public class PostRepositoryTest {
         String keyword = "description";
         Page<Post> foundPost = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(null, null, keyword, PageRequest.of(0, 10));
         assertThat(foundPost)
-                .hasSize(1);
-        assertThat(foundPost.getContent().getFirst().getTitle()).isEqualTo(TEST_TITLE);
-        assertThat(foundPost.getContent().getFirst().getContent()).isEqualTo(TEST_CONTENT);
-        assertThat(foundPost.getContent().getFirst().getDescription()).isEqualTo(TEST_DESCRIPTION);
-        assertThat(foundPost.getContent().getFirst().getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
-        assertThat(foundPost.getContent().getFirst().getTags())
-                .extracting(Tag::getName)
-                .containsExactly(TAG_NAME);
+                .hasSize(1)
+                .first()
+                .satisfies(post -> {
+                    assertThat(post.getTitle()).isEqualTo(TEST_TITLE);
+                    assertThat(post.getContent()).isEqualTo(TEST_CONTENT);
+                    assertThat(post.getDescription()).isEqualTo(TEST_DESCRIPTION);
+                    assertThat(post.getAuthor().getUsername()).isEqualTo(TEST_USERNAME);
+                    assertThat(post.getTags())
+                            .extracting(Tag::getName)
+                            .containsExactly(TAG_NAME);
+                });
 
         Long count = postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(keyword, keyword, keyword);
         assertThat(count).isEqualTo(1);
