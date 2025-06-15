@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,19 +23,9 @@ public class BannedIpService {
         return bannedIpRepository.existsByIpAddressAndExpiresAtAfter(ipAddress, LocalDateTime.now());
     }
 
-    @Transactional(readOnly = true)
-    protected Optional<BannedIp> checkIfIpAlreadyBanned(String ipAddress) {
-        if (isIpBanned(ipAddress)) {
-            log.warn("IP {} is already banned", ipAddress);
-            return bannedIpRepository.findByIpAddressAndExpiresAtAfter(ipAddress, LocalDateTime.now());
-        }
-        return Optional.empty();
-    }
-
     @Transactional
     public void banIp(String ipAddress, String reason) {
-        Optional<BannedIp> existingBan = checkIfIpAlreadyBanned(ipAddress);
-        if (existingBan.isPresent()) {
+        if (isIpBanned(ipAddress)) {
             return;
         }
 
@@ -48,8 +37,7 @@ public class BannedIpService {
 
     @Transactional
     public void banIpTemporary(String ipAddress, String reason, LocalDateTime expiresAt) {
-        Optional<BannedIp> existingBan = checkIfIpAlreadyBanned(ipAddress);
-        if (existingBan.isPresent()) {
+        if (isIpBanned(ipAddress)) {
             return;
         }
 
