@@ -34,31 +34,29 @@ public class BannedIpService {
     }
 
     @Transactional
-    public BannedIp banIp(String ipAddress, String reason) {
+    public void banIp(String ipAddress, String reason) {
         Optional<BannedIp> existingBan = checkIfIpAlreadyBanned(ipAddress);
         if (existingBan.isPresent()) {
-            return existingBan.get();
+            return;
         }
 
         BannedIp bannedIp = new BannedIp(ipAddress, reason);
-        BannedIp saved = bannedIpRepository.save(bannedIp);
+        bannedIpRepository.save(bannedIp);
         log.info("IP {} banned permanently. Reason: {}.",
                 ipAddress, reason);
-        return saved;
     }
 
     @Transactional
-    public BannedIp banIpTemporary(String ipAddress, String reason, LocalDateTime expiresAt) {
+    public void banIpTemporary(String ipAddress, String reason, LocalDateTime expiresAt) {
         Optional<BannedIp> existingBan = checkIfIpAlreadyBanned(ipAddress);
         if (existingBan.isPresent()) {
-            return existingBan.get();
+            return;
         }
 
         BannedIp bannedIp = new BannedIp(ipAddress, reason, expiresAt);
-        BannedIp saved = bannedIpRepository.save(bannedIp);
+        bannedIpRepository.save(bannedIp);
         log.info("IP {} banned temporarily until {}. Reason: {}.",
                 ipAddress, expiresAt, reason);
-        return saved;
     }
 
     @Transactional
@@ -66,6 +64,7 @@ public class BannedIpService {
         if (!bannedIpRepository.existsByIpAddress(ipAddress)) {
             return;
         }
+
         bannedIpRepository.deleteByIpAddress(ipAddress);
         log.info("IP {} has been unbanned", ipAddress);
     }
