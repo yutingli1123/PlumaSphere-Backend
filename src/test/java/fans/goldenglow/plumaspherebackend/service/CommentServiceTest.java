@@ -36,12 +36,11 @@ class CommentServiceTest {
 
     private Comment testComment;
     private Post testPost;
-    private User testUser;
     private Pageable testPageable;
 
     @BeforeEach
     void setUp() {
-        testUser = new User();
+        User testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testUser");
 
