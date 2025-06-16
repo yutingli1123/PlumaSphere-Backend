@@ -23,7 +23,7 @@ public class SecretService {
         return null;
     }
 
-    public SecretKey getSecret() {
+    public synchronized SecretKey getSecret() {
         if (jwtSecret == null) {
             jwtSecret = generateSecret();
         }

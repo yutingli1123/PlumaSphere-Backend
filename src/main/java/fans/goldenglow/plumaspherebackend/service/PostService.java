@@ -65,6 +65,6 @@ public class PostService {
 
     public String generateDescription(String content) {
         String plainText = markdownService.convertMarkdownToPlainText(content);
-        return plainText.length() > 300 ? plainText.substring(0, 300) + "..." : plainText;
+        return plainText == null ? "" : plainText.length() > 300 ? plainText.substring(0, 300) + "..." : plainText;
     }
 }
