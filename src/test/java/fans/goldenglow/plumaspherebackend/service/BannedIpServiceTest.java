@@ -15,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -88,8 +87,6 @@ class BannedIpServiceTest {
         // Given
         when(bannedIpRepository.existsByIpAddressAndExpiresAtAfter(eq(TEST_IP_ADDRESS), any(LocalDateTime.class)))
                 .thenReturn(true);
-        when(bannedIpRepository.findByIpAddressAndExpiresAtAfter(eq(TEST_IP_ADDRESS), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(testBannedIp));
 
         // When
         bannedIpService.banIp(TEST_IP_ADDRESS, TEST_REASON);
@@ -119,8 +116,6 @@ class BannedIpServiceTest {
         // Given
         when(bannedIpRepository.existsByIpAddressAndExpiresAtAfter(eq(TEST_IP_ADDRESS), any(LocalDateTime.class)))
                 .thenReturn(true);
-        when(bannedIpRepository.findByIpAddressAndExpiresAtAfter(eq(TEST_IP_ADDRESS), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(testBannedIp));
 
         // When
         bannedIpService.banIpTemporary(TEST_IP_ADDRESS, TEST_REASON, FUTURE_DATE);
