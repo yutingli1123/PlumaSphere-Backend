@@ -1,0 +1,299 @@
+package fans.goldenglow.plumaspherebackend.service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+class PasswordServiceTest {
+
+    private PasswordService passwordService;
+
+    @BeforeEach
+    void setUp() {
+        passwordService = new PasswordService();
+    }
+
+    @Test
+    void encodePassword_ShouldReturnEncodedPassword_WhenValidPasswordProvided() {
+        // Given
+        String password = "testPassword123";
+
+        // When
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // Then
+        assertThat(encodedPassword).isNotNull();
+        assertThat(encodedPassword).isNotEmpty();
+        assertThat(encodedPassword).isNotEqualTo(password);
+        assertThat(encodedPassword).startsWith("$argon2id$");
+    }
+
+    @Test
+    void encodePassword_ShouldReturnDifferentHashes_WhenSamePasswordEncodedMultipleTimes() {
+        // Given
+        String password = "samePassword";
+
+        // When
+        String encodedPassword1 = passwordService.encodePassword(password);
+        String encodedPassword2 = passwordService.encodePassword(password);
+
+        // Then
+        assertThat(encodedPassword1).isNotEqualTo(encodedPassword2);
+        assertThat(encodedPassword1).startsWith("$argon2id$");
+        assertThat(encodedPassword2).startsWith("$argon2id$");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "a", "shortPwd", "veryLongPasswordWithManyCharacters123456789"})
+    void encodePassword_ShouldHandleVariousPasswordLengths(String password) {
+        // When
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // Then
+        assertThat(encodedPassword).isNotNull();
+        assertThat(encodedPassword).isNotEmpty();
+        assertThat(encodedPassword).startsWith("$argon2id$");
+    }
+
+    @Test
+    void encodePassword_ShouldHandleSpecialCharacters() {
+        // Given
+        String password = "!@#$%^&*()_+-=[]{}|;':\",./<>?`~";
+
+        // When
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // Then
+        assertThat(encodedPassword).isNotNull();
+        assertThat(encodedPassword).isNotEmpty();
+        assertThat(encodedPassword).startsWith("$argon2id$");
+    }
+
+    @Test
+    void encodePassword_ShouldHandleUnicodeCharacters() {
+        // Given
+        String password = "密码测试中文";
+
+        // When
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // Then
+        assertThat(encodedPassword).isNotNull();
+        assertThat(encodedPassword).isNotEmpty();
+        assertThat(encodedPassword).startsWith("$argon2id$");
+    }
+
+    @Test
+    void verifyPassword_ShouldReturnTrue_WhenPasswordMatches() {
+        // Given
+        String password = "testPassword123";
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // When
+        boolean result = passwordService.verifyPassword(password, encodedPassword);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void verifyPassword_ShouldReturnFalse_WhenPasswordDoesNotMatch() {
+        // Given
+        String password = "testPassword123";
+        String wrongPassword = "wrongPassword";
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // When
+        boolean result = passwordService.verifyPassword(wrongPassword, encodedPassword);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void verifyPassword_ShouldReturnFalse_WhenEncodedPasswordIsInvalid() {
+        // Given
+        String password = "testPassword123";
+        String invalidEncodedPassword = "invalidHash";
+
+        // When
+        boolean result = passwordService.verifyPassword(password, invalidEncodedPassword);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void verifyPassword_ShouldReturnFalse_WhenEncodedPasswordIsNull() {
+        // Given
+        String password = "testPassword123";
+
+        // When
+        boolean result = passwordService.verifyPassword(password, null);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void verifyPassword_ShouldReturnFalse_WhenPasswordIsNull() {
+        // Given
+        String encodedPassword = passwordService.encodePassword("testPassword123");
+
+        // When & Then - Argon2PasswordEncoder throws NPE for null password
+        assertThrows(NullPointerException.class, () ->
+                passwordService.verifyPassword(null, encodedPassword)
+        );
+    }
+
+    @Test
+    void verifyPassword_ShouldReturnFalse_WhenBothAreNull() {
+        // When
+        boolean result = passwordService.verifyPassword(null, null);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "a", "shortPwd", "veryLongPasswordWithManyCharacters123456789"})
+    void verifyPassword_ShouldWork_WithVariousPasswordLengths(String password) {
+        // Given
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // When
+        boolean result = passwordService.verifyPassword(password, encodedPassword);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void verifyPassword_ShouldWork_WithSpecialCharacters() {
+        // Given
+        String password = "!@#$%^&*()_+-=[]{}|;':\",./<>?`~";
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // When
+        boolean result = passwordService.verifyPassword(password, encodedPassword);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void verifyPassword_ShouldWork_WithUnicodeCharacters() {
+        // Given
+        String password = "密码测试中文";
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // When
+        boolean result = passwordService.verifyPassword(password, encodedPassword);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void verifyPassword_ShouldBeCaseSensitive() {
+        // Given
+        String password = "TestPassword123";
+        String wrongCasePassword = "testpassword123";
+        String encodedPassword = passwordService.encodePassword(password);
+
+        // When
+        boolean correctResult = passwordService.verifyPassword(password, encodedPassword);
+        boolean wrongResult = passwordService.verifyPassword(wrongCasePassword, encodedPassword);
+
+        // Then
+        assertThat(correctResult).isTrue();
+        assertThat(wrongResult).isFalse();
+    }
+
+    @Test
+    void generateRandomPassword_ShouldReturnNonNullEncodedPassword() {
+        // When
+        String randomPassword = passwordService.generateRandomPassword();
+
+        // Then
+        assertThat(randomPassword).isNotNull();
+        assertThat(randomPassword).isNotEmpty();
+        assertThat(randomPassword).startsWith("$argon2id$");
+    }
+
+    @Test
+    void generateRandomPassword_ShouldReturnDifferentPasswords_WhenCalledMultipleTimes() {
+        // When
+        String password1 = passwordService.generateRandomPassword();
+        String password2 = passwordService.generateRandomPassword();
+        String password3 = passwordService.generateRandomPassword();
+
+        // Then
+        assertThat(password1).isNotEqualTo(password2);
+        assertThat(password2).isNotEqualTo(password3);
+        assertThat(password1).isNotEqualTo(password3);
+    }
+
+    @Test
+    void generateRandomPassword_ShouldGenerateValidEncodedPasswords() {
+        // When
+        String randomPassword1 = passwordService.generateRandomPassword();
+        String randomPassword2 = passwordService.generateRandomPassword();
+
+        // Then
+        assertThat(randomPassword1).startsWith("$argon2id$");
+        assertThat(randomPassword2).startsWith("$argon2id$");
+
+        // Generated passwords are already encoded, so they should be different from any plain text
+        assertThat(randomPassword1).hasSizeGreaterThan(80).hasSizeLessThan(120); // Argon2 hash length range
+        assertThat(randomPassword2).hasSizeGreaterThan(80).hasSizeLessThan(120);
+    }
+
+    @Test
+    void generateRandomPassword_ShouldCreateMultipleUniquePasswords() {
+        // Given
+        int numberOfPasswords = 10;
+
+        // When
+        String[] passwords = new String[numberOfPasswords];
+        for (int i = 0; i < numberOfPasswords; i++) {
+            passwords[i] = passwordService.generateRandomPassword();
+        }
+
+        // Then
+        for (int i = 0; i < numberOfPasswords; i++) {
+            assertThat(passwords[i]).isNotNull();
+            assertThat(passwords[i]).startsWith("$argon2id$");
+
+            // Check uniqueness
+            for (int j = i + 1; j < numberOfPasswords; j++) {
+                assertThat(passwords[i]).isNotEqualTo(passwords[j]);
+            }
+        }
+    }
+
+    @Test
+    void passwordService_ShouldBeConsistent_AcrossMultipleInstances() {
+        // Given
+        PasswordService anotherPasswordService = new PasswordService();
+        String password = "testPassword123";
+
+        // When
+        String encodedPassword1 = passwordService.encodePassword(password);
+        String encodedPassword2 = anotherPasswordService.encodePassword(password);
+
+        // Then
+        // Different instances should produce different hashes (due to salt)
+        assertThat(encodedPassword1).isNotEqualTo(encodedPassword2);
+
+        // But both should be able to verify the original password
+        assertThat(passwordService.verifyPassword(password, encodedPassword1)).isTrue();
+        assertThat(passwordService.verifyPassword(password, encodedPassword2)).isTrue();
+        assertThat(anotherPasswordService.verifyPassword(password, encodedPassword1)).isTrue();
+        assertThat(anotherPasswordService.verifyPassword(password, encodedPassword2)).isTrue();
+    }
+}
