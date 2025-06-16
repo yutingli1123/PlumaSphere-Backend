@@ -208,13 +208,14 @@ public class PostRepositoryTest {
     }
 
     @Test
-    void searchByEmptyKeyword_ShouldReturnEmpty() {
+    void searchByEmptyKeyword_ShouldReturnAllPosts() {
         // When
         Page<Post> foundPosts = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
                 "", "", "", PageRequest.of(0, 10));
 
-        // Then
-        assertThat(foundPosts).isEmpty();
+        // Then - Empty string matches all posts
+        assertThat(foundPosts).isNotEmpty();
+        assertThat(foundPosts.getContent().size()).isGreaterThan(0);
     }
 
     @Test
