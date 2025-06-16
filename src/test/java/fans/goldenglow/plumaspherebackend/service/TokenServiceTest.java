@@ -40,7 +40,6 @@ class TokenServiceTest {
     @InjectMocks
     private TokenService tokenService;
 
-    private SecretKey testSecretKey;
     private Algorithm testAlgorithm;
     private User testUser;
 
@@ -49,7 +48,7 @@ class TokenServiceTest {
         // Generate a test secret key
         KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
         keyGen.init(256);
-        testSecretKey = keyGen.generateKey();
+        SecretKey testSecretKey = keyGen.generateKey();
         testAlgorithm = Algorithm.HMAC256(testSecretKey.getEncoded());
 
         // Setup test user
