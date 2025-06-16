@@ -87,9 +87,7 @@ class SecretServiceTest {
         // When - Multiple threads call getSecret simultaneously
         for (int i = 0; i < 10; i++) {
             final int index = i;
-            threads[i] = new Thread(() -> {
-                results[index] = concurrentSecretService.getSecret();
-            });
+            threads[i] = new Thread(() -> results[index] = concurrentSecretService.getSecret());
             threads[i].start();
         }
 

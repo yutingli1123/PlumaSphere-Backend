@@ -157,7 +157,7 @@ class FileServiceTest {
     }
 
     @Test
-    void saveFile_ShouldThrowException_WhenFileHasNoOriginalFilename() throws IOException {
+    void saveFile_ShouldThrowException_WhenFileHasNoOriginalFilename() {
         // Given
         MultipartFile mockFile = mock(MultipartFile.class);
         when(mockFile.getOriginalFilename()).thenReturn(null);
@@ -168,7 +168,7 @@ class FileServiceTest {
     }
 
     @Test
-    void saveFile_ShouldThrowException_WhenFileHasEmptyOriginalFilename() throws IOException {
+    void saveFile_ShouldThrowException_WhenFileHasEmptyOriginalFilename() {
         // Given
         MultipartFile mockFile = mock(MultipartFile.class);
         when(mockFile.getOriginalFilename()).thenReturn("");

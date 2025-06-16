@@ -90,7 +90,7 @@ class PostServiceTest {
         // Then
         assertThat(actualPage).isEqualTo(expectedPage);
         assertThat(actualPage.getContent()).hasSize(1);
-        assertThat(actualPage.getContent().get(0)).isEqualTo(testPost);
+        assertThat(actualPage.getContent().getFirst()).isEqualTo(testPost);
         verify(postRepository).findAll(testPageable);
     }
 
