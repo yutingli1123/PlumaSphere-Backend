@@ -2,6 +2,7 @@ package fans.goldenglow.plumaspherebackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.io.Serial;
@@ -30,6 +31,7 @@ public class Tag implements Serializable {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @NotBlank(message = "Tag name cannot be blank")
     private String name;
 
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
