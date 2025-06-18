@@ -7,10 +7,7 @@ import fans.goldenglow.plumaspherebackend.exceptions.FileSaveException;
 import fans.goldenglow.plumaspherebackend.mapper.UserMapper;
 import fans.goldenglow.plumaspherebackend.service.FileService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
@@ -54,10 +51,19 @@ class UserControllerTest {
     private UserDto testUserDto;
     private UserAdminDto testUserAdminDto;
 
+    private AutoCloseable mocks;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
         setupTestData();
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (mocks != null) {
+            mocks.close();
+        }
     }
 
     private void setupTestData() {
@@ -380,7 +386,7 @@ class UserControllerTest {
 
         @Test
         @DisplayName("Should return UNAUTHORIZED when token is null")
-        void updateUserAvatar_ShouldReturnUnauthorized_WhenTokenIsNull() throws FileSaveException {
+        void updateUserAvatar_ShouldReturnUnauthorized_WhenTokenIsNull() {
             // Given
             MultipartFile file = mock(MultipartFile.class);
 
@@ -394,7 +400,7 @@ class UserControllerTest {
 
         @Test
         @DisplayName("Should return NOT_FOUND when user does not exist")
-        void updateUserAvatar_ShouldReturnNotFound_WhenUserDoesNotExist() throws FileSaveException {
+        void updateUserAvatar_ShouldReturnNotFound_WhenUserDoesNotExist() {
             // Given
             JwtAuthenticationToken token = createMockJwtToken(TEST_USER_ID.toString());
             when(userService.findById(TEST_USER_ID)).thenReturn(Optional.empty());
