@@ -100,6 +100,10 @@ public class TokenService {
     }
 
     public Long extractUserIdFromJwt(JwtAuthenticationToken jwtToken) {
+        if (jwtToken == null || jwtToken.getToken() == null) {
+            log.error("JWT token is null");
+            return null;
+        }
         try {
             return Long.parseLong(jwtToken.getToken().getSubject());
         } catch (NumberFormatException e) {
