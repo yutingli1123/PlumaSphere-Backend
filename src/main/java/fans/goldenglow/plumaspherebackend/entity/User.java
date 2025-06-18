@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import fans.goldenglow.plumaspherebackend.constant.AvatarColor;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -36,9 +37,13 @@ public class User implements Serializable {
     @Id
     @GeneratedValue
     private Long id;
+
+    @NotBlank(message = "Username cannot be null or blank")
     @Column(unique = true, nullable = false)
     private String username;
+
     @JsonIgnore
+    @NotBlank(message = "Password cannot be null or blank")
     @Column(nullable = false)
     private String password;
     private String nickname;
