@@ -42,33 +42,33 @@ class PostRepositoryTest {
         this.entityManager = entityManager;
     }
 
-    private User createAndPersistUser(String username) {
-        User user = new User(username, TEST_PASSWORD);
+    private User createAndPersistUser() {
+        User user = new User(PostRepositoryTest.TEST_USERNAME, TEST_PASSWORD);
         return entityManager.persistAndFlush(user);
     }
 
-    private Tag createAndPersistTag(String tagName) {
-        Tag tag = new Tag(tagName);
+    private Tag createAndPersistTag() {
+        Tag tag = new Tag(PostRepositoryTest.TAG_NAME);
         return entityManager.persistAndFlush(tag);
     }
 
-    private Post createAndPersistPost(String title, String content, User author, Tag... tags) {
+    private void createAndPersistPost(User author, Tag... tags) {
         Post post = new Post();
-        post.setTitle(title);
-        post.setContent(content);
+        post.setTitle(PostRepositoryTest.TEST_TITLE);
+        post.setContent(PostRepositoryTest.TEST_CONTENT);
         post.setDescription(TEST_DESCRIPTION);
         post.setAuthor(author);
         if (tags.length > 0) {
             post.setTags(Set.of(tags));
         }
-        return entityManager.persistAndFlush(post);
+        entityManager.persistAndFlush(post);
     }
 
     @BeforeEach
     void setUp() {
-        savedUser = createAndPersistUser(TEST_USERNAME);
-        savedTag = createAndPersistTag(TAG_NAME);
-        createAndPersistPost(TEST_TITLE, TEST_CONTENT, savedUser, savedTag);
+        savedUser = createAndPersistUser();
+        savedTag = createAndPersistTag();
+        createAndPersistPost(savedUser, savedTag);
     }
 
     @Nested
