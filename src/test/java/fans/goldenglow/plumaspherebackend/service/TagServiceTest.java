@@ -36,23 +36,6 @@ class TagServiceTest {
 
     private Tag testTag;
 
-    static Stream<Arguments> edgeCaseTagNames() {
-        return Stream.of(
-                Arguments.of(List.of(""), 1), // Empty string
-                Arguments.of(List.of(" "), 1), // Single space
-                Arguments.of(List.of("   "), 1), // Multiple spaces
-                Arguments.of(List.of("a"), 1), // Single character
-                Arguments.of(List.of("A"), 1), // Single uppercase character
-                Arguments.of(List.of("1"), 1), // Number as string
-                Arguments.of(List.of("tag-with-dashes"), 1), // Tag with dashes
-                Arguments.of(List.of("tag_with_underscores"), 1), // Tag with underscores
-                Arguments.of(List.of("tag with spaces"), 1), // Tag with spaces
-                Arguments.of(List.of("UPPERCASE"), 1), // Uppercase tag
-                Arguments.of(List.of("lowercase"), 1), // Lowercase tag
-                Arguments.of(List.of("MiXeDcAsE"), 1) // Mixed case tag
-        );
-    }
-
     @BeforeEach
     void setUp() {
         testTag = new Tag();
@@ -136,6 +119,23 @@ class TagServiceTest {
     @Nested
     @DisplayName("DTO to Entity Conversion")
     class DtoToEntityTests {
+        static Stream<Arguments> edgeCaseTagNames() {
+            return Stream.of(
+                    Arguments.of(List.of(""), 1), // Empty string
+                    Arguments.of(List.of(" "), 1), // Single space
+                    Arguments.of(List.of("   "), 1), // Multiple spaces
+                    Arguments.of(List.of("a"), 1), // Single character
+                    Arguments.of(List.of("A"), 1), // Single uppercase character
+                    Arguments.of(List.of("1"), 1), // Number as string
+                    Arguments.of(List.of("tag-with-dashes"), 1), // Tag with dashes
+                    Arguments.of(List.of("tag_with_underscores"), 1), // Tag with underscores
+                    Arguments.of(List.of("tag with spaces"), 1), // Tag with spaces
+                    Arguments.of(List.of("UPPERCASE"), 1), // Uppercase tag
+                    Arguments.of(List.of("lowercase"), 1), // Lowercase tag
+                    Arguments.of(List.of("MiXeDcAsE"), 1) // Mixed case tag
+            );
+        }
+
         @Test
         @DisplayName("Should return empty set when tags list is null")
         void dtoToEntity_ShouldReturnEmptySet_WhenTagsListIsNull() {
