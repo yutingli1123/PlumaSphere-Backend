@@ -2,6 +2,8 @@ package fans.goldenglow.plumaspherebackend.service;
 
 import fans.goldenglow.plumaspherebackend.config.EmbeddedRedisTestConfiguration;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import({EmbeddedRedisTestConfiguration.class})
+@DisplayName("RedisService Tests")
 class RedisServiceTest {
 
     @Autowired
@@ -33,178 +36,206 @@ class RedisServiceTest {
         }
     }
 
-    @Test
-    void testSetAndGet() {
-        // Given
-        String key = "test-key";
-        String value = "test-value";
+    @Nested
+    @DisplayName("String Operations")
+    class StringOperations {
+        @Test
+        @DisplayName("Should set and get value")
+        void testSetAndGet() {
+            // Given
+            String key = "test-key";
+            String value = "test-value";
 
-        // When
-        redisService.set(key, value);
+            // When
+            redisService.set(key, value);
 
-        // Then
-        assertThat(redisService.get(key)).isEqualTo(value);
+            // Then
+            assertThat(redisService.get(key)).isEqualTo(value);
+        }
+
+        @Test
+        @DisplayName("Should return null for non-existent key")
+        void testGetNonExistentKey() {
+            // Given
+            String key = "non-existent-key";
+
+            // When
+            String result = redisService.get(key);
+
+            // Then
+            assertThat(result).isNull();
+        }
+
+        @Test
+        @DisplayName("Should delete key")
+        void testDelete() {
+            // Given
+            String key = "test-key";
+            String value = "test-value";
+            redisService.set(key, value);
+
+            // When
+            redisService.delete(key);
+
+            // Then
+            assertThat(redisService.get(key)).isNull();
+        }
+
+        @Test
+        @DisplayName("Should check key existence")
+        void testExists() {
+            // Given
+            String key = "test-key";
+            String value = "test-value";
+
+            // When
+            redisService.set(key, value);
+
+            // Then
+            assertThat(redisService.exists(key)).isTrue();
+            assertThat(redisService.exists("non-existent-key")).isFalse();
+        }
     }
 
-    @Test
-    void testGetNonExistentKey() {
-        // Given
-        String key = "non-existent-key";
+    @Nested
+    @DisplayName("Set Operations")
+    class SetOperations {
+        @Test
+        @DisplayName("Should add to set and get members")
+        void testAddToSet() {
+            // Given
+            String key = "test-set";
+            String value = "set-value";
 
-        // When
-        String result = redisService.get(key);
+            // When
+            redisService.addToSet(key, value);
 
-        // Then
-        assertThat(result).isNull();
+            // Then
+            Set<String> setMembers = redisService.getSetMembers(key);
+            assertThat(setMembers).contains(value);
+        }
+
+        @Test
+        @DisplayName("Should remove from set")
+        void testRemoveFromSet() {
+            // Given
+            String key = "test-set";
+            String value = "set-value";
+            redisService.addToSet(key, value);
+
+            // When
+            redisService.removeFromSet(key, value);
+
+            // Then
+            Set<String> setMembers = redisService.getSetMembers(key);
+            assertThat(setMembers).doesNotContain(value);
+        }
+
+        @Test
+        @DisplayName("Should get all set members")
+        void testGetSetMembers() {
+            // Given
+            String key = "test-set";
+            String value1 = "value1";
+            String value2 = "value2";
+
+            // When
+            redisService.addToSet(key, value1);
+            redisService.addToSet(key, value2);
+
+            // Then
+            Set<String> setMembers = redisService.getSetMembers(key);
+            assertThat(setMembers).containsExactlyInAnyOrder(value1, value2);
+        }
+
+        @Test
+        @DisplayName("Should check existence in set")
+        void testExistsInSet() {
+            // Given
+            String key = "test-set";
+            String value = "test-value";
+            redisService.addToSet(key, value);
+
+            // When & Then
+            assertThat(redisService.existsInSet(key, value)).isTrue();
+            assertThat(redisService.existsInSet(key, "non-existent")).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should get set size")
+        void testGetSetSize() {
+            // Given
+            String key = "test-set";
+            String value1 = "value1";
+            String value2 = "value2";
+
+            // When
+            redisService.addToSet(key, value1);
+            redisService.addToSet(key, value2);
+
+            // Then
+            assertThat(redisService.getSetSize(key)).isEqualTo(2L);
+        }
+
+        @Test
+        @DisplayName("Should handle operations on non-existent set")
+        void testSetOperationsOnNonExistentSet() {
+            // Given
+            String key = "non-existent-set";
+
+            // When & Then
+            assertThat(redisService.getSetMembers(key)).isEmpty();
+            assertThat(redisService.existsInSet(key, "value")).isFalse();
+            assertThat(redisService.getSetSize(key)).isEqualTo(0L);
+        }
     }
 
-    @Test
-    void testDelete() {
-        // Given
-        String key = "test-key";
-        String value = "test-value";
-        redisService.set(key, value);
+    @Nested
+    @DisplayName("Key Pattern Operations")
+    class KeyPatternOperations {
+        @Test
+        @DisplayName("Should get keys by pattern")
+        void testGetKeys() {
+            // Given
+            redisService.set("key1", "value1");
+            redisService.set("key2", "value2");
+            redisService.set("other", "value");
 
-        // When
-        redisService.delete(key);
+            // When
+            Set<String> keys = redisService.getKeys("key*");
 
-        // Then
-        assertThat(redisService.get(key)).isNull();
+            // Then
+            assertThat(keys).containsExactlyInAnyOrder("key1", "key2");
+        }
     }
 
-    @Test
-    void testExists() {
-        // Given
-        String key = "test-key";
-        String value = "test-value";
+    @Nested
+    @DisplayName("Multiple Operations")
+    class MultipleOperations {
+        @Test
+        @DisplayName("Should perform multiple operations and cleanup")
+        void testMultipleOperations() {
+            // Given
+            String key1 = "key1";
+            String key2 = "key2";
+            String value1 = "value1";
+            String value2 = "value2";
 
-        // When
-        redisService.set(key, value);
+            // When
+            redisService.set(key1, value1);
+            redisService.addToSet(key2, value2);
 
-        // Then
-        assertThat(redisService.exists(key)).isTrue();
-        assertThat(redisService.exists("non-existent-key")).isFalse();
-    }
+            // Then
+            assertThat(redisService.get(key1)).isEqualTo(value1);
+            assertThat(redisService.existsInSet(key2, value2)).isTrue();
 
-    @Test
-    void testAddToSet() {
-        // Given
-        String key = "test-set";
-        String value = "set-value";
+            // Clean up specific keys
+            redisService.delete(key1);
+            redisService.removeFromSet(key2, value2);
 
-        // When
-        redisService.addToSet(key, value);
-
-        // Then
-        Set<String> setMembers = redisService.getSetMembers(key);
-        assertThat(setMembers).contains(value);
-    }
-
-    @Test
-    void testRemoveFromSet() {
-        // Given
-        String key = "test-set";
-        String value = "set-value";
-        redisService.addToSet(key, value);
-
-        // When
-        redisService.removeFromSet(key, value);
-
-        // Then
-        Set<String> setMembers = redisService.getSetMembers(key);
-        assertThat(setMembers).doesNotContain(value);
-    }
-
-    @Test
-    void testGetSetMembers() {
-        // Given
-        String key = "test-set";
-        String value1 = "value1";
-        String value2 = "value2";
-
-        // When
-        redisService.addToSet(key, value1);
-        redisService.addToSet(key, value2);
-
-        // Then
-        Set<String> setMembers = redisService.getSetMembers(key);
-        assertThat(setMembers).containsExactlyInAnyOrder(value1, value2);
-    }
-
-    @Test
-    void testExistsInSet() {
-        // Given
-        String key = "test-set";
-        String value = "test-value";
-        redisService.addToSet(key, value);
-
-        // When & Then
-        assertThat(redisService.existsInSet(key, value)).isTrue();
-        assertThat(redisService.existsInSet(key, "non-existent")).isFalse();
-    }
-
-    @Test
-    void testGetSetSize() {
-        // Given
-        String key = "test-set";
-        String value1 = "value1";
-        String value2 = "value2";
-
-        // When
-        redisService.addToSet(key, value1);
-        redisService.addToSet(key, value2);
-
-        // Then
-        assertThat(redisService.getSetSize(key)).isEqualTo(2L);
-    }
-
-    @Test
-    void testSetOperationsOnNonExistentSet() {
-        // Given
-        String key = "non-existent-set";
-
-        // When & Then
-        assertThat(redisService.getSetMembers(key)).isEmpty();
-        assertThat(redisService.existsInSet(key, "value")).isFalse();
-        assertThat(redisService.getSetSize(key)).isEqualTo(0L);
-    }
-
-    @Test
-    void testGetKeys() {
-        // Given
-        redisService.set("key1", "value1");
-        redisService.set("key2", "value2");
-        redisService.set("other", "value");
-
-        // When
-        Set<String> keys = redisService.getKeys("key*");
-
-        // Then
-        assertThat(keys).containsExactlyInAnyOrder("key1", "key2");
-    }
-
-    @Test
-    void testMultipleOperations() {
-        // Given
-        String key1 = "key1";
-        String key2 = "key2";
-        String value1 = "value1";
-        String value2 = "value2";
-
-        // When
-        redisService.set(key1, value1);
-        redisService.addToSet(key2, value2);
-
-        // Then
-        assertThat(redisService.get(key1)).isEqualTo(value1);
-        assertThat(redisService.existsInSet(key2, value2)).isTrue();
-
-        // Clean up specific keys
-        redisService.delete(key1);
-        redisService.removeFromSet(key2, value2);
-
-        // Verify cleanup
-        assertThat(redisService.get(key1)).isNull();
-        assertThat(redisService.existsInSet(key2, value2)).isFalse();
+            // Verify cleanup
+            assertThat(redisService.get(key1)).isNull();
+            assertThat(redisService.existsInSet(key2, value2)).isFalse();
+        }
     }
 }

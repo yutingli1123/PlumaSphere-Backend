@@ -1,6 +1,8 @@
 package fans.goldenglow.plumaspherebackend.service;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -10,6 +12,7 @@ import javax.crypto.SecretKey;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("SecretService Tests")
 class SecretServiceTest {
 
     private SecretService secretService;
@@ -19,140 +22,153 @@ class SecretServiceTest {
         secretService = new SecretService();
     }
 
-    @Test
-    void getSecret_ShouldReturnSameSecret_WhenCalledMultipleTimes() {
-        // When
-        SecretKey secret1 = secretService.getSecret();
-        SecretKey secret2 = secretService.getSecret();
+    @Nested
+    @DisplayName("Secret Key Generation")
+    class SecretKeyGeneration {
 
-        // Then
-        assertThat(secret1).isNotNull();
-        assertThat(secret2).isNotNull();
-        assertThat(secret1).isSameAs(secret2); // Should be the same instance
-    }
+        @Test
+        @DisplayName("Should return same secret when called multiple times")
+        void getSecret_ShouldReturnSameSecret_WhenCalledMultipleTimes() {
+            // When
+            SecretKey secret1 = secretService.getSecret();
+            SecretKey secret2 = secretService.getSecret();
 
-    @Test
-    void getSecret_ShouldReturnValidHmacSha256Key() {
-        // When
-        SecretKey secret = secretService.getSecret();
-
-        // Then
-        assertThat(secret).isNotNull();
-        assertThat(secret.getAlgorithm()).isEqualTo("HmacSHA256");
-        assertThat(secret.getEncoded()).isNotNull();
-        assertThat(secret.getEncoded().length).isEqualTo(32); // 256 bits = 32 bytes
-    }
-
-    @Test
-    void getSecret_ShouldReturnDifferentKeys_ForDifferentInstances() {
-        // Given
-        SecretService secretService1 = new SecretService();
-        SecretService secretService2 = new SecretService();
-
-        // When
-        SecretKey secret1 = secretService1.getSecret();
-        SecretKey secret2 = secretService2.getSecret();
-
-        // Then
-        assertThat(secret1).isNotNull();
-        assertThat(secret2).isNotNull();
-        assertThat(secret1.getEncoded()).isNotEqualTo(secret2.getEncoded());
-    }
-
-    @Test
-    void getSecret_ShouldGenerateSecretLazily() {
-        // Given
-        SecretService newSecretService = new SecretService();
-
-        // When - First call should generate the secret
-        SecretKey firstCall = newSecretService.getSecret();
-
-        // Then
-        assertThat(firstCall).isNotNull();
-
-        // When - Second call should return the same secret
-        SecretKey secondCall = newSecretService.getSecret();
-
-        // Then
-        assertThat(secondCall).isSameAs(firstCall);
-    }
-
-    @Test
-    void getSecret_ShouldHandleConcurrentAccess() throws InterruptedException {
-        // Given
-        SecretService concurrentSecretService = new SecretService();
-        SecretKey[] results = new SecretKey[10];
-        Thread[] threads = new Thread[10];
-
-        // When - Multiple threads call getSecret simultaneously
-        for (int i = 0; i < 10; i++) {
-            final int index = i;
-            threads[i] = new Thread(() -> results[index] = concurrentSecretService.getSecret());
-            threads[i].start();
+            // Then
+            assertThat(secret1).isNotNull();
+            assertThat(secret2).isNotNull();
+            assertThat(secret1).isSameAs(secret2); // Should be the same instance
         }
 
-        // Wait for all threads to complete
-        for (Thread thread : threads) {
-            thread.join();
+        @Test
+        @DisplayName("Should return valid HmacSHA256 key")
+        void getSecret_ShouldReturnValidHmacSha256Key() {
+            // When
+            SecretKey secret = secretService.getSecret();
+
+            // Then
+            assertThat(secret).isNotNull();
+            assertThat(secret.getAlgorithm()).isEqualTo("HmacSHA256");
+            assertThat(secret.getEncoded()).isNotNull();
+            assertThat(secret.getEncoded().length).isEqualTo(32); // 256 bits = 32 bytes
         }
 
-        // Then - All threads should get the same secret instance
-        SecretKey firstSecret = results[0];
-        assertThat(firstSecret).isNotNull();
+        @Test
+        @DisplayName("Should return different keys for different instances")
+        void getSecret_ShouldReturnDifferentKeys_ForDifferentInstances() {
+            // Given
+            SecretService secretService1 = new SecretService();
+            SecretService secretService2 = new SecretService();
 
-        for (int i = 1; i < 10; i++) {
-            assertThat(results[i]).isSameAs(firstSecret);
+            // When
+            SecretKey secret1 = secretService1.getSecret();
+            SecretKey secret2 = secretService2.getSecret();
+
+            // Then
+            assertThat(secret1).isNotNull();
+            assertThat(secret2).isNotNull();
+            assertThat(secret1.getEncoded()).isNotEqualTo(secret2.getEncoded());
         }
-    }
 
-    @Test
-    void getSecret_ShouldGenerateValidKeyFormat() {
-        // When
-        SecretKey secret = secretService.getSecret();
+        @Test
+        @DisplayName("Should generate secret lazily")
+        void getSecret_ShouldGenerateSecretLazily() {
+            // Given
+            SecretService newSecretService = new SecretService();
 
-        // Then
-        assertThat(secret).isNotNull();
-        assertThat(secret.getFormat()).isEqualTo("RAW");
-        assertThat(secret.getEncoded()).isNotEmpty();
-    }
+            // When - First call should generate the secret
+            SecretKey firstCall = newSecretService.getSecret();
 
-    @Test
-    void getSecret_ShouldMaintainConsistency_AcrossMultipleCalls() {
-        // When
-        SecretKey secret1 = secretService.getSecret();
-        byte[] encoded1 = secret1.getEncoded();
+            // Then
+            assertThat(firstCall).isNotNull();
 
-        SecretKey secret2 = secretService.getSecret();
-        byte[] encoded2 = secret2.getEncoded();
+            // When - Second call should return the same secret
+            SecretKey secondCall = newSecretService.getSecret();
 
-        SecretKey secret3 = secretService.getSecret();
-        byte[] encoded3 = secret3.getEncoded();
+            // Then
+            assertThat(secondCall).isSameAs(firstCall);
+        }
 
-        // Then
-        assertThat(encoded1).isEqualTo(encoded2);
-        assertThat(encoded2).isEqualTo(encoded3);
-        assertThat(encoded1).isEqualTo(encoded3);
-    }
+        @Test
+        @DisplayName("Should handle concurrent access")
+        void getSecret_ShouldHandleConcurrentAccess() throws InterruptedException {
+            // Given
+            SecretService concurrentSecretService = new SecretService();
+            SecretKey[] results = new SecretKey[10];
+            Thread[] threads = new Thread[10];
 
-    @Test
-    void secretService_ShouldHandleRepeatedInstantiation() {
-        // Given & When
-        SecretService service1 = new SecretService();
-        SecretService service2 = new SecretService();
-        SecretService service3 = new SecretService();
+            // When - Multiple threads call getSecret simultaneously
+            for (int i = 0; i < 10; i++) {
+                final int index = i;
+                threads[i] = new Thread(() -> results[index] = concurrentSecretService.getSecret());
+                threads[i].start();
+            }
 
-        SecretKey key1 = service1.getSecret();
-        SecretKey key2 = service2.getSecret();
-        SecretKey key3 = service3.getSecret();
+            // Wait for all threads to complete
+            for (Thread thread : threads) {
+                thread.join();
+            }
 
-        // Then - Each service should have its own unique secret
-        assertThat(key1.getEncoded()).isNotEqualTo(key2.getEncoded());
-        assertThat(key2.getEncoded()).isNotEqualTo(key3.getEncoded());
-        assertThat(key1.getEncoded()).isNotEqualTo(key3.getEncoded());
+            // Then - All threads should get the same secret instance
+            SecretKey firstSecret = results[0];
+            assertThat(firstSecret).isNotNull();
 
-        // But each service should return the same key on multiple calls
-        assertThat(service1.getSecret()).isSameAs(key1);
-        assertThat(service2.getSecret()).isSameAs(key2);
-        assertThat(service3.getSecret()).isSameAs(key3);
+            for (int i = 1; i < 10; i++) {
+                assertThat(results[i]).isSameAs(firstSecret);
+            }
+        }
+
+        @Test
+        @DisplayName("Should generate valid key format")
+        void getSecret_ShouldGenerateValidKeyFormat() {
+            // When
+            SecretKey secret = secretService.getSecret();
+
+            // Then
+            assertThat(secret).isNotNull();
+            assertThat(secret.getFormat()).isEqualTo("RAW");
+            assertThat(secret.getEncoded()).isNotEmpty();
+        }
+
+        @Test
+        @DisplayName("Should maintain consistency across multiple calls")
+        void getSecret_ShouldMaintainConsistency_AcrossMultipleCalls() {
+            // When
+            SecretKey secret1 = secretService.getSecret();
+            byte[] encoded1 = secret1.getEncoded();
+
+            SecretKey secret2 = secretService.getSecret();
+            byte[] encoded2 = secret2.getEncoded();
+
+            SecretKey secret3 = secretService.getSecret();
+            byte[] encoded3 = secret3.getEncoded();
+
+            // Then
+            assertThat(encoded1).isEqualTo(encoded2);
+            assertThat(encoded2).isEqualTo(encoded3);
+            assertThat(encoded1).isEqualTo(encoded3);
+        }
+
+        @Test
+        @DisplayName("Should handle repeated instantiation")
+        void secretService_ShouldHandleRepeatedInstantiation() {
+            // Given & When
+            SecretService service1 = new SecretService();
+            SecretService service2 = new SecretService();
+            SecretService service3 = new SecretService();
+
+            SecretKey key1 = service1.getSecret();
+            SecretKey key2 = service2.getSecret();
+            SecretKey key3 = service3.getSecret();
+
+            // Then - Each service should have its own unique secret
+            assertThat(key1.getEncoded()).isNotEqualTo(key2.getEncoded());
+            assertThat(key2.getEncoded()).isNotEqualTo(key3.getEncoded());
+            assertThat(key1.getEncoded()).isNotEqualTo(key3.getEncoded());
+
+            // But each service should return the same key on multiple calls
+            assertThat(service1.getSecret()).isSameAs(key1);
+            assertThat(service2.getSecret()).isSameAs(key2);
+            assertThat(service3.getSecret()).isSameAs(key3);
+        }
     }
 }
