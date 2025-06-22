@@ -53,7 +53,7 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 
-	implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.78.1'
+	implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.81'
 	implementation 'com.auth0:java-jwt:4.5.0'
 }
 
