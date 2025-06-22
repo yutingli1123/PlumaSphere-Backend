@@ -27,7 +27,7 @@ dependencies {
 	implementation 'commons-io:commons-io:2.19.0'
 	implementation 'com.vladsch.flexmark:flexmark-all:0.64.8'
 	implementation 'org.mapstruct:mapstruct:1.6.3'
-	implementation "io.github.resilience4j:resilience4j-spring-boot3:2.2.0"
+	implementation "io.github.resilience4j:resilience4j-spring-boot3:2.3.0"
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
 	implementation "org.springframework.boot:spring-boot-starter-aop"
