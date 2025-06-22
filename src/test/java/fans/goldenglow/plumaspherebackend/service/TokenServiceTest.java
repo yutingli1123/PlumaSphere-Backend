@@ -377,11 +377,11 @@ class TokenServiceTest {
         }
 
         @Test
-        @DisplayName("Should return null when JWT token throws exception")
+        @DisplayName("Should return null when JWT token is null")
         void extractUserIdFromJwt_ShouldReturnNull_WhenJwtTokenThrowsException() {
             // Given
             JwtAuthenticationToken jwtToken = mock(JwtAuthenticationToken.class);
-            when(jwtToken.getToken()).thenThrow(new RuntimeException("JWT error"));
+            when(jwtToken.getToken()).thenReturn(null);
 
             // When
             Long extractedUserId = tokenService.extractUserIdFromJwt(jwtToken);

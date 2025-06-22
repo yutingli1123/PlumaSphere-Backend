@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,6 +116,7 @@ public class PostController {
     @PostMapping
     @Transactional
     public ResponseEntity<Void> createPost(@RequestBody PostDto postDto, JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
         if (user.isEmpty()) return ResponseEntity.notFound().build();
@@ -134,18 +136,17 @@ public class PostController {
     @Transactional
     public ResponseEntity<Void> updatePost(@RequestBody PostDto postDto) {
         Long postId = postDto.getId();
-        if (postId != null) {
-            Optional<Post> post = postService.findById(postId);
-            if (post.isPresent()) {
-                String content = postDto.getContent();
-                Post postEntity = post.get();
-                postEntity.setTitle(postDto.getTitle());
-                postEntity.setContent(content);
-                postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
-                postEntity.setDescription(postService.generateDescription(content));
-                postService.save(postEntity);
-                return ResponseEntity.ok().build();
-            }
+        if (postId == null) return ResponseEntity.badRequest().build();
+        Optional<Post> post = postService.findById(postId);
+        if (post.isPresent()) {
+            String content = postDto.getContent();
+            Post postEntity = post.get();
+            postEntity.setTitle(postDto.getTitle());
+            postEntity.setContent(content);
+            postEntity.setTags(tagService.dtoToEntity(postDto.getTags()));
+            postEntity.setDescription(postService.generateDescription(content));
+            postService.save(postEntity);
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
     }
