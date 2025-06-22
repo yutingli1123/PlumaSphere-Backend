@@ -176,7 +176,7 @@ class FileControllerTest {
 
         @Test
         @DisplayName("Should handle missing url in request body")
-        void fetchImageMissingUrl() throws Exception, FileSaveException {
+        void fetchImageMissingUrl() throws Exception {
             mockMvc.perform(post("/api/v1/file/fetch")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
