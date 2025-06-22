@@ -19,6 +19,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.multipart.MultipartFile;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,12 +46,7 @@ class FileControllerTest {
         @DisplayName("Should upload single file successfully")
         void uploadSingleFileSuccess() throws Exception, FileSaveException {
             MockMultipartFile file = new MockMultipartFile("file[]", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "dummy content".getBytes());
-            Mockito.doAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(org.mockito.invocation.InvocationOnMock invocation) throws FileSaveException {
-                    return "/upload/test.jpg";
-                }
-            }).when(fileService).saveFile(any());
+            Mockito.doAnswer((Answer<Object>) invocation -> "/upload/test.jpg").when(fileService).saveFile(any());
 
             mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/file/upload")
                             .file(file))
@@ -65,17 +61,14 @@ class FileControllerTest {
         void uploadMultipleFilesWithFailures() throws Exception, FileSaveException {
             MockMultipartFile file1 = new MockMultipartFile("file[]", "ok.jpg", MediaType.IMAGE_JPEG_VALUE, "ok".getBytes());
             MockMultipartFile file2 = new MockMultipartFile("file[]", "fail.jpg", MediaType.IMAGE_JPEG_VALUE, "fail".getBytes());
-            Mockito.doAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(org.mockito.invocation.InvocationOnMock invocation) throws FileSaveException {
-                    Object arg = invocation.getArgument(0);
-                    if (arg instanceof org.springframework.web.multipart.MultipartFile) {
-                        String name = ((org.springframework.web.multipart.MultipartFile) arg).getOriginalFilename();
-                        if ("ok.jpg".equals(name)) return "/upload/ok.jpg";
-                        if ("fail.jpg".equals(name)) throw new FileSaveException("fail.jpg");
-                    }
-                    return null;
+            Mockito.doAnswer((Answer<Object>) invocation -> {
+                Object arg = invocation.getArgument(0);
+                if (arg instanceof MultipartFile) {
+                    String name = ((MultipartFile) arg).getOriginalFilename();
+                    if ("ok.jpg".equals(name)) return "/upload/ok.jpg";
+                    if ("fail.jpg".equals(name)) throw new FileSaveException("fail.jpg");
                 }
+                return null;
             }).when(fileService).saveFile(any());
 
             mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/file/upload")
@@ -92,17 +85,14 @@ class FileControllerTest {
         void uploadAllFilesFail() throws Exception, FileSaveException {
             MockMultipartFile file1 = new MockMultipartFile("file[]", "fail1.jpg", MediaType.IMAGE_JPEG_VALUE, "fail1".getBytes());
             MockMultipartFile file2 = new MockMultipartFile("file[]", "fail2.jpg", MediaType.IMAGE_JPEG_VALUE, "fail2".getBytes());
-            Mockito.doAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(org.mockito.invocation.InvocationOnMock invocation) throws FileSaveException {
-                    Object arg = invocation.getArgument(0);
-                    if (arg instanceof org.springframework.web.multipart.MultipartFile) {
-                        String name = ((org.springframework.web.multipart.MultipartFile) arg).getOriginalFilename();
-                        if ("fail1.jpg".equals(name)) throw new FileSaveException("fail1.jpg");
-                        if ("fail2.jpg".equals(name)) throw new FileSaveException("fail2.jpg");
-                    }
-                    return null;
+            Mockito.doAnswer((Answer<Object>) invocation -> {
+                Object arg = invocation.getArgument(0);
+                if (arg instanceof MultipartFile) {
+                    String name = ((MultipartFile) arg).getOriginalFilename();
+                    if ("fail1.jpg".equals(name)) throw new FileSaveException("fail1.jpg");
+                    if ("fail2.jpg".equals(name)) throw new FileSaveException("fail2.jpg");
                 }
+                return null;
             }).when(fileService).saveFile(any());
 
             mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/file/upload")
@@ -118,12 +108,7 @@ class FileControllerTest {
         @DisplayName("Should skip files returning null from service")
         void uploadFileReturnsNull() throws Exception, FileSaveException {
             MockMultipartFile file = new MockMultipartFile("file[]", "null.jpg", MediaType.IMAGE_JPEG_VALUE, "null".getBytes());
-            Mockito.doAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(org.mockito.invocation.InvocationOnMock invocation) throws FileSaveException {
-                    return null;
-                }
-            }).when(fileService).saveFile(any());
+            Mockito.doAnswer((Answer<Object>) invocation -> null).when(fileService).saveFile(any());
 
             mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/file/upload")
                             .file(file))
@@ -142,12 +127,7 @@ class FileControllerTest {
         void fetchImageSuccess() throws Exception, FileSaveException {
             String originalUrl = "https://example.com/image.jpg";
             String localUrl = "/upload/image.jpg";
-            Mockito.doAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(org.mockito.invocation.InvocationOnMock invocation) throws FileSaveException {
-                    return localUrl;
-                }
-            }).when(fileService).fetchImage(eq(originalUrl));
+            Mockito.doAnswer((Answer<Object>) invocation -> localUrl).when(fileService).fetchImage(eq(originalUrl));
 
             mockMvc.perform(post("/api/v1/file/fetch")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -162,11 +142,8 @@ class FileControllerTest {
         @DisplayName("Should handle fetch image failure (service throws exception)")
         void fetchImageFailure() throws Exception, FileSaveException {
             String originalUrl = "https://example.com/image.jpg";
-            Mockito.doAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(org.mockito.invocation.InvocationOnMock invocation) throws FileSaveException {
-                    throw new FileSaveException(originalUrl);
-                }
+            Mockito.doAnswer((Answer<Object>) invocation -> {
+                throw new FileSaveException(originalUrl);
             }).when(fileService).fetchImage(eq(originalUrl));
 
             mockMvc.perform(post("/api/v1/file/fetch")
@@ -183,11 +160,8 @@ class FileControllerTest {
         @DisplayName("Should handle fetch image failure (service throws generic exception)")
         void fetchImageGenericFailure() throws Exception, FileSaveException {
             String originalUrl = "https://example.com/image.jpg";
-            Mockito.doAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(org.mockito.invocation.InvocationOnMock invocation) throws FileSaveException {
-                    throw new RuntimeException("fail");
-                }
+            Mockito.doAnswer((Answer<Object>) invocation -> {
+                throw new RuntimeException("fail");
             }).when(fileService).fetchImage(eq(originalUrl));
 
             mockMvc.perform(post("/api/v1/file/fetch")
@@ -218,7 +192,7 @@ class FileControllerTest {
         void fetchImageInvalidJson() throws Exception {
             mockMvc.perform(post("/api/v1/file/fetch")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("not-a-json"))
+                            .content("\"not-a-json\""))
                     .andExpect(status().isBadRequest());
         }
     }

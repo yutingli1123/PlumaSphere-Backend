@@ -4,10 +4,7 @@ import fans.goldenglow.plumaspherebackend.dto.BanRequestDto;
 import fans.goldenglow.plumaspherebackend.service.BannedIpService;
 import fans.goldenglow.plumaspherebackend.service.UserBanService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -29,9 +26,16 @@ class AdminControllerTest {
     @InjectMocks
     private AdminController adminController;
 
+    private AutoCloseable mocks;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (mocks != null) mocks.close();
     }
 
     @Nested
