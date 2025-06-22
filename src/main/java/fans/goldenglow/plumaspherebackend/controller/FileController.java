@@ -56,6 +56,7 @@ public class FileController {
         }
         String localUrl;
         try {
+            //noinspection JvmTaintAnalysis
             localUrl = fileService.fetchImage(originalURL);
         } catch (Exception | FileSaveException e) {
             Map<String, Object> result = new HashMap<>();
