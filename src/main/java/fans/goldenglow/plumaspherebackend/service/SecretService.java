@@ -19,8 +19,8 @@ public class SecretService {
             return keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException e) {
             log.error("No such algorithm", e);
+            throw new RuntimeException("Failed to generate JWT secret key", e);
         }
-        return null;
     }
 
     public synchronized SecretKey getSecret() {
