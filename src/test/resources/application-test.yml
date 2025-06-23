@@ -10,3 +10,14 @@ spring:
     redis:
       host: localhost
       port: 6370
+
+config:
+  jwt:
+    iss: test_iss
+    expiration:
+      access_token: 5
+      refresh_token: 0
+  cors:
+    allowed_origins:
+      - http://localhost:8080
+  server_full_address: http://localhost:8080
