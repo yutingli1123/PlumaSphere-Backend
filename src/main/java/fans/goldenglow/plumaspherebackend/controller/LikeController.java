@@ -25,31 +25,31 @@ public class LikeController {
     private final CommentService commentService;
 
     @GetMapping("/post/{postId}/like")
-    public ResponseEntity<Long> getLikes(@PathVariable Long postId) {
+    public ResponseEntity<Long> getLikes(@PathVariable("postId") Long postId) {
         return ResponseEntity.ok(likeCacheService.getPostLikesCount(postId));
     }
 
     @GetMapping("/comment/{commentId}/like")
-    public ResponseEntity<Long> getCommentLikes(@PathVariable Long commentId) {
+    public ResponseEntity<Long> getCommentLikes(@PathVariable("commentId") Long commentId) {
         return ResponseEntity.ok(likeCacheService.getCommentLikesCount(commentId));
     }
 
     @GetMapping("/post/{postId}/like/state")
-    public ResponseEntity<Boolean> getPostLikeState(@PathVariable Long postId, JwtAuthenticationToken token) {
+    public ResponseEntity<Boolean> getPostLikeState(@PathVariable("postId") Long postId, JwtAuthenticationToken token) {
         if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return ResponseEntity.ok(likeCacheService.isPostLiked(postId, userId));
     }
 
     @GetMapping("/comment/{commentId}/like/state")
-    public ResponseEntity<Boolean> getCommentLikeState(@PathVariable Long commentId, JwtAuthenticationToken token) {
+    public ResponseEntity<Boolean> getCommentLikeState(@PathVariable("commentId") Long commentId, JwtAuthenticationToken token) {
         if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return ResponseEntity.ok(likeCacheService.isCommentLiked(commentId, userId));
     }
 
     @PostMapping("/post/{postId}/like")
-    public ResponseEntity<Void> likePost(@PathVariable Long postId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> likePost(@PathVariable("postId") Long postId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         likeCacheService.switchPostLike(postId, userId);
         webSocketHandler.sendMessageToPost(postId, new WebSocketMessageDto(WebSocketMessageType.LIKE_POST));
@@ -58,7 +58,7 @@ public class LikeController {
     }
 
     @PostMapping("/comment/{commentId}/like")
-    public ResponseEntity<Void> likeComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> likeComment(@PathVariable("commentId") Long commentId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         likeCacheService.switchCommentLike(commentId, userId);
 

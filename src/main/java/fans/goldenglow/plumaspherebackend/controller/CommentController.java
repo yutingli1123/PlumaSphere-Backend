@@ -50,14 +50,14 @@ public class CommentController {
     }
 
     @GetMapping("/comment/{commentId}")
-    public ResponseEntity<CommentDto> getComment(@PathVariable Long commentId) {
+    public ResponseEntity<CommentDto> getComment(@PathVariable("commentId") Long commentId) {
         Optional<Comment> comment = commentService.findById(commentId);
         return comment.map(value -> ResponseEntity.ok(commentMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/post/{postId}/comment")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long postId, @RequestParam int page, @RequestParam(required = false, defaultValue = "time") String sortBy) {
+    public ResponseEntity<List<CommentDto>> getComments(@PathVariable("postId") Long postId, @RequestParam int page, @RequestParam(required = false, defaultValue = "time") String sortBy) {
         String sortField = switch (sortBy) {
             case "like" -> "likedCount";
             case "time" -> "createdAt";
@@ -69,7 +69,7 @@ public class CommentController {
 
     @GetMapping("/post/{postId}/comment/count-page")
     @Transactional(readOnly = true)
-    public ResponseEntity<Long> getCommentPageCount(@PathVariable Long postId) {
+    public ResponseEntity<Long> getCommentPageCount(@PathVariable("postId") Long postId) {
         long totalComments = commentService.countByPostId(postId);
         long totalPages = (long) Math.ceil((double) totalComments / (double) pageSize);
         return ResponseEntity.ok(totalPages);
@@ -77,24 +77,24 @@ public class CommentController {
 
     @GetMapping("/post/{postId}/comment/count")
     @Transactional(readOnly = true)
-    public ResponseEntity<Long> getCommentCount(@PathVariable Long postId) {
+    public ResponseEntity<Long> getCommentCount(@PathVariable("postId") Long postId) {
         return ResponseEntity.ok(commentService.countByPostId(postId));
     }
 
     @GetMapping("/user/{userId}/comment")
-    public ResponseEntity<List<CommentDto>> getUserComments(@PathVariable Long userId, @RequestParam int page) {
+    public ResponseEntity<List<CommentDto>> getUserComments(@PathVariable("userId") Long userId, @RequestParam int page) {
         Page<Comment> comments = commentService.findByUserId(userId, PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")));
         return ResponseEntity.ok(commentMapper.toDto(comments.getContent()));
     }
 
     @GetMapping("/user/{userId}/comment/count")
-    public ResponseEntity<Long> getUserCommentCount(@PathVariable Long userId) {
+    public ResponseEntity<Long> getUserCommentCount(@PathVariable("userId") Long userId) {
         long count = commentService.countByUserId(userId);
         return ResponseEntity.ok(count);
     }
 
     @GetMapping("/user/{userId}/comment/count-page")
-    public ResponseEntity<Long> getUserCommentPageCount(@PathVariable Long userId) {
+    public ResponseEntity<Long> getUserCommentPageCount(@PathVariable("userId") Long userId) {
         long totalComments = commentService.countByUserId(userId);
         long totalPages = (long) Math.ceil((double) totalComments / (double) pageSize);
         return ResponseEntity.ok(totalPages);
@@ -104,7 +104,7 @@ public class CommentController {
     @CheckUserBan
     @PostMapping("/post/{postId}/comment")
     @Transactional
-    public ResponseEntity<Void> replyPost(@PathVariable Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> replyPost(@PathVariable("postId") Long postId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
         Optional<Post> post = postService.findById(postId);
 
         if (post.isEmpty()) return ResponseEntity.notFound().build();
@@ -129,7 +129,7 @@ public class CommentController {
     @CheckUserBan
     @PostMapping("/comment/{commentId}/reply")
     @Transactional
-    public ResponseEntity<Void> replyComment(@PathVariable Long commentId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> replyComment(@PathVariable("commentId") Long commentId, @RequestBody CommentDto commentDto, JwtAuthenticationToken token) {
         Optional<Comment> comment = commentService.findById(commentId);
         if (comment.isEmpty()) return ResponseEntity.notFound().build();
 
@@ -150,7 +150,7 @@ public class CommentController {
 
     @GetMapping("/comment/{commentId}/reply")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CommentDto>> getCommentReplies(@PathVariable Long commentId, @RequestParam int page, @RequestParam(required = false, defaultValue = "time") String sortBy) {
+    public ResponseEntity<List<CommentDto>> getCommentReplies(@PathVariable("commentId") Long commentId, @RequestParam int page, @RequestParam(required = false, defaultValue = "time") String sortBy) {
         String sortField = switch (sortBy) {
             case "like" -> "likedCount";
             case "time" -> "createdAt";
@@ -164,7 +164,7 @@ public class CommentController {
     @CheckIpBan
     @DeleteMapping("/comment/{commentId}")
     @Transactional
-    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> deleteComment(@PathVariable("commentId") Long commentId, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> user = userService.findById(userId);
         if (user.isEmpty()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

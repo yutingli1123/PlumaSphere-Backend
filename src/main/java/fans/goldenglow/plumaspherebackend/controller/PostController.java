@@ -108,7 +108,7 @@ public class PostController {
 
     @GetMapping("/{postId}")
     @Transactional(readOnly = true)
-    public ResponseEntity<PostDto> getPost(@PathVariable Long postId) {
+    public ResponseEntity<PostDto> getPost(@PathVariable("postId") Long postId) {
         Optional<Post> post = postService.findById(postId);
         return post.map(value -> ResponseEntity.ok(postMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -152,7 +152,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+    public ResponseEntity<Void> deletePost(@PathVariable("postId") Long postId) {
         postService.delete(postId);
         return ResponseEntity.ok().build();
     }

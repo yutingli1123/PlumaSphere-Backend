@@ -57,7 +57,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUserById(@PathVariable Long userId, JwtAuthenticationToken token) {
+    public ResponseEntity<?> getUserById(@PathVariable("userId") Long userId, JwtAuthenticationToken token) {
         if (token != null) {
             Long tokenUserId = Long.parseLong(token.getToken().getSubject());
             Optional<User> userOptional = userService.findById(tokenUserId);
@@ -110,7 +110,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<Void> deleteUser(@PathVariable("userId") Long userId) {
         userService.deleteById(userId);
         return ResponseEntity.ok().build();
     }
