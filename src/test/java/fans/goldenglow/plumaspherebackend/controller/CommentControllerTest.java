@@ -1,9 +1,11 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.ConfigField;
 import fans.goldenglow.plumaspherebackend.dto.CommentDto;
 import fans.goldenglow.plumaspherebackend.entity.Comment;
 import fans.goldenglow.plumaspherebackend.entity.Post;
 import fans.goldenglow.plumaspherebackend.entity.User;
+import fans.goldenglow.plumaspherebackend.handler.WebSocketHandler;
 import fans.goldenglow.plumaspherebackend.mapper.CommentMapper;
 import fans.goldenglow.plumaspherebackend.service.CommentService;
 import fans.goldenglow.plumaspherebackend.service.ConfigService;
@@ -17,12 +19,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @DisplayName("CommentController Tests")
@@ -38,7 +45,7 @@ class CommentControllerTest {
     @Mock
     private ConfigService configService;
     @Mock
-    private fans.goldenglow.plumaspherebackend.handler.WebSocketHandler webSocketHandler;
+    private WebSocketHandler webSocketHandler;
     @InjectMocks
     private CommentController commentController;
     private AutoCloseable mocks;
@@ -47,13 +54,21 @@ class CommentControllerTest {
     void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
         // mock pageSize config for controller
-        when(configService.get(fans.goldenglow.plumaspherebackend.constant.ConfigField.PAGE_SIZE)).thenReturn(java.util.Optional.of("5"));
+        when(configService.get(ConfigField.PAGE_SIZE)).thenReturn(Optional.of("5"));
         commentController.init();
     }
 
     @AfterEach
     void tearDown() throws Exception {
         if (mocks != null) mocks.close();
+    }
+
+    private JwtAuthenticationToken createJwtToken(String userId) {
+        Jwt jwt = Jwt.withTokenValue("token")
+                .headers(h -> h.put("typ", "JWT"))
+                .subject(userId)
+                .build();
+        return new JwtAuthenticationToken(jwt);
     }
 
     @Nested
@@ -91,11 +106,7 @@ class CommentControllerTest {
             Post post = new Post();
             User user = new User();
             user.setId(10L);
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(postService.findById(1L)).thenReturn(Optional.of(post));
             when(userService.findById(10L)).thenReturn(Optional.of(user));
             ResponseEntity<Void> response = commentController.replyPost(1L, dto, token);
@@ -106,11 +117,7 @@ class CommentControllerTest {
         @DisplayName("Should return NOT_FOUND when post not found")
         void replyPost_PostNotFound() {
             CommentDto dto = new CommentDto();
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(postService.findById(1L)).thenReturn(Optional.empty());
             ResponseEntity<Void> response = commentController.replyPost(1L, dto, token);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -121,11 +128,7 @@ class CommentControllerTest {
         void replyPost_UserNotFound() {
             CommentDto dto = new CommentDto();
             Post post = new Post();
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(postService.findById(1L)).thenReturn(Optional.of(post));
             when(userService.findById(10L)).thenReturn(Optional.empty());
             ResponseEntity<Void> response = commentController.replyPost(1L, dto, token);
@@ -145,11 +148,7 @@ class CommentControllerTest {
             parent.setId(2L);
             User user = new User();
             user.setId(10L);
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(commentService.findById(2L)).thenReturn(Optional.of(parent));
             when(userService.findById(10L)).thenReturn(Optional.of(user));
             ResponseEntity<Void> response = commentController.replyComment(2L, dto, token);
@@ -160,10 +159,7 @@ class CommentControllerTest {
         @DisplayName("Should return NOT_FOUND when comment not found")
         void replyComment_CommentNotFound() {
             CommentDto dto = new CommentDto();
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(commentService.findById(2L)).thenReturn(Optional.empty());
             ResponseEntity<Void> response = commentController.replyComment(2L, dto, token);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -175,11 +171,7 @@ class CommentControllerTest {
             CommentDto dto = new CommentDto();
             Comment parent = new Comment();
             parent.setId(2L);
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(commentService.findById(2L)).thenReturn(Optional.of(parent));
             when(userService.findById(10L)).thenReturn(Optional.empty());
             ResponseEntity<Void> response = commentController.replyComment(2L, dto, token);
@@ -195,8 +187,8 @@ class CommentControllerTest {
         void getCommentReplies_ShouldReturnReplies() {
             Comment reply = new Comment();
             CommentDto dto = new CommentDto();
-            Page<Comment> page = new org.springframework.data.domain.PageImpl<>(List.of(reply));
-            when(commentService.findByParentCommentId(org.mockito.ArgumentMatchers.eq(3L), org.mockito.ArgumentMatchers.any())).thenReturn(page);
+            Page<Comment> page = new PageImpl<>(List.of(reply));
+            when(commentService.findByParentCommentId(eq(3L), any())).thenReturn(page);
             when(commentMapper.toDto(List.of(reply))).thenReturn(List.of(dto));
             ResponseEntity<List<CommentDto>> response = commentController.getCommentReplies(3L, 0, "time");
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -206,8 +198,8 @@ class CommentControllerTest {
         @Test
         @DisplayName("Should return empty list when no replies")
         void getCommentReplies_ShouldReturnEmptyList() {
-            Page<Comment> page = new org.springframework.data.domain.PageImpl<>(Collections.emptyList());
-            when(commentService.findByParentCommentId(org.mockito.ArgumentMatchers.eq(3L), org.mockito.ArgumentMatchers.any())).thenReturn(page);
+            Page<Comment> page = new PageImpl<>(Collections.emptyList());
+            when(commentService.findByParentCommentId(eq(3L), any())).thenReturn(page);
             when(commentMapper.toDto(Collections.emptyList())).thenReturn(Collections.emptyList());
             ResponseEntity<List<CommentDto>> response = commentController.getCommentReplies(3L, 0, "like");
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -223,14 +215,10 @@ class CommentControllerTest {
         void deleteComment_ShouldSucceedForAuthor() {
             User user = new User();
             user.setId(10L);
-            user.setRole(fans.goldenglow.plumaspherebackend.constant.UserRoles.REGULAR);
+            user.setRole(UserRoles.REGULAR);
             Comment comment = new Comment();
             comment.setAuthor(user);
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(userService.findById(10L)).thenReturn(Optional.of(user));
             when(commentService.findById(5L)).thenReturn(Optional.of(comment));
             ResponseEntity<Void> response = commentController.deleteComment(5L, token);
@@ -242,14 +230,12 @@ class CommentControllerTest {
         void deleteComment_ShouldSucceedForAdmin() {
             User admin = new User();
             admin.setId(1L);
-            admin.setRole(fans.goldenglow.plumaspherebackend.constant.UserRoles.ADMIN);
+            admin.setRole(UserRoles.ADMIN);
+            User author = new User();
+            author.setId(2L);
             Comment comment = new Comment();
-            comment.setAuthor(new User());
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "1"))
-                    .subject("1").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            comment.setAuthor(author);
+            JwtAuthenticationToken token = createJwtToken("1");
             when(userService.findById(1L)).thenReturn(Optional.of(admin));
             when(commentService.findById(5L)).thenReturn(Optional.of(comment));
             ResponseEntity<Void> response = commentController.deleteComment(5L, token);
@@ -259,11 +245,7 @@ class CommentControllerTest {
         @Test
         @DisplayName("Should return FORBIDDEN when user not found")
         void deleteComment_UserNotFound() {
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(userService.findById(10L)).thenReturn(Optional.empty());
             ResponseEntity<Void> response = commentController.deleteComment(5L, token);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -274,12 +256,8 @@ class CommentControllerTest {
         void deleteComment_CommentNotFound() {
             User user = new User();
             user.setId(10L);
-            user.setRole(fans.goldenglow.plumaspherebackend.constant.UserRoles.REGULAR);
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            user.setRole(UserRoles.REGULAR);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(userService.findById(10L)).thenReturn(Optional.of(user));
             when(commentService.findById(5L)).thenReturn(Optional.empty());
             ResponseEntity<Void> response = commentController.deleteComment(5L, token);
@@ -291,16 +269,12 @@ class CommentControllerTest {
         void deleteComment_ForbiddenForNonAuthor() {
             User user = new User();
             user.setId(10L);
-            user.setRole(fans.goldenglow.plumaspherebackend.constant.UserRoles.REGULAR);
-            User other = new User();
-            other.setId(11L);
+            user.setRole(UserRoles.REGULAR);
+            User author = new User();
+            author.setId(11L);
             Comment comment = new Comment();
-            comment.setAuthor(other);
-            org.springframework.security.oauth2.jwt.Jwt jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("token")
-                    .headers(h -> h.put("typ", "JWT"))
-                    .claims(c -> c.put("sub", "10"))
-                    .subject("10").build();
-            org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken token = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt);
+            comment.setAuthor(author);
+            JwtAuthenticationToken token = createJwtToken("10");
             when(userService.findById(10L)).thenReturn(Optional.of(user));
             when(commentService.findById(5L)).thenReturn(Optional.of(comment));
             ResponseEntity<Void> response = commentController.deleteComment(5L, token);
@@ -317,7 +291,7 @@ class CommentControllerTest {
             Comment comment = new Comment();
             CommentDto dto = new CommentDto();
             Page<Comment> page = new PageImpl<>(List.of(comment));
-            when(commentService.findByPostId(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.any())).thenReturn(page);
+            when(commentService.findByPostId(eq(1L), any())).thenReturn(page);
             when(commentMapper.toDto(List.of(comment))).thenReturn(List.of(dto));
             ResponseEntity<List<CommentDto>> response = commentController.getComments(1L, 0, "time");
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -328,7 +302,7 @@ class CommentControllerTest {
         @DisplayName("Should return empty list when no comments")
         void getComments_ShouldReturnEmptyList() {
             Page<Comment> page = new PageImpl<>(Collections.emptyList());
-            when(commentService.findByPostId(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.any())).thenReturn(page);
+            when(commentService.findByPostId(eq(1L), any())).thenReturn(page);
             when(commentMapper.toDto(Collections.emptyList())).thenReturn(Collections.emptyList());
             ResponseEntity<List<CommentDto>> response = commentController.getComments(1L, 0, "like");
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -380,9 +354,9 @@ class CommentControllerTest {
             Comment comment = new Comment();
             CommentDto dto = new CommentDto();
             Page<Comment> page = new PageImpl<>(List.of(comment));
-            when(commentService.findByUserId(org.mockito.ArgumentMatchers.eq(2L), org.mockito.ArgumentMatchers.any())).thenReturn(page);
+            when(commentService.findByUserId(eq(1L), any())).thenReturn(page);
             when(commentMapper.toDto(List.of(comment))).thenReturn(List.of(dto));
-            ResponseEntity<List<CommentDto>> response = commentController.getUserComments(2L, 0);
+            ResponseEntity<List<CommentDto>> response = commentController.getUserComments(1L, 0);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).containsExactly(dto);
         }
@@ -391,9 +365,9 @@ class CommentControllerTest {
         @DisplayName("Should return empty list when user has no comments")
         void getUserComments_ShouldReturnEmptyList() {
             Page<Comment> page = new PageImpl<>(Collections.emptyList());
-            when(commentService.findByUserId(org.mockito.ArgumentMatchers.eq(2L), org.mockito.ArgumentMatchers.any())).thenReturn(page);
+            when(commentService.findByUserId(eq(1L), any())).thenReturn(page);
             when(commentMapper.toDto(Collections.emptyList())).thenReturn(Collections.emptyList());
-            ResponseEntity<List<CommentDto>> response = commentController.getUserComments(2L, 0);
+            ResponseEntity<List<CommentDto>> response = commentController.getUserComments(1L, 0);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isEmpty();
         }

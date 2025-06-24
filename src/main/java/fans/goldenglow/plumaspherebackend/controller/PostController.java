@@ -36,7 +36,7 @@ public class PostController {
     private int pageSize;
 
     @PostConstruct
-    private void init() {
+    void init() {
         Optional<String> pageSizeConfig = configService.get(ConfigField.PAGE_SIZE);
         pageSize = pageSizeConfig.map(Integer::parseInt).orElse(5);
     }

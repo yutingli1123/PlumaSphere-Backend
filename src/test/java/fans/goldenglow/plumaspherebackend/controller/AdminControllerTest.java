@@ -70,7 +70,11 @@ class AdminControllerTest {
         @DisplayName("Should return bad request on exception")
         void banUser_Exception() {
             BanRequestDto dto = mock(BanRequestDto.class);
-            when(dto.getUserId()).thenThrow(new RuntimeException("fail"));
+            when(dto.getUserId()).thenReturn(1L);
+            when(dto.getReason()).thenReturn("test");
+            when(dto.getExpiresAt()).thenReturn(null);
+
+            doThrow(new RuntimeException("fail")).when(userBanService).banUser(1L, "test");
             ResponseEntity<String> response = adminController.banUser(dto);
             assertThat(response.getStatusCode().is4xxClientError()).isTrue();
         }

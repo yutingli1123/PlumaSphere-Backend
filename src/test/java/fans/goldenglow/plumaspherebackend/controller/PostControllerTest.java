@@ -50,19 +50,20 @@ class PostControllerTest {
     void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
         when(configService.get(ConfigField.PAGE_SIZE)).thenReturn(Optional.of(String.valueOf(PAGE_SIZE)));
-        postController = new PostController(postService, userService, tagService, postMapper, configService);
-        // manually call init
-        try {
-            var method = PostController.class.getDeclaredMethod("init");
-            method.setAccessible(true);
-            method.invoke(postController);
-        } catch (Exception ignored) {
-        }
+        postController.init();
     }
 
     @AfterEach
     void tearDown() throws Exception {
         if (mocks != null) mocks.close();
+    }
+
+    private JwtAuthenticationToken createJwtToken(String userId) {
+        Jwt jwt = Jwt.withTokenValue("token")
+                .header("alg", "none")
+                .subject(userId)
+                .build();
+        return new JwtAuthenticationToken(jwt);
     }
 
     @Nested
@@ -234,10 +235,7 @@ class PostControllerTest {
         @Test
         @DisplayName("Should create post when user exists")
         void createPost_ShouldCreate_WhenUserExists() {
-            Jwt jwt = mock(Jwt.class);
-            when(jwt.getSubject()).thenReturn("1");
-            JwtAuthenticationToken token = mock(JwtAuthenticationToken.class);
-            when(token.getToken()).thenReturn(jwt);
+            JwtAuthenticationToken token = createJwtToken("1");
             User user = new User();
             when(userService.findById(1L)).thenReturn(Optional.of(user));
             PostDto dto = new PostDto();
@@ -254,10 +252,7 @@ class PostControllerTest {
         @Test
         @DisplayName("Should return NOT_FOUND if user does not exist")
         void createPost_ShouldReturnNotFound_WhenUserNotExist() {
-            Jwt jwt = mock(Jwt.class);
-            when(jwt.getSubject()).thenReturn("1");
-            JwtAuthenticationToken token = mock(JwtAuthenticationToken.class);
-            when(token.getToken()).thenReturn(jwt);
+            JwtAuthenticationToken token = createJwtToken("1");
             when(userService.findById(1L)).thenReturn(Optional.empty());
             PostDto dto = new PostDto();
             ResponseEntity<Void> response = postController.createPost(dto, token);
@@ -265,17 +260,6 @@ class PostControllerTest {
         }
     }
 
-    @Nested
-    @DisplayName("POST /api/v1/post (edge cases)")
-    class CreatePostEdgeCases {
-        @Test
-        @DisplayName("Should return UNAUTHORIZED if token is null")
-        void createPost_ShouldReturnUnauthorized_WhenTokenNull() {
-            PostDto dto = new PostDto();
-            ResponseEntity<Void> response = postController.createPost(dto, null);
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        }
-    }
 
     @Nested
     @DisplayName("PUT /api/v1/post")

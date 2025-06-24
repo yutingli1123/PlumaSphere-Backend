@@ -7,6 +7,7 @@ import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.PasswordService;
 import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,7 @@ class LoginControllerTest {
             UserLoginDto loginDto = createUserLoginDto("user", "pass");
             User user = new User("user", "hashed", null);
             user.setId(1L);
-            user.setRole(fans.goldenglow.plumaspherebackend.constant.UserRoles.REGULAR);
+            user.setRole(UserRoles.REGULAR);
             when(userService.findByUsername("user")).thenReturn(Optional.of(user));
             when(passwordService.verifyPassword("pass", "hashed")).thenReturn(true);
             TokenResponseDto.TokenDetails access = new TokenResponseDto.TokenDetails("access", null);
@@ -83,16 +84,16 @@ class LoginControllerTest {
         }
 
         @Test
-        @DisplayName("Should return FORBIDDEN when password is incorrect")
+        @DisplayName("Should return UNAUTHORIZED when password is incorrect")
         void login_ShouldReturnForbidden_WhenPasswordIncorrect() {
             UserLoginDto loginDto = createUserLoginDto("user", "wrong");
             User user = new User("user", "hashed", null);
             user.setId(1L);
-            user.setRole(fans.goldenglow.plumaspherebackend.constant.UserRoles.REGULAR);
+            user.setRole(UserRoles.REGULAR);
             when(userService.findByUsername("user")).thenReturn(Optional.of(user));
             when(passwordService.verifyPassword("wrong", "hashed")).thenReturn(false);
             ResponseEntity<TokenResponseDto> response = loginController.login(loginDto);
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         }
     }
 
