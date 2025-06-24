@@ -162,7 +162,7 @@ class PasswordServiceTest {
 
         @Test
         @DisplayName("Should throw NPE when password is null")
-        void verifyPassword_ShouldReturnFalse_WhenPasswordIsNull() {
+        void verifyPassword_ShouldThrowNPE_WhenPasswordIsNull() {
             // Given
             String encodedPassword = passwordService.encodePassword("testPassword123");
 
