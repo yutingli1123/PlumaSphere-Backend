@@ -43,6 +43,7 @@ public class LikeController {
 
     @GetMapping("/comment/{commentId}/like/state")
     public ResponseEntity<Boolean> getCommentLikeState(@PathVariable("commentId") Long commentId, JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return ResponseEntity.ok(likeCacheService.isCommentLiked(commentId, userId));
     }
