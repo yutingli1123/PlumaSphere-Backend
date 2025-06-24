@@ -51,7 +51,6 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getSelf(JwtAuthenticationToken token) {
-        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return getUserDtoResponseEntityFromUserId(userId);
     }
@@ -74,7 +73,6 @@ public class UserController {
 
     @PutMapping
     public ResponseEntity<Void> updateUserInfo(@RequestBody UserDto userDto, JwtAuthenticationToken token) {
-        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> userOptional = userService.findById(userId);
 
@@ -91,7 +89,6 @@ public class UserController {
 
     @PutMapping("/avatar")
     public ResponseEntity<Void> updateUserAvatar(@RequestParam("file") MultipartFile file, JwtAuthenticationToken token) {
-        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         Optional<User> userOptional = userService.findById(userId);
 

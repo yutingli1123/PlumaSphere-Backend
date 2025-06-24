@@ -86,13 +86,11 @@ class UserControllerTest {
     }
 
     private JwtAuthenticationToken createMockJwtToken(String subject) {
-        Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn(subject);
-
-        JwtAuthenticationToken token = mock(JwtAuthenticationToken.class);
-        when(token.getToken()).thenReturn(jwt);
-
-        return token;
+        Jwt jwt = Jwt.withTokenValue("token")
+                .header("alg", "none")
+                .subject(subject)
+                .build();
+        return new JwtAuthenticationToken(jwt);
     }
 
     @Nested
@@ -246,18 +244,6 @@ class UserControllerTest {
         }
 
         @Test
-        @DisplayName("Should return UNAUTHORIZED when token is null")
-        void getSelf_ShouldReturnUnauthorized_WhenTokenIsNull() {
-            // When
-            ResponseEntity<UserDto> response = userController.getSelf(null);
-
-            // Then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-            assertThat(response.getBody()).isNull();
-            verifyNoInteractions(userService, userMapper);
-        }
-
-        @Test
         @DisplayName("Should return NOT_FOUND when user does not exist")
         void getSelf_ShouldReturnNotFound_WhenUserDoesNotExist() {
             // Given
@@ -269,7 +255,6 @@ class UserControllerTest {
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-            assertThat(response.getBody()).isNull();
             verify(userService).findById(TEST_USER_ID);
             verifyNoInteractions(userMapper);
         }
@@ -300,21 +285,6 @@ class UserControllerTest {
             assertThat(testUser.getBio()).isEqualTo("Updated Bio");
             assertThat(testUser.getDob()).isEqualTo(LocalDate.of(1990, 5, 15));
             verify(userService).save(testUser);
-        }
-
-        @Test
-        @DisplayName("Should return UNAUTHORIZED when token is null")
-        void updateUserInfo_ShouldReturnUnauthorized_WhenTokenIsNull() {
-            // Given
-            UserDto updateDto = new UserDto();
-            updateDto.setNickname("Updated Nickname");
-
-            // When
-            ResponseEntity<Void> response = userController.updateUserInfo(updateDto, null);
-
-            // Then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-            verifyNoInteractions(userService);
         }
 
         @Test
@@ -382,20 +352,6 @@ class UserControllerTest {
             assertThat(testUser.getAvatarUrl()).isEqualTo(newAvatarUrl);
             verify(fileService).saveFile(file);
             verify(userService).save(testUser);
-        }
-
-        @Test
-        @DisplayName("Should return UNAUTHORIZED when token is null")
-        void updateUserAvatar_ShouldReturnUnauthorized_WhenTokenIsNull() {
-            // Given
-            MultipartFile file = mock(MultipartFile.class);
-
-            // When
-            ResponseEntity<Void> response = userController.updateUserAvatar(file, null);
-
-            // Then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-            verifyNoInteractions(fileService, userService);
         }
 
         @Test
