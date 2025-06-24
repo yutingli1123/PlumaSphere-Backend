@@ -1,7 +1,6 @@
 package fans.goldenglow.plumaspherebackend.config;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -13,25 +12,31 @@ import java.io.IOException;
 
 @TestConfiguration
 public class EmbeddedRedisTestConfiguration {
-    private final RedisServer redisServer;
+    private static RedisServer redisServer;
 
     private final String redisHost;
     private final int redisPort;
 
-    public EmbeddedRedisTestConfiguration(RedisProperties redisProperties) throws IOException {
-        redisHost = redisProperties.getRedisHost();
-        redisPort = redisProperties.getRedisPort();
-        redisServer = new RedisServer(redisPort);
+    public EmbeddedRedisTestConfiguration(RedisProperties redisProperties) {
+        this.redisHost = redisProperties.getRedisHost();
+        this.redisPort = redisProperties.getRedisPort();
     }
 
     @PostConstruct
-    public void startRedis() throws IOException {
-        redisServer.start();
-    }
-
-    @PreDestroy
-    public void stopRedis() throws IOException {
-        redisServer.stop();
+    public synchronized void startRedis() throws IOException {
+        if (redisServer == null) {
+            redisServer = new RedisServer(redisPort);
+            redisServer.start();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (redisServer != null) {
+                    try {
+                        redisServer.stop();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }));
+        }
     }
 
     @Bean
