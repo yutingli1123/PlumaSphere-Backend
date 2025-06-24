@@ -51,6 +51,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getSelf(JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return getUserDtoResponseEntityFromUserId(userId);
     }

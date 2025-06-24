@@ -36,6 +36,7 @@ public class LikeController {
 
     @GetMapping("/post/{postId}/like/state")
     public ResponseEntity<Boolean> getPostLikeState(@PathVariable("postId") Long postId, JwtAuthenticationToken token) {
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = Long.parseLong(token.getToken().getSubject());
         return ResponseEntity.ok(likeCacheService.isPostLiked(postId, userId));
     }
