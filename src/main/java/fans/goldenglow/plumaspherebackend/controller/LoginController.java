@@ -48,7 +48,7 @@ public class LoginController {
             TokenResponseDto responseDto = tokenService.generateTokens(userId, List.of(role.toString().toLowerCase()));
             return ResponseEntity.ok(responseDto);
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @CheckIpBan
