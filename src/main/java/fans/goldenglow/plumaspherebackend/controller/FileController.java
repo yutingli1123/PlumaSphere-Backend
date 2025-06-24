@@ -45,14 +45,7 @@ public class FileController {
     public ResponseEntity<Map<String, Object>> fetchImage(@RequestBody Map<String, String> body) {
         String originalURL = body.get("url");
         if (originalURL == null || originalURL.isBlank()) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("msg", "download image failed");
-            result.put("code", 1);
-            Map<String, Object> data = new HashMap<>();
-            if (originalURL != null) data.put("originalURL", originalURL);
-            data.put("url", "");
-            result.put("data", data);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.badRequest().build();
         }
         String localUrl;
         try {

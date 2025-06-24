@@ -180,11 +180,7 @@ class FileControllerTest {
             mockMvc.perform(post("/api/v1/file/fetch")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value(1))
-                    .andExpect(jsonPath("$.msg").value("download image failed"))
-                    .andExpect(jsonPath("$.data.originalURL").doesNotExist())
-                    .andExpect(jsonPath("$.data.url").value(""));
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
