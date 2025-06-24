@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -36,8 +37,9 @@ public class TokenService {
     private long REFRESH_TOKEN_EXPIRATION;
 
     @PostConstruct
-    private void init() {
-        this.algorithm = Algorithm.HMAC256(secretService.getSecret().getEncoded());
+    void init() {
+        SecretKey secret = secretService.getSecret();
+        this.algorithm = Algorithm.HMAC256(secret.getEncoded());
     }
 
     private TokenResponseDto.TokenDetails generateToken(String userId, long expirationMinutes, List<String> scopes) {

@@ -53,6 +53,7 @@ class TokenServiceTest {
         keyGen.init(256);
         SecretKey testSecretKey = keyGen.generateKey();
         testAlgorithm = Algorithm.HMAC256(testSecretKey.getEncoded());
+        when(secretService.getSecret()).thenReturn(testSecretKey);
 
         // Setup test user
         testUser = new User();
@@ -65,8 +66,8 @@ class TokenServiceTest {
         ReflectionTestUtils.setField(tokenService, "ACCESS_TOKEN_EXPIRATION", 60L);
         ReflectionTestUtils.setField(tokenService, "REFRESH_TOKEN_EXPIRATION", 1440L);
 
-        // Initialize the algorithm in TokenService
-        ReflectionTestUtils.setField(tokenService, "algorithm", testAlgorithm);
+        // Initialize the algorithm in TokenService by calling the init method
+        tokenService.init();
     }
 
     @Nested
