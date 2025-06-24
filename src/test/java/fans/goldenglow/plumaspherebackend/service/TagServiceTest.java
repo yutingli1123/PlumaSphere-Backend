@@ -199,9 +199,9 @@ class TagServiceTest {
             Set<Tag> actualTags = tagService.dtoToEntity(tagNames);
 
             // Then
-            assertThat(actualTags).hasSize(1);
-            assertThat(actualTags.iterator().next().getName()).isIn("Python", "Django");
-            assertThat(actualTags.iterator().next().getId()).isNull();
+            assertThat(actualTags).hasSize(2);
+            assertThat(actualTags).extracting(Tag::getName).containsExactlyInAnyOrder("Python", "Django");
+            assertThat(actualTags).allSatisfy(tag -> assertThat(tag.getId()).isNull());
 
             verify(tagRepository).findByName("Python");
             verify(tagRepository).findByName("Django");
@@ -303,11 +303,7 @@ class TagServiceTest {
             Set<Tag> actualTags = tagService.dtoToEntity(tagNames);
 
             // Then
-            // Note: Due to Tag entity's @EqualsAndHashCode(of = {"id"}), 
-            // new tags with null id are considered equal in Set
-            assertThat(actualTags).hasSize(1);
-            assertThat(actualTags.iterator().next().getName()).startsWith("tag");
-            assertThat(actualTags.iterator().next().getId()).isNull();
+            assertThat(actualTags).hasSize(100);
 
             for (String tagName : tagNames) {
                 verify(tagRepository).findByName(tagName);

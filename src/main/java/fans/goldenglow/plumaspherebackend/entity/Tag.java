@@ -13,7 +13,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"name"})
 @ToString(of = {"id", "name"})
 @NoArgsConstructor
 @Table(name = "pluma_tag", indexes = @Index(name = "idx_tag_name", columnList = "name", unique = true))
