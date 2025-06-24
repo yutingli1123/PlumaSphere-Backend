@@ -54,11 +54,11 @@ public class SecurityConfigTest {
      * Set up JWT authentication for the current thread for testing purposes.
      * Scopes should be in the format "SCOPE_admin", "SCOPE_regular", etc.
      */
-    private void setJwtAuthentication(String userId, String... scopes) {
+    private void setJwtAuthentication(String... scopes) {
         Jwt jwt = Jwt.withTokenValue("test-token")
                 .header("alg", "none")
-                .subject(userId)
-                .claim("scope", String.join(" ", Arrays.stream(scopes).map(s -> s.replace("SCOPE_", "")).collect(Collectors.toList())))
+                .subject("1")
+                .claim("scope", Arrays.stream(scopes).map(s -> s.replace("SCOPE_", "")).collect(Collectors.joining(" ")))
                 .build();
         JwtAuthenticationToken token = new JwtAuthenticationToken(
                 jwt,
@@ -181,7 +181,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should be accessible with admin scope")
         void testAdminScopeGetEndpointsWithAdmin() throws Exception {
-            setJwtAuthentication("1", "SCOPE_admin");
+            setJwtAuthentication("SCOPE_admin");
             // /api/v1/user/count
             mockMvc.perform(get("/api/v1/user/count"))
                     .andExpect(result -> assertNotEquals(403, result.getResponse().getStatus()));
@@ -194,7 +194,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should be forbidden without admin scope")
         void testAdminScopeGetEndpointsWithoutAdmin() throws Exception {
-            setJwtAuthentication("1", "SCOPE_regular");
+            setJwtAuthentication("SCOPE_regular");
             mockMvc.perform(get("/api/v1/user/count"))
                     .andExpect(status().isForbidden());
 
@@ -339,7 +339,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should be accessible with admin scope")
         void testNonGetMethodsWithAdmin() throws Exception {
-            setJwtAuthentication("1", "SCOPE_admin");
+            setJwtAuthentication("SCOPE_admin");
             PostDto postDto = new PostDto();
             postDto.setTitle("Test Title");
             postDto.setContent("Test Content");
@@ -386,7 +386,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should be forbidden without admin scope")
         void testNonGetMethodsWithoutAdmin() throws Exception {
-            setJwtAuthentication("1", "SCOPE_regular");
+            setJwtAuthentication("SCOPE_regular");
             mockMvc.perform(post("/api/v1/post")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
@@ -426,7 +426,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should be accessible with any valid authentication")
         void testAuthenticatedEndpointsWithAuth() throws Exception {
-            setJwtAuthentication("1", "SCOPE_regular");
+            setJwtAuthentication("SCOPE_regular");
             CommentDto commentDto = new CommentDto();
             commentDto.setContent("Test comment");
 
@@ -458,7 +458,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should work with admin authentication as well")
         void testAuthenticatedEndpointsWithAdminAuth() throws Exception {
-            setJwtAuthentication("1", "SCOPE_admin");
+            setJwtAuthentication("SCOPE_admin");
             CommentDto commentDto = new CommentDto();
             commentDto.setContent("Test comment by admin");
 
@@ -500,7 +500,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should be accessible with admin scope")
         void testAdminOnlyEndpointsWithAdmin() throws Exception {
-            setJwtAuthentication("1", "SCOPE_admin");
+            setJwtAuthentication("SCOPE_admin");
             BanRequestDto banRequestDto = new BanRequestDto();
             banRequestDto.setUserId(2L); // Ban a different user
             banRequestDto.setReason("Test ban");
@@ -601,7 +601,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Should be forbidden without admin scope")
         void testAdminOnlyEndpointsWithoutAdmin() throws Exception {
-            setJwtAuthentication("1", "SCOPE_regular");
+            setJwtAuthentication("SCOPE_regular");
             mockMvc.perform(post("/api/v1/admin/ban-user")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
@@ -649,7 +649,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Path variations and special cases")
         void testPathVariations() throws Exception {
-            setJwtAuthentication("1", "SCOPE_admin");
+            setJwtAuthentication("SCOPE_admin");
             // Test paths with trailing slashes
             mockMvc.perform(get("/api/v1/post/1/"))
                     .andExpect(result -> assertNotEquals(403, result.getResponse().getStatus()));
@@ -677,7 +677,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Different HTTP methods on same path")
         void testDifferentHttpMethods() throws Exception {
-            setJwtAuthentication("1", "SCOPE_admin");
+            setJwtAuthentication("SCOPE_admin");
             String testPath = "/api/v1/post/1";
             PostDto postDto = new PostDto();
             postDto.setTitle("Test Title");
@@ -705,7 +705,7 @@ public class SecurityConfigTest {
         @Test
         @DisplayName("Mixed scope authorities")
         void testMixedScopeAuthorities() throws Exception {
-            setJwtAuthentication("1", "SCOPE_admin", "SCOPE_regular");
+            setJwtAuthentication("SCOPE_admin", "SCOPE_regular");
             // Should work with multiple scopes including admin
             mockMvc.perform(get("/api/v1/user/count"))
                     .andExpect(result -> assertNotEquals(403, result.getResponse().getStatus()));
