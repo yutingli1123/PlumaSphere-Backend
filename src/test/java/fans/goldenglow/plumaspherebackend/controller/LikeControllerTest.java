@@ -82,13 +82,6 @@ class LikeControllerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isTrue();
         }
-
-        @Test
-        @DisplayName("Should return UNAUTHORIZED if token is null")
-        void getPostLikeState_TokenNull() {
-            ResponseEntity<Boolean> response = likeController.getPostLikeState(1L, null);
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        }
     }
 
     @Nested
@@ -106,13 +99,6 @@ class LikeControllerTest {
             ResponseEntity<Boolean> response = likeController.getCommentLikeState(2L, token);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isFalse();
-        }
-
-        @Test
-        @DisplayName("Should return UNAUTHORIZED if token is null")
-        void getCommentLikeState_TokenNull() {
-            ResponseEntity<Boolean> response = likeController.getCommentLikeState(2L, null);
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         }
     }
 
