@@ -100,10 +100,10 @@ public class LoginController {
      * Fallback method for the getIdentity endpoint when the rate limit is exceeded.
      * Returns a 429 Too Many Requests status with a message indicating high demand.
      *
-     * @param exception the exception that triggered the fallback
+     * @param ignoredException the exception that triggered the fallback
      * @return a ResponseEntity with a status of 429 and a message
      */
-    public ResponseEntity<String> getIdentityFallback(Exception exception) {
+    public ResponseEntity<String> getIdentityFallback(Exception ignoredException) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("API rate limit reached. The service is currently experiencing high demand. Please try again later.");
     }
 
