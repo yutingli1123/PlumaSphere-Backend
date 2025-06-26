@@ -9,6 +9,10 @@ import org.mapstruct.MappingConstants;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Mapper interface for converting Tag entities to TagDto objects.
+ * This interface uses MapStruct to automatically generate the implementation.
+ */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TagMapper {
     @Mapping(target = "postCount", expression = "java(tag.getPosts().size())")

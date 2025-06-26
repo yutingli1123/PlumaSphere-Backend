@@ -24,6 +24,10 @@ import java.util.Optional;
 
 import static org.springframework.security.oauth2.core.authorization.OAuth2AuthorizationManagers.hasScope;
 
+/**
+ * Security configuration for the application.
+ * This class configures security settings, including CORS, JWT authentication, and authorization rules.
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

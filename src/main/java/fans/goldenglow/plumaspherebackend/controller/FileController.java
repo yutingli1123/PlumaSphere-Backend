@@ -12,12 +12,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controller for handling file upload and fetching images.
+ * Provides endpoints to upload files and fetch images from external URLs.
+ * This controller is required by the frontend.
+ */
 @RestController
 @RequestMapping("/api/v1/file")
 @RequiredArgsConstructor
 public class FileController {
     private final FileService fileService;
 
+    /**
+     * Endpoint to upload file.
+     * Accepts an array of files and saves them using the FileService.
+     * Returns a map containing successfully uploaded files and any errors encountered.
+     *
+     * @param files Array of MultipartFile objects to be uploaded
+     * @return ResponseEntity containing the result of the upload operation
+     */
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadFiles(@RequestParam("file[]") MultipartFile[] files) {
         List<String> errFiles = new ArrayList<>();
@@ -41,6 +54,14 @@ public class FileController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Endpoint to fetch an image from an external URL.
+     * Accepts a JSON body containing the URL of the image to be fetched.
+     * Returns a map containing the original URL and the local URL of the fetched image.
+     *
+     * @param body Map containing the "url" key with the image URL
+     * @return ResponseEntity containing the result of the fetch operation
+     */
     @PostMapping("/fetch")
     public ResponseEntity<Map<String, Object>> fetchImage(@RequestBody Map<String, String> body) {
         String originalURL = body.get("url");

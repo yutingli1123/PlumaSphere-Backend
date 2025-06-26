@@ -4,6 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO for a tag.
+ * This class is used to represent a tag with its ID, name, and post count.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

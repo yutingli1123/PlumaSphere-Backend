@@ -4,6 +4,9 @@ import lombok.Getter;
 
 import java.util.Optional;
 
+/**
+ * Enum representing configuration fields in the application.
+ */
 @Getter
 public enum ConfigField {
     INITIALIZED(true),

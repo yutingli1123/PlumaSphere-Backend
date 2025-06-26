@@ -10,6 +10,11 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Entity representing a tag in the PlumaSphere application.
+ * This class is used to store information about tags that can be associated with posts,
+ * allowing for categorization and easier searching of content.
+ */
 @Entity
 @Getter
 @Setter

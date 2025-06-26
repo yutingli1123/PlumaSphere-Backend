@@ -3,6 +3,10 @@ package fans.goldenglow.plumaspherebackend.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * DTO for initializing the blog.
+ * This class is used to send requests to initialize the blog with various settings.
+ */
 @Data
 @AllArgsConstructor
 public class InitDto {

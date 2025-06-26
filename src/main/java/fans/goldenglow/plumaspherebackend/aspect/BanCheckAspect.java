@@ -21,6 +21,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
+/**
+ * Aspect to check if a user or IP is banned before allowing access to certain methods.
+ * This aspect intercepts methods annotated with @CheckUserBan and @CheckIpBan.
+ */
 @Aspect
 @Component
 @RequiredArgsConstructor
@@ -30,17 +34,24 @@ public class BanCheckAspect {
     private final BannedIpService bannedIpService;
     private final TokenService tokenService;
 
+    /**
+     * Checks if the user is banned before proceeding with the method execution.
+     * If the user is banned, a ResponseStatusException with HTTP 403 Forbidden is thrown.
+     *
+     * @param joinPoint the join point of the intercepted method
+     */
     @Before("@annotation(fans.goldenglow.plumaspherebackend.annotation.CheckUserBan)")
     public void checkUserBan(JoinPoint joinPoint) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth instanceof JwtAuthenticationToken jwtToken) {
-            Long userId = tokenService.extractUserIdFromJwt(jwtToken);
+            Long userId = tokenService.extractUserIdFromJwt(jwtToken); // Extract user ID from JWT token
 
             if (userId != null) {
                 try {
                     Optional<User> userOptional = userService.findById(userId);
 
+                    // If user is not found, log a warning and return early
                     if (userOptional.isEmpty()) {
                         log.warn("User with ID {} not found, cannot check ban status", userId);
                         return;
@@ -48,6 +59,7 @@ public class BanCheckAspect {
 
                     User user = userOptional.get();
 
+                    // Check if the user's ban has expired and lift it if necessary
                     if (user.isBanExpired()) {
                         user.unban();
                         userService.save(user);
@@ -104,6 +116,12 @@ public class BanCheckAspect {
         }
     }
 
+    /**
+     * Checks if the client's IP address is banned before proceeding with the method execution.
+     * If the IP is banned, a ResponseStatusException with HTTP 403 Forbidden is thrown.
+     *
+     * @param joinPoint the join point of the intercepted method
+     */
     @Before("@annotation(fans.goldenglow.plumaspherebackend.annotation.CheckIpBan)")
     public void checkIpBan(JoinPoint joinPoint) {
         String clientIp = getClientIpAddress();
@@ -118,6 +136,11 @@ public class BanCheckAspect {
         }
     }
 
+    /**
+     * Retrieves the client's IP address from the current HTTP request.
+     *
+     * @return the client's IP address, or null if it cannot be determined
+     */
     private String getClientIpAddress() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {

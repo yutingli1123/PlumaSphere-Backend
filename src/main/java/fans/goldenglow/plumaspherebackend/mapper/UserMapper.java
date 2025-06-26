@@ -9,6 +9,10 @@ import org.mapstruct.MappingConstants;
 
 import java.util.List;
 
+/**
+ * Mapper interface for converting User entities to UserDto and UserAdminDto objects.
+ * This interface uses MapStruct to automatically generate the implementation.
+ */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper extends BaseMapper {
     UserDto toDto(User user);

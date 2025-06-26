@@ -19,6 +19,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Entity representing a user in the PlumaSphere application.
+ * This class is used to store information about users, including their username, password,
+ * nickname, role, date of birth, and other profile-related data.
+ */
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 @Getter
@@ -103,7 +108,7 @@ public class User implements Serializable {
             }
         }
         this.initials = initials.toString();
-        this.avatarColor = AvatarColor.getRandomColor().getHex();
+        this.avatarColor = AvatarColor.getRandomColor().hex();
     }
 
     public void ban(String reason) {

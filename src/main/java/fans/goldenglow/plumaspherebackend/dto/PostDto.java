@@ -7,6 +7,11 @@ import lombok.NoArgsConstructor;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+/**
+ * DTO for posts.
+ * This class is used to represent a post with its ID, title, content, description, author ID, tags,
+ * and timestamps for creation and last update.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

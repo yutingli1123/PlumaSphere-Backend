@@ -14,6 +14,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Entity representing a post in the PlumaSphere application.
+ * This class is used to store information about posts made by users,
+ * including the title, content, author, comments, tags, and likes.
+ */
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 @Getter

@@ -31,17 +31,34 @@ public class UserController {
 
     private final int PAGE_SIZE = 10;
 
+    /**
+     * Endpoint to get all users with pagination.
+     * Returns a list of UserAdminDto objects representing the users.
+     *
+     * @param page the page number to retrieve
+     * @return ResponseEntity containing the list of UserAdminDto objects
+     */
     @GetMapping
     public ResponseEntity<List<UserAdminDto>> getAllUsers(@RequestParam int page) {
         return ResponseEntity.ok(userMapper.toAdminDto(userService.findAll(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "id")))));
     }
 
+    /**
+     * Endpoint to get the total number of users.
+     *
+     * @return ResponseEntity containing the total number of users
+     */
     @GetMapping("/count")
     public ResponseEntity<Long> getUserCount() {
         long totalUsers = userService.countAll();
         return ResponseEntity.ok(totalUsers);
     }
 
+    /**
+     * Endpoint to get the total number of user pages based on the PAGE_SIZE.
+     *
+     * @return ResponseEntity containing the total number of user pages
+     */
     @GetMapping("/count-page")
     public ResponseEntity<Long> getUserPageCount() {
         long totalUsers = userService.countAll();
@@ -49,6 +66,12 @@ public class UserController {
         return ResponseEntity.ok(pageCount);
     }
 
+    /**
+     * Endpoint to get the current user's information.
+     *
+     * @param token the JWT authentication token of the user
+     * @return ResponseEntity containing the UserDto of the current user
+     */
     @GetMapping("/me")
     public ResponseEntity<UserDto> getSelf(JwtAuthenticationToken token) {
         if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -56,6 +79,14 @@ public class UserController {
         return getUserDtoResponseEntityFromUserId(userId);
     }
 
+    /**
+     * Endpoint to get a user by their ID.
+     * If the user is an admin, returns the UserAdminDto; otherwise, returns the UserDto.
+     *
+     * @param userId the ID of the user to retrieve
+     * @param token  the JWT authentication token of the user
+     * @return ResponseEntity containing the UserDto or UserAdminDto of the requested user
+     */
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUserById(@PathVariable("userId") Long userId, JwtAuthenticationToken token) {
         if (token != null) {
@@ -72,6 +103,13 @@ public class UserController {
         return getUserDtoResponseEntityFromUserId(userId);
     }
 
+    /**
+     * Endpoint to update the current user's information.
+     *
+     * @param userDto the UserDto containing the updated user information
+     * @param token   the JWT authentication token of the user
+     * @return ResponseEntity indicating the result of the update operation
+     */
     @PutMapping
     public ResponseEntity<Void> updateUserInfo(@RequestBody UserDto userDto, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
@@ -88,6 +126,13 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Endpoint to update the current user's avatar.
+     *
+     * @param file  the new avatar file to upload
+     * @param token the JWT authentication token of the user
+     * @return ResponseEntity indicating the result of the update operation
+     */
     @PutMapping("/avatar")
     public ResponseEntity<Void> updateUserAvatar(@RequestParam("file") MultipartFile file, JwtAuthenticationToken token) {
         Long userId = Long.parseLong(token.getToken().getSubject());
@@ -107,17 +152,38 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Endpoint to delete a user by their ID.
+     *
+     * @param userId the ID of the user to delete
+     * @return ResponseEntity indicating the result of the deletion operation
+     */
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable("userId") Long userId) {
         userService.deleteById(userId);
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Endpoint to get the user information by their ID.
+     * If the user is an admin, returns the UserAdminDto; otherwise, returns the UserDto.
+     *
+     * @param userId the ID of the user to retrieve
+     * @return ResponseEntity containing the UserDto or UserAdminDto of the requested user
+     */
     private ResponseEntity<UserDto> getUserDtoResponseEntityFromUserId(Long userId) {
         Optional<User> user = userService.findById(userId);
         return user.map(value -> ResponseEntity.ok(userMapper.toDto(value))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Endpoint to get the user information by their ID.
+     * If the user is an admin, returns the UserAdminDto; otherwise, returns the UserDto.
+     *
+     * @param userId  the ID of the user to retrieve
+     * @param isAdmin indicates if the request is made by an admin
+     * @return ResponseEntity containing the UserDto or UserAdminDto of the requested user
+     */
     private ResponseEntity<?> getUserDtoResponseEntityFromUserId(Long userId, boolean isAdmin) {
         if (isAdmin) {
             Optional<User> user = userService.findById(userId);

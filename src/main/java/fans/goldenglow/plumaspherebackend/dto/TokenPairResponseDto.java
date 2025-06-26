@@ -6,8 +6,11 @@ import lombok.NonNull;
 
 import java.time.ZonedDateTime;
 
+/**
+ * DTO for a pair of tokens (access and refresh).
+ */
 @Data
-public class TokenResponseDto {
+public class TokenPairResponseDto {
     @NonNull
     private TokenDetails accessToken;
     @NonNull

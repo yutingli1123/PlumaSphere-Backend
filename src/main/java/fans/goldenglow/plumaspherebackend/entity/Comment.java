@@ -11,6 +11,11 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Entity representing a comment in the PlumaSphere application.
+ * This class is used to store information about comments made by users on posts,
+ * including the content of the comment, the author, and any replies to the comment.
+ */
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 @Getter
@@ -61,11 +66,22 @@ public class Comment implements Serializable {
     @JoinColumn(name = "parent_id")
     private Comment parentComment;
 
+    /**
+     * Constructor for creating a Comment entity with mandatory fields.
+     *
+     * @param content the content of the comment
+     * @param author  the user who authored the comment
+     */
     public Comment(String content, User author) {
         this.content = content;
         this.author = author;
     }
 
+    /**
+     * Sets the users who liked this comment and updates the like count.
+     *
+     * @param likedBy the set of users who liked this comment
+     */
     public void setLikedBy(Set<User> likedBy) {
         this.likedBy = likedBy;
         this.likedCount = likedBy.size();

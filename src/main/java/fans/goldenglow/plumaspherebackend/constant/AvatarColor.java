@@ -1,15 +1,13 @@
 package fans.goldenglow.plumaspherebackend.constant;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-@Data
-@AllArgsConstructor
-public class AvatarColor {
+/**
+ * AvatarColor represents a color used for user avatars.
+ */
+public record AvatarColor(String hex) {
     // Red
     public static final AvatarColor CARMINE = new AvatarColor("#960018");
     public static final AvatarColor CARDINAL = new AvatarColor("#C51E3A");
@@ -36,7 +34,6 @@ public class AvatarColor {
             DARTMOUTH_GREEN, MYRTLE_GREEN, BERKELEY_BLUE, DELFT_BLUE, INDIGO_BLUE,
             SPACE_CADET, IRIS, OUTER_SPACE, RAISIN_BLACK
     );
-    private final String hex;
 
     public static AvatarColor getRandomColor() {
         return AVATAR_COLORS.get(RANDOM.nextInt(AVATAR_COLORS.size()));
