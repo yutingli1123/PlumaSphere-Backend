@@ -22,6 +22,10 @@ import java.util.Optional;
 
 import static fans.goldenglow.plumaspherebackend.constant.RedisKey.INITIALIZATION_CODE_KEY;
 
+/**
+ * Controller for managing system status and initialization.
+ * Provides endpoints to get system status, initialize the system, verify codes, and set system configurations.
+ */
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -31,6 +35,13 @@ public class SystemController {
     private final PasswordService passwordService;
     private final UserService userService;
 
+    /**
+     * Endpoint to get the current system status.
+     * If the user has admin privileges, returns all configurations; otherwise, returns public configurations.
+     *
+     * @param token the JWT authentication token of the user
+     * @return a ResponseEntity containing the list of configurations
+     */
     @GetMapping("/status")
     public ResponseEntity<List<Config>> getStatus(JwtAuthenticationToken token) {
         if (token != null) {
@@ -42,11 +53,23 @@ public class SystemController {
         return ResponseEntity.ok(configService.getAllPublic());
     }
 
+    /**
+     * Endpoint to get the current system version.
+     * Returns the version from the configuration, defaulting to "1" if not set.
+     *
+     * @return a ResponseEntity containing the version string
+     */
     @GetMapping("/status/version")
     public ResponseEntity<String> getStatusVersion() {
         return ResponseEntity.ok(configService.get(ConfigField.CONFIG_VERSION).orElse("1"));
     }
 
+    /**
+     * Endpoint to initialize the system.
+     *
+     * @param initDto the initialization data containing admin username, password, nickname, blog title, subtitle, and verification code
+     * @return a ResponseEntity indicating the result of the initialization
+     */
     @PostMapping("/init")
     public ResponseEntity<Void> initSystem(@RequestBody InitDto initDto) {
         try {
@@ -68,6 +91,12 @@ public class SystemController {
         }
     }
 
+    /**
+     * Endpoint to verify the initialization code.
+     *
+     * @param dto the DTO containing the verification code
+     * @return a ResponseEntity indicating whether the verification was successful
+     */
     @PostMapping("/init/verify-code")
     public ResponseEntity<Boolean> verifyCode(@RequestBody StringDto dto) {
         String verifyCode = dto.getValue();
@@ -78,6 +107,12 @@ public class SystemController {
         }
     }
 
+    /**
+     * Endpoint to set system configurations.
+     *
+     * @param config the array of configuration items to be set
+     * @return a ResponseEntity indicating the result of the operation
+     */
     @PostMapping("/settings")
     public ResponseEntity<Void> setSystemConfig(@RequestBody Config[] config) {
         for (Config configItem : config) {

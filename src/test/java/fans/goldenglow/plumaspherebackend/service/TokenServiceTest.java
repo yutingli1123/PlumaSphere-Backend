@@ -3,7 +3,7 @@ package fans.goldenglow.plumaspherebackend.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
-import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
+import fans.goldenglow.plumaspherebackend.dto.TokenPairResponseDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,7 +81,7 @@ class TokenServiceTest {
             List<String> scopes = List.of("user");
 
             // When
-            TokenResponseDto tokenResponse = tokenService.generateTokens(userId, scopes);
+            TokenPairResponseDto tokenResponse = tokenService.generateTokens(userId, scopes);
 
             // Then
             assertThat(tokenResponse).isNotNull();
@@ -107,7 +107,7 @@ class TokenServiceTest {
             List<String> scopes = List.of("admin", "user");
 
             // When
-            TokenResponseDto tokenResponse = tokenService.generateTokens(userId, scopes);
+            TokenPairResponseDto tokenResponse = tokenService.generateTokens(userId, scopes);
 
             // Then
             String accessToken = tokenResponse.getAccessToken().getToken();
@@ -134,7 +134,7 @@ class TokenServiceTest {
             List<String> scopes = List.of("user");
 
             // When
-            TokenResponseDto tokenResponse = tokenService.generateTokens(userId, scopes);
+            TokenPairResponseDto tokenResponse = tokenService.generateTokens(userId, scopes);
 
             // Then
             assertThat(tokenResponse).isNotNull();
@@ -152,7 +152,7 @@ class TokenServiceTest {
             List<String> emptyScopes = List.of();
 
             // When
-            TokenResponseDto tokenResponse = tokenService.generateTokens(userId, emptyScopes);
+            TokenPairResponseDto tokenResponse = tokenService.generateTokens(userId, emptyScopes);
 
             // Then
             assertThat(tokenResponse).isNotNull();
@@ -182,7 +182,7 @@ class TokenServiceTest {
             when(userService.findById(1L)).thenReturn(Optional.of(testUser));
 
             // When
-            TokenResponseDto tokenResponse = tokenService.refreshToken(refreshTokenValue);
+            TokenPairResponseDto tokenResponse = tokenService.refreshToken(refreshTokenValue);
 
             // Then
             assertThat(tokenResponse).isNotNull();
@@ -199,7 +199,7 @@ class TokenServiceTest {
             String invalidToken = "invalid.token.here";
 
             // When
-            TokenResponseDto tokenResponse = tokenService.refreshToken(invalidToken);
+            TokenPairResponseDto tokenResponse = tokenService.refreshToken(invalidToken);
 
             // Then
             assertThat(tokenResponse).isNull();
@@ -220,7 +220,7 @@ class TokenServiceTest {
                     .sign(testAlgorithm);
 
             // When
-            TokenResponseDto tokenResponse = tokenService.refreshToken(tokenWithWrongScope);
+            TokenPairResponseDto tokenResponse = tokenService.refreshToken(tokenWithWrongScope);
 
             // Then
             assertThat(tokenResponse).isNull();
@@ -243,7 +243,7 @@ class TokenServiceTest {
             when(userService.findById(999L)).thenReturn(Optional.empty());
 
             // When
-            TokenResponseDto tokenResponse = tokenService.refreshToken(refreshTokenValue);
+            TokenPairResponseDto tokenResponse = tokenService.refreshToken(refreshTokenValue);
 
             // Then
             assertThat(tokenResponse).isNull();
@@ -263,7 +263,7 @@ class TokenServiceTest {
                     .sign(testAlgorithm);
 
             // When
-            TokenResponseDto tokenResponse = tokenService.refreshToken(tokenWithoutScope);
+            TokenPairResponseDto tokenResponse = tokenService.refreshToken(tokenWithoutScope);
 
             // Then
             assertThat(tokenResponse).isNull();
@@ -284,7 +284,7 @@ class TokenServiceTest {
                     .sign(testAlgorithm);
 
             // When
-            TokenResponseDto tokenResponse = tokenService.refreshToken(expiredToken);
+            TokenPairResponseDto tokenResponse = tokenService.refreshToken(expiredToken);
 
             // Then
             assertThat(tokenResponse).isNull();
@@ -309,7 +309,7 @@ class TokenServiceTest {
             when(userService.findById(1L)).thenReturn(Optional.of(testUser));
 
             // When
-            TokenResponseDto tokenResponse = tokenService.refreshToken(refreshTokenValue);
+            TokenPairResponseDto tokenResponse = tokenService.refreshToken(refreshTokenValue);
 
             // Then
             assertThat(tokenResponse).isNotNull();

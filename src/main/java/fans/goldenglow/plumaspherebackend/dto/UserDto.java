@@ -7,6 +7,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
+/**
+ * DTO for user information.
+ * This class is used to represent a user with their ID, username, nickname, bio, avatar URL,
+ * avatar color, initials, date of birth, and timestamps for creation, last update, and last login.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

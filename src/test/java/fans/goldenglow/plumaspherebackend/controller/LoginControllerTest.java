@@ -1,13 +1,13 @@
 package fans.goldenglow.plumaspherebackend.controller;
 
+import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import fans.goldenglow.plumaspherebackend.dto.StringDto;
-import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
+import fans.goldenglow.plumaspherebackend.dto.TokenPairResponseDto;
 import fans.goldenglow.plumaspherebackend.dto.UserLoginDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import fans.goldenglow.plumaspherebackend.service.PasswordService;
 import fans.goldenglow.plumaspherebackend.service.TokenService;
 import fans.goldenglow.plumaspherebackend.service.UserService;
-import fans.goldenglow.plumaspherebackend.constant.UserRoles;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -64,11 +64,11 @@ class LoginControllerTest {
             user.setRole(UserRoles.REGULAR);
             when(userService.findByUsername("user")).thenReturn(Optional.of(user));
             when(passwordService.verifyPassword("pass", "hashed")).thenReturn(true);
-            TokenResponseDto.TokenDetails access = new TokenResponseDto.TokenDetails("access", null);
-            TokenResponseDto.TokenDetails refresh = new TokenResponseDto.TokenDetails("refresh", null);
-            TokenResponseDto token = new TokenResponseDto(access, refresh);
+            TokenPairResponseDto.TokenDetails access = new TokenPairResponseDto.TokenDetails("access", null);
+            TokenPairResponseDto.TokenDetails refresh = new TokenPairResponseDto.TokenDetails("refresh", null);
+            TokenPairResponseDto token = new TokenPairResponseDto(access, refresh);
             when(tokenService.generateTokens(eq(1L), anyList())).thenReturn(token);
-            ResponseEntity<TokenResponseDto> response = loginController.login(loginDto);
+            ResponseEntity<TokenPairResponseDto> response = loginController.login(loginDto);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isEqualTo(token);
             verify(userService).save(any(User.class));
@@ -79,7 +79,7 @@ class LoginControllerTest {
         void login_ShouldReturnUnauthorized_WhenUserNotFound() {
             UserLoginDto loginDto = createUserLoginDto("nouser", "pass");
             when(userService.findByUsername("nouser")).thenReturn(Optional.empty());
-            ResponseEntity<TokenResponseDto> response = loginController.login(loginDto);
+            ResponseEntity<TokenPairResponseDto> response = loginController.login(loginDto);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         }
 
@@ -92,7 +92,7 @@ class LoginControllerTest {
             user.setRole(UserRoles.REGULAR);
             when(userService.findByUsername("user")).thenReturn(Optional.of(user));
             when(passwordService.verifyPassword("wrong", "hashed")).thenReturn(false);
-            ResponseEntity<TokenResponseDto> response = loginController.login(loginDto);
+            ResponseEntity<TokenPairResponseDto> response = loginController.login(loginDto);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         }
     }
@@ -104,11 +104,11 @@ class LoginControllerTest {
         @DisplayName("Should return new token when refresh token is valid")
         void refreshToken_ShouldReturnNewToken_WhenValid() {
             StringDto dto = new StringDto("refresh");
-            TokenResponseDto.TokenDetails access = new TokenResponseDto.TokenDetails("access", null);
-            TokenResponseDto.TokenDetails refresh = new TokenResponseDto.TokenDetails("refresh", null);
-            TokenResponseDto token = new TokenResponseDto(access, refresh);
+            TokenPairResponseDto.TokenDetails access = new TokenPairResponseDto.TokenDetails("access", null);
+            TokenPairResponseDto.TokenDetails refresh = new TokenPairResponseDto.TokenDetails("refresh", null);
+            TokenPairResponseDto token = new TokenPairResponseDto(access, refresh);
             when(tokenService.refreshToken("refresh")).thenReturn(token);
-            ResponseEntity<TokenResponseDto> response = loginController.refreshToken(dto);
+            ResponseEntity<TokenPairResponseDto> response = loginController.refreshToken(dto);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isEqualTo(token);
         }
@@ -118,7 +118,7 @@ class LoginControllerTest {
         void refreshToken_ShouldReturnUnauthorized_WhenInvalid() {
             StringDto dto = new StringDto("bad");
             when(tokenService.refreshToken("bad")).thenReturn(null);
-            ResponseEntity<TokenResponseDto> response = loginController.refreshToken(dto);
+            ResponseEntity<TokenPairResponseDto> response = loginController.refreshToken(dto);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         }
     }
@@ -138,11 +138,11 @@ class LoginControllerTest {
                 u.setId(2L);
                 return null;
             }).when(userService).save(any(User.class));
-            TokenResponseDto.TokenDetails access = new TokenResponseDto.TokenDetails("access", null);
-            TokenResponseDto.TokenDetails refresh = new TokenResponseDto.TokenDetails("refresh", null);
-            TokenResponseDto token = new TokenResponseDto(access, refresh);
+            TokenPairResponseDto.TokenDetails access = new TokenPairResponseDto.TokenDetails("access", null);
+            TokenPairResponseDto.TokenDetails refresh = new TokenPairResponseDto.TokenDetails("refresh", null);
+            TokenPairResponseDto token = new TokenPairResponseDto(access, refresh);
             when(tokenService.generateTokens(eq(2L), anyList())).thenReturn(token);
-            ResponseEntity<TokenResponseDto> response = loginController.getIdentity();
+            ResponseEntity<TokenPairResponseDto> response = loginController.getIdentity();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isEqualTo(token);
         }

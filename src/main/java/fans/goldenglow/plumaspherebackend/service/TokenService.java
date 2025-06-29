@@ -5,7 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import fans.goldenglow.plumaspherebackend.constant.UserRoles;
-import fans.goldenglow.plumaspherebackend.dto.TokenResponseDto;
+import fans.goldenglow.plumaspherebackend.dto.TokenPairResponseDto;
 import fans.goldenglow.plumaspherebackend.entity.User;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +22,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service for managing JWT tokens.
+ * Provides methods to generate access and refresh tokens, refresh tokens, and extract user ID from JWT.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,8 @@ public class TokenService {
     private final UserService userService;
     private final SecretService secretService;
     private Algorithm algorithm;
+
+    // Configuration properties for JWT
     @Value("${config.jwt.iss}")
     private String JWT_ISSUER;
     @Value("${config.jwt.expiration.access_token}")
@@ -36,13 +42,25 @@ public class TokenService {
     @Value("${config.jwt.expiration.refresh_token}")
     private long REFRESH_TOKEN_EXPIRATION;
 
+    /**
+     * Initializes the JWT algorithm using the secret key from SecretService.
+     * This method is called after the service is constructed.
+     */
     @PostConstruct
     void init() {
         SecretKey secret = secretService.getSecret();
         this.algorithm = Algorithm.HMAC256(secret.getEncoded());
     }
 
-    private TokenResponseDto.TokenDetails generateToken(String userId, long expirationMinutes, List<String> scopes) {
+    /**
+     * Generates a JWT token with the specified user ID, expiration time, and scopes.
+     *
+     * @param userId            the ID of the user for whom the token is generated
+     * @param expirationMinutes the expiration time in minutes; if 0, token does not expire
+     * @param scopes            the list of scopes to include in the token
+     * @return a TokenDetails object containing the generated token and its expiration time
+     */
+    private TokenPairResponseDto.TokenDetails generateToken(String userId, long expirationMinutes, List<String> scopes) {
         Instant now = Instant.now();
         if (expirationMinutes != 0) {
             Instant expireAt = now.plus(expirationMinutes, ChronoUnit.MINUTES);
@@ -55,7 +73,7 @@ public class TokenService {
                     .withSubject(userId)
                     .withClaim("scope", String.join(" ", scopes))
                     .sign(algorithm);
-            return new TokenResponseDto.TokenDetails(token, ZonedDateTime.ofInstant(expireAt, ZoneId.systemDefault()));
+            return new TokenPairResponseDto.TokenDetails(token, ZonedDateTime.ofInstant(expireAt, ZoneId.systemDefault()));
         } else {
             String token = JWT
                     .create()
@@ -64,20 +82,34 @@ public class TokenService {
                     .withSubject(userId)
                     .withClaim("scope", String.join(" ", scopes))
                     .sign(algorithm);
-            return new TokenResponseDto.TokenDetails(token, null);
+            return new TokenPairResponseDto.TokenDetails(token, null);
         }
     }
 
-    public TokenResponseDto generateTokens(Long userId, List<String> scopes) {
+    /**
+     * Generates a pair of access and refresh tokens for the specified user ID and scopes.
+     *
+     * @param userId the ID of the user for whom the tokens are generated
+     * @param scopes the list of scopes to include in the tokens
+     * @return a TokenPairResponseDto containing the access and refresh tokens
+     */
+    public TokenPairResponseDto generateTokens(Long userId, List<String> scopes) {
         String userIdStr = userId.toString();
 
-        TokenResponseDto.TokenDetails accessToken = generateToken(userIdStr, ACCESS_TOKEN_EXPIRATION, scopes);
-        TokenResponseDto.TokenDetails refreshToken = generateToken(userIdStr, REFRESH_TOKEN_EXPIRATION, List.of("refresh_token"));
+        TokenPairResponseDto.TokenDetails accessToken = generateToken(userIdStr, ACCESS_TOKEN_EXPIRATION, scopes);
+        TokenPairResponseDto.TokenDetails refreshToken = generateToken(userIdStr, REFRESH_TOKEN_EXPIRATION, List.of("refresh_token"));
 
-        return new TokenResponseDto(accessToken, refreshToken);
+        return new TokenPairResponseDto(accessToken, refreshToken);
     }
 
-    public TokenResponseDto refreshToken(String refreshTokenValue) {
+    /**
+     * Refreshes the access token using the provided refresh token value.
+     * Validates the refresh token and generates a new access token if valid.
+     *
+     * @param refreshTokenValue the value of the refresh token to validate and use for generating a new access token
+     * @return a TokenPairResponseDto containing the new access token, or null if the refresh token is invalid
+     */
+    public TokenPairResponseDto refreshToken(String refreshTokenValue) {
         try {
             JWTVerifier jwtVerifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).build();
             DecodedJWT decodedJWT = jwtVerifier.verify(refreshTokenValue);
@@ -101,6 +133,12 @@ public class TokenService {
         }
     }
 
+    /**
+     * Extracts the user ID from the JWT token.
+     *
+     * @param jwtToken the JWT authentication token from which to extract the user ID
+     * @return the user ID as a Long, or null if extraction fails
+     */
     public Long extractUserIdFromJwt(JwtAuthenticationToken jwtToken) {
         if (jwtToken == null || jwtToken.getToken() == null) {
             log.error("JWT token is null");

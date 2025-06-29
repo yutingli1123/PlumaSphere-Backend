@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
+/**
+ * DTO for banning a user.
+ * This class is used to send requests to ban a user with a reason and expiration time.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

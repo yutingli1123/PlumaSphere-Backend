@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
+/**
+ * DTO for comments.
+ * This class is used to represent a comment with its ID, content, creation time, author ID, and author's nickname.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

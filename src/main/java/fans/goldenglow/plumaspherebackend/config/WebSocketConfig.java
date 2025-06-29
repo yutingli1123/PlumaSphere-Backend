@@ -8,6 +8,11 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
+/**
+ * WebSocketConfig is a configuration class that implements WebSocketConfigurer to set up
+ * WebSocket support in the application. It registers a WebSocket handler for the "/ws" endpoint
+ * and configures allowed origins based on the provided CorsProperties.
+ */
 @Configuration
 @EnableWebSocket
 @RequiredArgsConstructor

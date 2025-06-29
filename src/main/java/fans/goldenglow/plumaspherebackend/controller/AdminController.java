@@ -20,6 +20,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controller for administrative actions.
+ */
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
@@ -29,18 +32,27 @@ public class AdminController {
     private final UserBanService userBanService;
     private final UserMapper userMapper;
 
+    /**
+     * Default page size for pagination.
+     */
     private final int PAGE_SIZE = 10;
 
+    /**
+     * Bans a user either temporarily or permanently.
+     *
+     * @param banRequestDto DTO containing user ID, reason, and optional expiration date.
+     * @return ResponseEntity with the result of the operation.
+     */
     @PostMapping("/ban-user")
     public ResponseEntity<String> banUser(@RequestBody BanRequestDto banRequestDto) {
         try {
             Long id = banRequestDto.getUserId();
             String reason = banRequestDto.getReason();
             ZonedDateTime expiresAt = banRequestDto.getExpiresAt();
-            if (expiresAt != null) {
+            if (expiresAt != null) { // If an expiration date is provided, ban the user temporarily
                 userBanService.banUserTemporary(id, reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
                 return ResponseEntity.ok("User " + id + " banned temporarily until " + expiresAt);
-            } else {
+            } else { // If no expiration date is provided, ban the user permanently
                 userBanService.banUser(id, reason);
                 return ResponseEntity.ok("User " + id + " banned permanently");
             }
@@ -49,6 +61,12 @@ public class AdminController {
         }
     }
 
+    /**
+     * Unbans a user by their ID.
+     *
+     * @param id ID of the user to unban.
+     * @return ResponseEntity with the result of the operation.
+     */
     @DeleteMapping("/unban-user")
     public ResponseEntity<String> unbanUser(@RequestParam Long id) {
         try {
@@ -59,17 +77,33 @@ public class AdminController {
         }
     }
 
+    /**
+     * Retrieves a list of banned users with pagination.
+     *
+     * @param page Page number for pagination.
+     * @return ResponseEntity containing a list of banned users.
+     */
     @GetMapping("/banned-users")
     public ResponseEntity<List<UserAdminDto>> getBannedUsers(@RequestParam int page) {
         List<User> bannedUsers = userBanService.getBannedUsers(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "banExpiresAt"))).getContent();
         return ResponseEntity.ok(userMapper.toAdminDto(bannedUsers));
     }
 
+    /**
+     * Retrieves the count of banned users.
+     *
+     * @return ResponseEntity containing the count of banned users.
+     */
     @GetMapping("/banned-users/count")
     public ResponseEntity<Long> getBannedUsersCount() {
         return ResponseEntity.ok(userBanService.countBannedUsers());
     }
 
+    /**
+     * Retrieves the total number of pages for banned users based on the page size.
+     *
+     * @return ResponseEntity containing the total number of pages.
+     */
     @GetMapping("/banned-users/count-page")
     public ResponseEntity<Long> getBannedUsersPageCount() {
         long totalBannedUsers = userBanService.countBannedUsers();
@@ -77,17 +111,33 @@ public class AdminController {
         return ResponseEntity.ok(pageCount);
     }
 
+    /**
+     * Retrieves a list of users marked for IP ban with pagination.
+     *
+     * @param page Page number for pagination.
+     * @return ResponseEntity containing a list of users marked for IP ban.
+     */
     @GetMapping("/marked-users")
     public ResponseEntity<List<UserAdminDto>> getMarkedUsers(@RequestParam int page) {
         List<User> markedUsers = userBanService.getMarkedUsers(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "ipBanExpiresAt"))).getContent();
         return ResponseEntity.ok(userMapper.toAdminDto(markedUsers));
     }
 
+    /**
+     * Retrieves the count of users marked for IP ban.
+     *
+     * @return ResponseEntity containing the count of marked users.
+     */
     @GetMapping("/marked-users/count")
     public ResponseEntity<Long> getMarkedUsersCount() {
         return ResponseEntity.ok(userBanService.countMarkedUsers());
     }
 
+    /**
+     * Retrieves the total number of pages for marked users based on the page size.
+     *
+     * @return ResponseEntity containing the total number of pages.
+     */
     @GetMapping("/marked-users/count-page")
     public ResponseEntity<Long> getMarkedUsersPageCount() {
         long totalMarkedUsers = userBanService.countMarkedUsers();
@@ -95,11 +145,23 @@ public class AdminController {
         return ResponseEntity.ok(pageCount);
     }
 
+    /**
+     * Checks if a user is banned by their ID.
+     *
+     * @param id ID of the user to check.
+     * @return ResponseEntity containing the ban status of the user.
+     */
     @GetMapping("/user-ban-status")
     public ResponseEntity<Boolean> checkUserBanStatus(@RequestParam Long id) {
         return ResponseEntity.ok(userBanService.isUserBanned(id));
     }
 
+    /**
+     * Marks a user for IP ban, either temporarily or permanently.
+     *
+     * @param banRequestDto DTO containing user ID, reason, and optional expiration date.
+     * @return ResponseEntity with the result of the operation.
+     */
     @PostMapping("/mark-user-for-ip-ban")
     public ResponseEntity<String> markUserForIpBan(@RequestBody BanRequestDto banRequestDto) {
         try {
@@ -115,9 +177,9 @@ public class AdminController {
 
             User userEntity = user.get();
 
-            if (expiresAt != null) {
+            if (expiresAt != null) { // If an expiration date is provided, mark the user for temporary IP ban
                 userEntity.markForTemporaryIpBan(reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
-            } else {
+            } else { // If no expiration date is provided, mark the user for permanent IP ban
                 userEntity.markForIpBan(reason);
             }
 
@@ -128,6 +190,12 @@ public class AdminController {
         }
     }
 
+    /**
+     * Unmarks a user for IP ban by their ID.
+     *
+     * @param id ID of the user to unmark for IP ban.
+     * @return ResponseEntity with the result of the operation.
+     */
     @DeleteMapping("/unmark-user-ip-ban")
     public ResponseEntity<String> unmarkUserIpBan(@RequestParam Long id) {
         try {
@@ -144,36 +212,65 @@ public class AdminController {
         }
     }
 
+    /**
+     * Bans an IP address either temporarily or permanently.
+     *
+     * @param banIPRequestDto DTO containing IP address, reason, and optional expiration date.
+     * @return ResponseEntity with the result of the operation.
+     */
     @PostMapping("/ban-ip")
     public ResponseEntity<String> banIp(@RequestBody BanIPRequestDto banIPRequestDto) {
         String ipAddress = banIPRequestDto.getIpAddress();
         String reason = banIPRequestDto.getReason();
         ZonedDateTime expiresAt = banIPRequestDto.getExpiresAt();
 
-        if (expiresAt != null) {
+        if (expiresAt != null) { // If an expiration date is provided, ban the IP address temporarily
             bannedIpService.banIpTemporary(ipAddress, reason, expiresAt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
-        } else bannedIpService.banIp(ipAddress, reason);
+        } else
+            bannedIpService.banIp(ipAddress, reason); // If no expiration date is provided, ban the IP address permanently
 
         return ResponseEntity.ok(expiresAt != null ? "IP address " + ipAddress + " banned temporarily until" + expiresAt + ". Reason: " + reason : "IP address " + ipAddress + " banned permanently. Reason: " + reason);
     }
 
+    /**
+     * Unbans an IP address.
+     *
+     * @param ipAddress IP address to unban.
+     * @return ResponseEntity with the result of the operation.
+     */
     @DeleteMapping("/unban-ip")
     public ResponseEntity<Void> unbanIp(@RequestParam String ipAddress) {
         bannedIpService.unbanIp(ipAddress);
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Retrieves a list of banned IP addresses with pagination.
+     *
+     * @param page Page number for pagination.
+     * @return ResponseEntity containing a list of banned IP addresses.
+     */
     @GetMapping("/banned-ips")
     public ResponseEntity<List<BannedIp>> getBannedIps(@RequestParam int page) {
         return ResponseEntity.ok(bannedIpService.getAllBans(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "expiresAt"))).getContent());
     }
 
+    /**
+     * Retrieves the count of banned IP addresses.
+     *
+     * @return ResponseEntity containing the count of banned IP addresses.
+     */
     @GetMapping("/banned-ips/count")
     public ResponseEntity<Long> getBannedIpsCount() {
         long count = bannedIpService.countBannedIps();
         return ResponseEntity.ok(count);
     }
 
+    /**
+     * Retrieves the total number of pages for banned IP addresses based on the page size.
+     *
+     * @return ResponseEntity containing the total number of pages.
+     */
     @GetMapping("/banned-ips/count-page")
     public ResponseEntity<Long> getBannedIpsPageCount() {
         long totalBannedIps = bannedIpService.countBannedIps();

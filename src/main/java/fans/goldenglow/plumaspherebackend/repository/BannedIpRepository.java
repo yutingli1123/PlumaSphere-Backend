@@ -7,6 +7,10 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * Repository interface for managing banned IP addresses.
+ * Provides methods to find, delete, and check the existence of banned IPs.
+ */
 @Repository
 public interface BannedIpRepository extends JpaRepository<BannedIp, Long> {
     Optional<BannedIp> findByIpAddressAndExpiresAtAfter(String ipAddress, LocalDateTime expiresAtAfter);

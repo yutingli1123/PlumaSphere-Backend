@@ -19,6 +19,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+/**
+ * WebSocketHandler for managing WebSocket connections for posts and comments.
+ * This handler maintains separate session maps for posts and comments,
+ * allowing messages to be sent to specific sessions based on the target ID.
+ */
 @Slf4j
 @Component
 @NonNullApi
@@ -26,6 +31,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final Map<Long, CopyOnWriteArraySet<WebSocketSession>> postWebSocketSessionMap = new ConcurrentHashMap<>();
     private final Map<Long, CopyOnWriteArraySet<WebSocketSession>> commentWebSocketSessionMap = new ConcurrentHashMap<>();
 
+    /**
+     * Handles the establishment of a new WebSocket connection.
+     * It determines the type of connection (post or comment) and adds the session to the appropriate map.
+     *
+     * @param session the WebSocket session that has been established
+     */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         Optional<ConnectionInfo> connectionInfoOption = getConnectionTypeFromSession(session);
@@ -47,6 +58,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Handles the closure of a WebSocket connection.
+     * It removes the session from the appropriate map based on the connection type.
+     *
+     * @param session the WebSocket session that has been closed
+     * @param status  the status of the closure
+     */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         Optional<ConnectionInfo> connectionInfoOption = getConnectionTypeFromSession(session);
@@ -67,6 +85,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Removes the session from the post WebSocket session map.
+     *
+     * @param postId  the ID of the post
+     * @param session the WebSocket session to be removed
+     */
     private void removeSessionFromPost(Long postId, WebSocketSession session) {
         CopyOnWriteArraySet<WebSocketSession> webSocketSessions = postWebSocketSessionMap.get(postId);
         if (webSocketSessions != null) {
@@ -77,6 +101,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Removes the session from the comment WebSocket session map.
+     *
+     * @param commentId the ID of the comment
+     * @param session the WebSocket session to be removed
+     */
     private void removeSessionFromComment(Long commentId, WebSocketSession session) {
         CopyOnWriteArraySet<WebSocketSession> webSocketSessions = commentWebSocketSessionMap.get(commentId);
         if (webSocketSessions != null) {
@@ -87,19 +117,45 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Sends a message to all WebSocket sessions associated with a specific post ID.
+     *
+     * @param postId the ID of the post to which the message should be sent
+     * @param message the message to be sent
+     */
     public void sendMessageToPost(Long postId, WebSocketMessageDto message) {
         SendMessageToTarget(postId, message, postWebSocketSessionMap);
     }
 
+    /**
+     * Sends a message to all WebSocket sessions associated with a specific comment ID.
+     *
+     * @param commentId the ID of the comment to which the message should be sent
+     * @param message the message to be sent
+     */
     public void sendMessageToComment(Long commentId, WebSocketMessageDto message) {
         SendMessageToTarget(commentId, message, commentWebSocketSessionMap);
     }
 
+    /**
+     * Handles incoming WebSocket messages.
+     * This implementation simply closes the session upon receiving a message.
+     *
+     * @param session the WebSocket session that received the message
+     * @param message the WebSocket message received
+     */
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         session.close();
     }
 
+    /**
+     * Sends a message to all WebSocket sessions associated with a specific target ID.
+     *
+     * @param targetId the ID of the target (post or comment)
+     * @param message the message to be sent
+     * @param commentWebSocketSessionMap the map containing comment WebSocket sessions
+     */
     private void SendMessageToTarget(Long targetId, WebSocketMessageDto message, Map<Long, CopyOnWriteArraySet<WebSocketSession>> commentWebSocketSessionMap) {
         CopyOnWriteArraySet<WebSocketSession> webSocketSessions = commentWebSocketSessionMap.get(targetId);
         if (webSocketSessions != null) {
@@ -115,6 +171,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Extracts the connection type and target ID from the WebSocket session URI.
+     *
+     * @param session the WebSocket session from which to extract the connection type
+     * @return an Optional containing the ConnectionInfo if the connection type is recognized, otherwise empty
+     */
     private Optional<ConnectionInfo> getConnectionTypeFromSession(WebSocketSession session) {
         URI uri = session.getUri();
         if (uri == null) return Optional.empty();
@@ -130,11 +192,19 @@ public class WebSocketHandler extends TextWebSocketHandler {
         return connectionInfo;
     }
 
+    /**
+     * Enum representing the type of WebSocket connection.
+     * It can either be a connection to a post or a comment.
+     */
     private enum ConnectionType {
         POST,
         COMMENT
     }
 
+    /**
+     * Class representing the connection information extracted from the WebSocket session.
+     * It contains the type of connection and the target ID (post or comment).
+     */
     @Data
     @AllArgsConstructor
     private static class ConnectionInfo {

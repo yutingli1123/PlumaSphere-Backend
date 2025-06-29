@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO for user with admin-specific information.
+ * This class extends UserDto and includes additional fields for admin-specific information.
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
