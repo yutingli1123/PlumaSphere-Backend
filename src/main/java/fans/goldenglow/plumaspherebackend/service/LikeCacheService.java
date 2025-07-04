@@ -260,10 +260,11 @@ public class LikeCacheService {
     }
 
     /**
-     * Synchronizes likes from Redis to the database every 5 minutes.
+     * Synchronizes likes from Redis to the database at configurable intervals.
      * This method is scheduled to run periodically to ensure that likes are consistent between Redis and the database.
+     * The sync interval is configurable via config.cache.like_sync_interval in application.yml
      */
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRateString = "${config.cache.like_sync_interval}")
     @Transactional
     public void syncLikesToDatabase() {
         syncPostLikes();

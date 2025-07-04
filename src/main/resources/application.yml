@@ -14,6 +14,8 @@ config:
     allowed_origins:
       - http://example.com
   server_full_address: http://example.com:8080
+  cache:
+    like_sync_interval: 300000
 resilience4j:
   ratelimiter:
     instances:
