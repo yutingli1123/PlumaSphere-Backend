@@ -104,4 +104,4 @@ The system supports three ways to create users:
 - WebSocket connection issues: Check CORS allowed domains and ports for frontend
 
 ## License
-[GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0.en.html) 
+[GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE) 
