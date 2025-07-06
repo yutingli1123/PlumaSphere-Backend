@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Service for managing banned IP addresses.
@@ -115,5 +116,28 @@ public class BannedIpService {
     public void cleanupExpiredBans() {
         bannedIpRepository.deleteAllByExpiresAtBefore(LocalDateTime.now());
         log.debug("Cleaned up expired IP bans");
+    }
+
+    /**
+     * Searches for banned IP addresses based on a keyword.
+     *
+     * @param keyword  Keyword to search for.
+     * @param pageable the pagination information
+     * @return a list of banned IP addresses matching the keyword.
+     */
+    @Transactional(readOnly = true)
+    public List<BannedIp> searchByKeyword(String keyword, Pageable pageable) {
+        return bannedIpRepository.searchByKeyword(keyword, pageable).getContent();
+    }
+
+    /**
+     * Counts the number of banned IP addresses matching the keyword.
+     *
+     * @param keyword Keyword to search for.
+     * @return the count of banned IP addresses matching the keyword.
+     */
+    @Transactional(readOnly = true)
+    public long countByKeyword(String keyword) {
+        return bannedIpRepository.countByKeyword(keyword);
     }
 }

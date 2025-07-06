@@ -112,6 +112,82 @@ public class AdminController {
     }
 
     /**
+     * Searches for banned users based on a keyword with pagination.
+     *
+     * @param keyword Keyword to search for.
+     * @param page    Page number for pagination.
+     * @return ResponseEntity containing a list of banned users matching the keyword.
+     */
+    @GetMapping("/banned-users/search")
+    public ResponseEntity<List<UserAdminDto>> searchBannedUsers(@RequestParam String keyword, @RequestParam int page) {
+        List<User> bannedUsers = userBanService.searchBannedUsersByKeyword(keyword, PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "nickname"))).getContent();
+        return ResponseEntity.ok(userMapper.toAdminDto(bannedUsers));
+    }
+
+    /**
+     * Retrieves the count of banned users matching the keyword.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the count of banned users matching the keyword.
+     */
+    @GetMapping("/banned-users/search/count")
+    public ResponseEntity<Long> searchBannedUsersCount(@RequestParam String keyword) {
+        long count = userBanService.countBannedUsersByKeyword(keyword);
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * Retrieves the total number of pages for banned users matching the keyword based on the page size.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the total number of pages.
+     */
+    @GetMapping("/banned-users/search/count-page")
+    public ResponseEntity<Long> searchBannedUsersPageCount(@RequestParam String keyword) {
+        long totalBannedUsers = userBanService.countBannedUsersByKeyword(keyword);
+        long pageCount = (long) Math.ceil((double) totalBannedUsers / PAGE_SIZE);
+        return ResponseEntity.ok(pageCount);
+    }
+
+    /**
+     * Searches for pending banned users based on a keyword with pagination.
+     *
+     * @param keyword Keyword to search for.
+     * @param page    Page number for pagination.
+     * @return ResponseEntity containing a list of pending banned users matching the keyword.
+     */
+    @GetMapping("/pending-banned-users/search")
+    public ResponseEntity<List<UserAdminDto>> searchPendingBannedUsers(@RequestParam String keyword, @RequestParam int page) {
+        List<User> pendingBannedUsers = userBanService.searchPendingBannedUsersByKeyword(keyword, PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "nickname"))).getContent();
+        return ResponseEntity.ok(userMapper.toAdminDto(pendingBannedUsers));
+    }
+
+    /**
+     * Retrieves the count of pending banned users matching the keyword.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the count of pending banned users matching the keyword.
+     */
+    @GetMapping("/pending-banned-users/search/count")
+    public ResponseEntity<Long> searchPendingBannedUsersCount(@RequestParam String keyword) {
+        long count = userBanService.countPendingBannedUsersByKeyword(keyword);
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * Retrieves the total number of pages for pending banned users based on the page size.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the total number of pages.
+     */
+    @GetMapping("/pending-banned-users/search/count-page")
+    public ResponseEntity<Long> searchPendingBannedUsersPageCount(@RequestParam String keyword) {
+        long totalPendingBannedUsers = userBanService.countPendingBannedUsersByKeyword(keyword);
+        long pageCount = (long) Math.ceil((double) totalPendingBannedUsers / PAGE_SIZE);
+        return ResponseEntity.ok(pageCount);
+    }
+
+    /**
      * Retrieves a list of users marked for IP ban with pagination.
      *
      * @param page Page number for pagination.
@@ -274,6 +350,42 @@ public class AdminController {
     @GetMapping("/banned-ips/count-page")
     public ResponseEntity<Long> getBannedIpsPageCount() {
         long totalBannedIps = bannedIpService.countBannedIps();
+        long pageCount = (long) Math.ceil((double) totalBannedIps / PAGE_SIZE);
+        return ResponseEntity.ok(pageCount);
+    }
+
+    /**
+     * Searches for banned IP addresses based on a keyword with pagination.
+     *
+     * @param keyword Keyword to search for.
+     * @param page    Page number for pagination.
+     * @return ResponseEntity containing a list of banned IP addresses matching the keyword.
+     */
+    @GetMapping("/banned-ips/search")
+    public ResponseEntity<List<BannedIp>> searchBannedIps(@RequestParam String keyword, @RequestParam int page) {
+        return ResponseEntity.ok(bannedIpService.searchByKeyword(keyword, PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "ipAddress"))));
+    }
+
+    /**
+     * Retrieves the count of banned IP addresses matching the keyword.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the count of banned IP addresses matching the keyword.
+     */
+    @GetMapping("/banned-ips/search/count")
+    public ResponseEntity<Long> searchBannedIpsCount(@RequestParam String keyword) {
+        return ResponseEntity.ok(bannedIpService.countByKeyword(keyword));
+    }
+
+    /**
+     * Retrieves the total number of pages for banned IP addresses matching the keyword based on the page size.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the total number of pages.
+     */
+    @GetMapping("/banned-ips/search/count-page")
+    public ResponseEntity<Long> searchBannedIpsPageCount(@RequestParam String keyword) {
+        long totalBannedIps = bannedIpService.countByKeyword(keyword);
         long pageCount = (long) Math.ceil((double) totalBannedIps / PAGE_SIZE);
         return ResponseEntity.ok(pageCount);
     }

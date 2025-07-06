@@ -55,6 +55,42 @@ public class UserController {
     }
 
     /**
+     * Searches for users based on a keyword with pagination.
+     *
+     * @param keyword Keyword to search for.
+     * @param page    Page number for pagination.
+     * @return ResponseEntity containing a list of users matching the keyword.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<UserAdminDto>> searchUsers(@RequestParam String keyword, @RequestParam int page) {
+        return ResponseEntity.ok(userMapper.toAdminDto(userService.searchByKeyword(keyword, PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.ASC, "nickname")))));
+    }
+
+    /**
+     * Retrieves the count of users matching the keyword.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the count of users matching the keyword.
+     */
+    @GetMapping("/search/count")
+    public ResponseEntity<Long> searchUsersCount(@RequestParam String keyword) {
+        return ResponseEntity.ok(userService.countByKeyword(keyword));
+    }
+
+    /**
+     * Retrieves the total number of pages for users matching the keyword based on the page size.
+     *
+     * @param keyword Keyword to search for.
+     * @return ResponseEntity containing the total number of pages.
+     */
+    @GetMapping("/search/count-page")
+    public ResponseEntity<Long> searchUsersPageCount(@RequestParam String keyword) {
+        long totalUsersSearched = userService.countByKeyword(keyword);
+        long pageCount = (long) Math.ceil((double) totalUsersSearched / PAGE_SIZE);
+        return ResponseEntity.ok(pageCount);
+    }
+
+    /**
      * Endpoint to get the total number of user pages based on the PAGE_SIZE.
      *
      * @return ResponseEntity containing the total number of user pages

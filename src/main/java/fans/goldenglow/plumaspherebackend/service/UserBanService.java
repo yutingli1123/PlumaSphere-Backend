@@ -42,8 +42,8 @@ public class UserBanService {
     /**
      * Temporarily bans a user until a specified expiration time.
      *
-     * @param id the ID of the user
-     * @param reason the reason for the temporary ban
+     * @param id        the ID of the user
+     * @param reason    the reason for the temporary ban
      * @param expiresAt the expiration time of the ban
      */
     @Transactional
@@ -107,6 +107,29 @@ public class UserBanService {
     }
 
     /**
+     * Searches for banned users based on a keyword.
+     *
+     * @param keyword  Keyword to search for.
+     * @param pageable the pagination information
+     * @return a page of banned users matching the keyword.
+     */
+    @Transactional(readOnly = true)
+    public Page<User> searchBannedUsersByKeyword(String keyword, Pageable pageable) {
+        return userRepository.searchBannedUsersByKeyword(keyword, pageable);
+    }
+
+    /**
+     * Counts the number of banned users matching the keyword.
+     *
+     * @param keyword Keyword to search for.
+     * @return the count of banned users matching the keyword.
+     */
+    @Transactional(readOnly = true)
+    public Long countBannedUsersByKeyword(String keyword) {
+        return userRepository.countBannedUsersByKeyword(keyword);
+    }
+
+    /**
      * Retrieves a paginated list of users marked for IP ban.
      *
      * @param pageable the pagination information
@@ -145,5 +168,28 @@ public class UserBanService {
             userRepository.saveAll(expiredBannedUsers);
             log.info("Cleaned up {} expired user bans", expiredBannedUsers.size());
         }
+    }
+
+    /**
+     * Searches for pending banned users based on a keyword.
+     *
+     * @param keyword  Keyword to search for.
+     * @param pageable the pagination information
+     * @return a page of pending banned users matching the keyword.
+     */
+    @Transactional(readOnly = true)
+    public Page<User> searchPendingBannedUsersByKeyword(String keyword, Pageable pageable) {
+        return userRepository.searchPendingBannedUsersByKeyword(keyword, pageable);
+    }
+
+    /**
+     * Counts the number of pending banned users matching the keyword.
+     *
+     * @param keyword Keyword to search for.
+     * @return the count of pending banned users matching the keyword.
+     */
+    @Transactional(readOnly = true)
+    public Long countPendingBannedUsersByKeyword(String keyword) {
+        return userRepository.countPendingBannedUsersByKeyword(keyword);
     }
 }

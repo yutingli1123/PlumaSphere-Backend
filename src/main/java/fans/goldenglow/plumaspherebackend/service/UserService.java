@@ -96,4 +96,27 @@ public class UserService {
     public void deleteById(Long id) {
         userRepository.deleteByIdAndRoleIsNot(id, UserRoles.ADMIN);
     }
+
+    /**
+     * Searches for users by a keyword with pagination support.
+     *
+     * @param keyword  the keyword to search for
+     * @param pageable pagination information
+     * @return a page of users matching the keyword
+     */
+    @Transactional(readOnly = true)
+    public List<User> searchByKeyword(String keyword, Pageable pageable) {
+        return userRepository.searchByKeyword(keyword, pageable).getContent();
+    }
+
+    /**
+     * Counts the number of users matching a keyword.
+     *
+     * @param keyword the keyword to search for
+     * @return the count of users matching the keyword
+     */
+    @Transactional(readOnly = true)
+    public Long countByKeyword(String keyword) {
+        return userRepository.countByKeyword(keyword);
+    }
 }
