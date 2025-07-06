@@ -303,8 +303,7 @@ class PostServiceTest {
             String keyword = "test";
             List<Post> posts = List.of(testPost);
             Page<Post> expectedPage = new PageImpl<>(posts, testPageable, 1);
-            when(postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, testPageable)).thenReturn(expectedPage);
+            when(postRepository.searchByKeyword(keyword, testPageable)).thenReturn(expectedPage);
 
             // When
             Page<Post> actualPage = postService.searchPosts(keyword, testPageable);
@@ -312,8 +311,7 @@ class PostServiceTest {
             // Then
             assertThat(actualPage).isEqualTo(expectedPage);
             assertThat(actualPage.getContent()).hasSize(1);
-            verify(postRepository).findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, testPageable);
+            verify(postRepository).searchByKeyword(keyword, testPageable);
         }
 
         @Test
@@ -322,16 +320,14 @@ class PostServiceTest {
             // Given
             String keyword = "nomatch";
             Page<Post> emptyPage = new PageImpl<>(Collections.emptyList(), testPageable, 0);
-            when(postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, testPageable)).thenReturn(emptyPage);
+            when(postRepository.searchByKeyword(keyword, testPageable)).thenReturn(emptyPage);
 
             // When
             Page<Post> actualPage = postService.searchPosts(keyword, testPageable);
 
             // Then
             assertThat(actualPage).isEmpty();
-            verify(postRepository).findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, testPageable);
+            verify(postRepository).searchByKeyword(keyword, testPageable);
         }
 
         @ParameterizedTest
@@ -340,16 +336,14 @@ class PostServiceTest {
         void searchPosts_ShouldHandleVariousKeywords(String keyword) {
             // Given
             Page<Post> emptyPage = new PageImpl<>(Collections.emptyList(), testPageable, 0);
-            when(postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, testPageable)).thenReturn(emptyPage);
+            when(postRepository.searchByKeyword(keyword, testPageable)).thenReturn(emptyPage);
 
             // When
             Page<Post> actualPage = postService.searchPosts(keyword, testPageable);
 
             // Then
             assertThat(actualPage).isEmpty();
-            verify(postRepository).findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, testPageable);
+            verify(postRepository).searchByKeyword(keyword, testPageable);
         }
 
         @Test
@@ -358,16 +352,14 @@ class PostServiceTest {
             // Given
             String keyword = "spring";
             long expectedCount = 2L;
-            when(postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword)).thenReturn(expectedCount);
+            when(postRepository.countByKeyword(keyword)).thenReturn(expectedCount);
 
             // When
             Long actualCount = postService.countSearchPosts(keyword);
 
             // Then
             assertThat(actualCount).isEqualTo(expectedCount);
-            verify(postRepository).countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword);
+            verify(postRepository).countByKeyword(keyword);
         }
 
         @Test
@@ -375,16 +367,14 @@ class PostServiceTest {
         void countSearchPosts_ShouldReturnZero_WhenKeywordDoesNotMatch() {
             // Given
             String keyword = "nomatch";
-            when(postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword)).thenReturn(0L);
+            when(postRepository.countByKeyword(keyword)).thenReturn(0L);
 
             // When
             Long actualCount = postService.countSearchPosts(keyword);
 
             // Then
             assertThat(actualCount).isZero();
-            verify(postRepository).countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword);
+            verify(postRepository).countByKeyword(keyword);
         }
     }
 

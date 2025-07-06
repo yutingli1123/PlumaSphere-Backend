@@ -542,4 +542,365 @@ public class UserRepositoryTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("Search Operations")
+    class SearchOperationsTests {
+
+        @Test
+        @DisplayName("Should search users by username keyword")
+        void searchByKeyword_ShouldReturnUsers_WhenUsernameMatches() {
+            // Given
+            User user1 = new User("testUser1", TEST_PASSWORD);
+            user1.setNickname("Test User 1");
+            User user2 = new User("anotherUser", TEST_PASSWORD);
+            user2.setNickname("Another User");
+            User user3 = new User("differentUser", TEST_PASSWORD);
+            user3.setNickname("Different User");
+            entityManager.persist(user1);
+            entityManager.persist(user2);
+            entityManager.persist(user3);
+            entityManager.flush();
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result = userRepository.searchByKeyword("test", pageable);
+
+            // Then
+            assertThat(result.getContent())
+                    .hasSize(1)
+                    .first()
+                    .satisfies(user -> {
+                        assertThat(user.getUsername()).isEqualTo("testUser1");
+                        assertThat(user.getNickname()).isEqualTo("Test User 1");
+                    });
+        }
+
+        @Test
+        @DisplayName("Should search users by nickname keyword")
+        void searchByKeyword_ShouldReturnUsers_WhenNicknameMatches() {
+            // Given
+            User user1 = new User("user1", TEST_PASSWORD);
+            user1.setNickname("Test User 1");
+            User user2 = new User("user2", TEST_PASSWORD);
+            user2.setNickname("Another User");
+            entityManager.persist(user1);
+            entityManager.persist(user2);
+            entityManager.flush();
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result = userRepository.searchByKeyword("Test", pageable);
+
+            // Then
+            assertThat(result.getContent())
+                    .hasSize(1)
+                    .first()
+                    .satisfies(user -> {
+                        assertThat(user.getUsername()).isEqualTo("user1");
+                        assertThat(user.getNickname()).isEqualTo("Test User 1");
+                    });
+        }
+
+        @Test
+        @DisplayName("Should be case insensitive for keyword search")
+        void searchByKeyword_ShouldBeCaseInsensitive() {
+            // Given
+            User user = new User("TestUser", TEST_PASSWORD);
+            user.setNickname("Test User");
+            entityManager.persistAndFlush(user);
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result1 = userRepository.searchByKeyword("test", pageable);
+            Page<User> result2 = userRepository.searchByKeyword("TEST", pageable);
+            Page<User> result3 = userRepository.searchByKeyword("Test", pageable);
+
+            // Then
+            assertThat(result1.getContent()).hasSize(1);
+            assertThat(result2.getContent()).hasSize(1);
+            assertThat(result3.getContent()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should return empty when no users match keyword")
+        void searchByKeyword_ShouldReturnEmpty_WhenNoUsersMatch() {
+            // Given
+            User user = new User("user", TEST_PASSWORD);
+            user.setNickname("User");
+            entityManager.persistAndFlush(user);
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result = userRepository.searchByKeyword("nomatch", pageable);
+
+            // Then
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should count users matching keyword")
+        void countByKeyword_ShouldReturnCorrectCount_WhenUsersMatch() {
+            // Given
+            User user1 = new User("testUser1", TEST_PASSWORD);
+            user1.setNickname("Test User 1");
+            User user2 = new User("testUser2", TEST_PASSWORD);
+            user2.setNickname("Test User 2");
+            User user3 = new User("otherUser", TEST_PASSWORD);
+            user3.setNickname("Other User");
+            entityManager.persist(user1);
+            entityManager.persist(user2);
+            entityManager.persist(user3);
+            entityManager.flush();
+
+            // When
+            Long count = userRepository.countByKeyword("test");
+
+            // Then
+            assertThat(count).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("Should return zero count when no users match keyword")
+        void countByKeyword_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            User user = new User("user", TEST_PASSWORD);
+            user.setNickname("User");
+            entityManager.persistAndFlush(user);
+
+            // When
+            Long count = userRepository.countByKeyword("nomatch");
+
+            // Then
+            assertThat(count).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("Should handle pagination for search results")
+        void searchByKeyword_ShouldHandlePagination() {
+            // Given
+            for (int i = 1; i <= 5; i++) {
+                User user = new User("testUser" + i, TEST_PASSWORD);
+                user.setNickname("Test User " + i);
+                entityManager.persist(user);
+            }
+            entityManager.flush();
+
+            PageRequest pageable = PageRequest.of(0, 3);
+
+            // When
+            Page<User> result = userRepository.searchByKeyword("test", pageable);
+
+            // Then
+            assertThat(result.getContent()).hasSize(3);
+            assertThat(result.getTotalElements()).isEqualTo(5);
+            assertThat(result.getTotalPages()).isEqualTo(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("Banned Users Search Operations")
+    class BannedUsersSearchOperationsTests {
+
+        @Test
+        @DisplayName("Should search banned users by keyword")
+        void searchBannedUsersByKeyword_ShouldReturnBannedUsers_WhenKeywordMatches() {
+            // Given
+            User bannedUser1 = new User("bannedTest1", TEST_PASSWORD);
+            bannedUser1.setNickname("Banned Test User 1");
+            bannedUser1.ban(BAN_REASON);
+
+            User bannedUser2 = new User("bannedOther", TEST_PASSWORD);
+            bannedUser2.setNickname("Banned Other User");
+            bannedUser2.ban(BAN_REASON);
+
+            User regularUser = new User("testUser", TEST_PASSWORD);
+            regularUser.setNickname("Test User");
+
+            entityManager.persist(bannedUser1);
+            entityManager.persist(bannedUser2);
+            entityManager.persist(regularUser);
+            entityManager.flush();
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result = userRepository.searchBannedUsersByKeyword("test", pageable);
+
+            // Then
+            assertThat(result.getContent())
+                    .hasSize(1)
+                    .first()
+                    .satisfies(user -> {
+                        assertThat(user.getUsername()).isEqualTo("bannedTest1");
+                        assertThat(user.getIsBanned()).isTrue();
+                    });
+        }
+
+        @Test
+        @DisplayName("Should return empty when no banned users match keyword")
+        void searchBannedUsersByKeyword_ShouldReturnEmpty_WhenNoUsersMatch() {
+            // Given
+            User bannedUser = new User("bannedUser", TEST_PASSWORD);
+            bannedUser.setNickname("Banned User");
+            bannedUser.ban(BAN_REASON);
+            entityManager.persistAndFlush(bannedUser);
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result = userRepository.searchBannedUsersByKeyword("nomatch", pageable);
+
+            // Then
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should count banned users matching keyword")
+        void countBannedUsersByKeyword_ShouldReturnCorrectCount_WhenUsersMatch() {
+            // Given
+            User bannedUser1 = new User("bannedTest1", TEST_PASSWORD);
+            bannedUser1.setNickname("Banned Test User 1");
+            bannedUser1.ban(BAN_REASON);
+
+            User bannedUser2 = new User("bannedTest2", TEST_PASSWORD);
+            bannedUser2.setNickname("Banned Test User 2");
+            bannedUser2.ban(BAN_REASON);
+
+            User regularUser = new User("testUser", TEST_PASSWORD);
+            regularUser.setNickname("Test User");
+
+            entityManager.persist(bannedUser1);
+            entityManager.persist(bannedUser2);
+            entityManager.persist(regularUser);
+            entityManager.flush();
+
+            // When
+            Long count = userRepository.countBannedUsersByKeyword("test");
+
+            // Then
+            assertThat(count).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("Should return zero count when no banned users match keyword")
+        void countBannedUsersByKeyword_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            User bannedUser = new User("bannedUser", TEST_PASSWORD);
+            bannedUser.setNickname("Banned User");
+            bannedUser.ban(BAN_REASON);
+            entityManager.persistAndFlush(bannedUser);
+
+            // When
+            Long count = userRepository.countBannedUsersByKeyword("nomatch");
+
+            // Then
+            assertThat(count).isEqualTo(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("Pending Banned Users Search Operations")
+    class PendingBannedUsersSearchOperationsTests {
+
+        @Test
+        @DisplayName("Should search pending banned users by keyword")
+        void searchPendingBannedUsersByKeyword_ShouldReturnPendingUsers_WhenKeywordMatches() {
+            // Given
+            User pendingUser1 = new User("pendingTest1", TEST_PASSWORD);
+            pendingUser1.setNickname("Pending Test User 1");
+            pendingUser1.setIsPendingIpBan(true);
+
+            User pendingUser2 = new User("pendingOther", TEST_PASSWORD);
+            pendingUser2.setNickname("Pending Other User");
+            pendingUser2.setIsPendingIpBan(true);
+
+            User regularUser = new User("testUser", TEST_PASSWORD);
+            regularUser.setNickname("Test User");
+
+            entityManager.persist(pendingUser1);
+            entityManager.persist(pendingUser2);
+            entityManager.persist(regularUser);
+            entityManager.flush();
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result = userRepository.searchPendingBannedUsersByKeyword("test", pageable);
+
+            // Then
+            assertThat(result.getContent())
+                    .hasSize(1)
+                    .first()
+                    .satisfies(user -> {
+                        assertThat(user.getUsername()).isEqualTo("pendingTest1");
+                        assertThat(user.getIsPendingIpBan()).isTrue();
+                    });
+        }
+
+        @Test
+        @DisplayName("Should return empty when no pending banned users match keyword")
+        void searchPendingBannedUsersByKeyword_ShouldReturnEmpty_WhenNoUsersMatch() {
+            // Given
+            User pendingUser = new User("pendingUser", TEST_PASSWORD);
+            pendingUser.setNickname("Pending User");
+            pendingUser.setIsPendingIpBan(true);
+            entityManager.persistAndFlush(pendingUser);
+
+            PageRequest pageable = PageRequest.of(0, 10);
+
+            // When
+            Page<User> result = userRepository.searchPendingBannedUsersByKeyword("nomatch", pageable);
+
+            // Then
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should count pending banned users matching keyword")
+        void countPendingBannedUsersByKeyword_ShouldReturnCorrectCount_WhenUsersMatch() {
+            // Given
+            User pendingUser1 = new User("pendingTest1", TEST_PASSWORD);
+            pendingUser1.setNickname("Pending Test User 1");
+            pendingUser1.setIsPendingIpBan(true);
+
+            User pendingUser2 = new User("pendingTest2", TEST_PASSWORD);
+            pendingUser2.setNickname("Pending Test User 2");
+            pendingUser2.setIsPendingIpBan(true);
+
+            User regularUser = new User("testUser", TEST_PASSWORD);
+            regularUser.setNickname("Test User");
+
+            entityManager.persist(pendingUser1);
+            entityManager.persist(pendingUser2);
+            entityManager.persist(regularUser);
+            entityManager.flush();
+
+            // When
+            Long count = userRepository.countPendingBannedUsersByKeyword("test");
+
+            // Then
+            assertThat(count).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("Should return zero count when no pending banned users match keyword")
+        void countPendingBannedUsersByKeyword_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            User pendingUser = new User("pendingUser", TEST_PASSWORD);
+            pendingUser.setNickname("Pending User");
+            pendingUser.setIsPendingIpBan(true);
+            entityManager.persistAndFlush(pendingUser);
+
+            // When
+            Long count = userRepository.countPendingBannedUsersByKeyword("nomatch");
+
+            // Then
+            assertThat(count).isEqualTo(0);
+        }
+    }
 }

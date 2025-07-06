@@ -488,4 +488,316 @@ class UserBanServiceTest {
             verify(userRepository, never()).saveAll(any());
         }
     }
+
+    @Nested
+    @DisplayName("Search Banned Users Operations")
+    class SearchBannedUsersOperations {
+
+        @Test
+        @DisplayName("Should return banned users matching keyword")
+        void searchBannedUsersByKeyword_ShouldReturnBannedUsers_WhenKeywordMatches() {
+            // Given
+            String keyword = "test";
+            Pageable pageable = PageRequest.of(0, 10);
+            User bannedUser1 = new User("testUser1", "password1");
+            bannedUser1.setNickname("Test User 1");
+            bannedUser1.setIsBanned(true);
+            User bannedUser2 = new User("testUser2", "password2");
+            bannedUser2.setNickname("Test User 2");
+            bannedUser2.setIsBanned(true);
+            List<User> bannedUsers = Arrays.asList(bannedUser1, bannedUser2);
+            Page<User> bannedUsersPage = new PageImpl<>(bannedUsers, pageable, bannedUsers.size());
+
+            when(userRepository.searchBannedUsersByKeyword(keyword, pageable)).thenReturn(bannedUsersPage);
+
+            // When
+            Page<User> result = userBanService.searchBannedUsersByKeyword(keyword, pageable);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent())
+                    .hasSize(2)
+                    .containsExactly(bannedUser1, bannedUser2);
+            assertThat(result.getContent().get(0).getUsername()).isEqualTo("testUser1");
+            assertThat(result.getContent().get(1).getUsername()).isEqualTo("testUser2");
+            verify(userRepository).searchBannedUsersByKeyword(keyword, pageable);
+        }
+
+        @Test
+        @DisplayName("Should return empty page when no banned users match keyword")
+        void searchBannedUsersByKeyword_ShouldReturnEmptyPage_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+            when(userRepository.searchBannedUsersByKeyword(keyword, pageable)).thenReturn(emptyPage);
+
+            // When
+            Page<User> result = userBanService.searchBannedUsersByKeyword(keyword, pageable);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            verify(userRepository).searchBannedUsersByKeyword(keyword, pageable);
+        }
+
+        @Test
+        @DisplayName("Should handle different page sizes for banned users search")
+        void searchBannedUsersByKeyword_ShouldHandleDifferentPageSizes() {
+            // Given
+            String keyword = "test";
+            Pageable smallPageable = PageRequest.of(0, 5);
+            List<User> smallUserList = Collections.singletonList(bannedUser);
+            Page<User> smallUserPage = new PageImpl<>(smallUserList, smallPageable, 1);
+
+            when(userRepository.searchBannedUsersByKeyword(keyword, smallPageable)).thenReturn(smallUserPage);
+
+            // When
+            Page<User> result = userBanService.searchBannedUsersByKeyword(keyword, smallPageable);
+
+            // Then
+            assertThat(result.getContent())
+                    .hasSize(1)
+                    .containsExactly(bannedUser);
+            verify(userRepository).searchBannedUsersByKeyword(keyword, smallPageable);
+        }
+
+        @Test
+        @DisplayName("Should return correct count of banned users matching keyword")
+        void countBannedUsersByKeyword_ShouldReturnCorrectCount_WhenUsersMatch() {
+            // Given
+            String keyword = "test";
+            Long expectedCount = 3L;
+
+            when(userRepository.countBannedUsersByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userBanService.countBannedUsersByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countBannedUsersByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should return zero count when no banned users match keyword")
+        void countBannedUsersByKeyword_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+            Long expectedCount = 0L;
+
+            when(userRepository.countBannedUsersByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userBanService.countBannedUsersByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countBannedUsersByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should handle empty keyword for banned users search")
+        void searchBannedUsersByKeyword_ShouldHandleEmptyKeyword() {
+            // Given
+            String emptyKeyword = "";
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+            when(userRepository.searchBannedUsersByKeyword(emptyKeyword, pageable)).thenReturn(emptyPage);
+
+            // When
+            Page<User> result = userBanService.searchBannedUsersByKeyword(emptyKeyword, pageable);
+
+            // Then
+            assertThat(result.getContent()).isEmpty();
+            verify(userRepository).searchBannedUsersByKeyword(emptyKeyword, pageable);
+        }
+
+        @Test
+        @DisplayName("Should handle null keyword for banned users count")
+        void countBannedUsersByKeyword_ShouldHandleNullKeyword() {
+            // Given
+            String nullKeyword = null;
+            Long expectedCount = 0L;
+
+            when(userRepository.countBannedUsersByKeyword(nullKeyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userBanService.countBannedUsersByKeyword(nullKeyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countBannedUsersByKeyword(nullKeyword);
+        }
+    }
+
+    @Nested
+    @DisplayName("Search Pending Banned Users Operations")
+    class SearchPendingBannedUsersOperations {
+
+        @Test
+        @DisplayName("Should return pending banned users matching keyword")
+        void searchPendingBannedUsersByKeyword_ShouldReturnPendingUsers_WhenKeywordMatches() {
+            // Given
+            String keyword = "test";
+            Pageable pageable = PageRequest.of(0, 10);
+            User pendingUser1 = new User("testPending1", "password1");
+            pendingUser1.setNickname("Test Pending 1");
+            pendingUser1.setIsPendingIpBan(true);
+            User pendingUser2 = new User("testPending2", "password2");
+            pendingUser2.setNickname("Test Pending 2");
+            pendingUser2.setIsPendingIpBan(true);
+            List<User> pendingUsers = Arrays.asList(pendingUser1, pendingUser2);
+            Page<User> pendingUsersPage = new PageImpl<>(pendingUsers, pageable, pendingUsers.size());
+
+            when(userRepository.searchPendingBannedUsersByKeyword(keyword, pageable)).thenReturn(pendingUsersPage);
+
+            // When
+            Page<User> result = userBanService.searchPendingBannedUsersByKeyword(keyword, pageable);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent())
+                    .hasSize(2)
+                    .containsExactly(pendingUser1, pendingUser2);
+            assertThat(result.getContent().get(0).getUsername()).isEqualTo("testPending1");
+            assertThat(result.getContent().get(1).getUsername()).isEqualTo("testPending2");
+            verify(userRepository).searchPendingBannedUsersByKeyword(keyword, pageable);
+        }
+
+        @Test
+        @DisplayName("Should return empty page when no pending banned users match keyword")
+        void searchPendingBannedUsersByKeyword_ShouldReturnEmptyPage_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+            when(userRepository.searchPendingBannedUsersByKeyword(keyword, pageable)).thenReturn(emptyPage);
+
+            // When
+            Page<User> result = userBanService.searchPendingBannedUsersByKeyword(keyword, pageable);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            verify(userRepository).searchPendingBannedUsersByKeyword(keyword, pageable);
+        }
+
+        @Test
+        @DisplayName("Should handle different page sizes for pending banned users search")
+        void searchPendingBannedUsersByKeyword_ShouldHandleDifferentPageSizes() {
+            // Given
+            String keyword = "test";
+            Pageable smallPageable = PageRequest.of(0, 3);
+            List<User> smallUserList = Collections.singletonList(markedUser);
+            Page<User> smallUserPage = new PageImpl<>(smallUserList, smallPageable, 1);
+
+            when(userRepository.searchPendingBannedUsersByKeyword(keyword, smallPageable)).thenReturn(smallUserPage);
+
+            // When
+            Page<User> result = userBanService.searchPendingBannedUsersByKeyword(keyword, smallPageable);
+
+            // Then
+            assertThat(result.getContent())
+                    .hasSize(1)
+                    .containsExactly(markedUser);
+            verify(userRepository).searchPendingBannedUsersByKeyword(keyword, smallPageable);
+        }
+
+        @Test
+        @DisplayName("Should return correct count of pending banned users matching keyword")
+        void countPendingBannedUsersByKeyword_ShouldReturnCorrectCount_WhenUsersMatch() {
+            // Given
+            String keyword = "test";
+            Long expectedCount = 2L;
+
+            when(userRepository.countPendingBannedUsersByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userBanService.countPendingBannedUsersByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countPendingBannedUsersByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should return zero count when no pending banned users match keyword")
+        void countPendingBannedUsersByKeyword_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+            Long expectedCount = 0L;
+
+            when(userRepository.countPendingBannedUsersByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userBanService.countPendingBannedUsersByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countPendingBannedUsersByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should handle empty keyword for pending banned users search")
+        void searchPendingBannedUsersByKeyword_ShouldHandleEmptyKeyword() {
+            // Given
+            String emptyKeyword = "";
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+            when(userRepository.searchPendingBannedUsersByKeyword(emptyKeyword, pageable)).thenReturn(emptyPage);
+
+            // When
+            Page<User> result = userBanService.searchPendingBannedUsersByKeyword(emptyKeyword, pageable);
+
+            // Then
+            assertThat(result.getContent()).isEmpty();
+            verify(userRepository).searchPendingBannedUsersByKeyword(emptyKeyword, pageable);
+        }
+
+        @Test
+        @DisplayName("Should handle null keyword for pending banned users count")
+        void countPendingBannedUsersByKeyword_ShouldHandleNullKeyword() {
+            // Given
+            String nullKeyword = null;
+            Long expectedCount = 0L;
+
+            when(userRepository.countPendingBannedUsersByKeyword(nullKeyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userBanService.countPendingBannedUsersByKeyword(nullKeyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countPendingBannedUsersByKeyword(nullKeyword);
+        }
+
+        @Test
+        @DisplayName("Search and count methods should be consistent for pending users")
+        void searchAndCountMethods_ShouldBeConsistent_ForPendingUsers() {
+            // Given
+            String keyword = "test";
+            Pageable pageable = PageRequest.of(0, 10);
+            List<User> pendingUsers = Collections.singletonList(markedUser);
+            Page<User> pendingUsersPage = new PageImpl<>(pendingUsers, pageable, 1);
+            Long count = 1L;
+
+            when(userRepository.searchPendingBannedUsersByKeyword(keyword, pageable)).thenReturn(pendingUsersPage);
+            when(userRepository.countPendingBannedUsersByKeyword(keyword)).thenReturn(count);
+
+            // When
+            Page<User> searchResult = userBanService.searchPendingBannedUsersByKeyword(keyword, pageable);
+            Long countResult = userBanService.countPendingBannedUsersByKeyword(keyword);
+
+            // Then
+            assertThat(searchResult.getTotalElements()).isEqualTo(countResult);
+            assertThat(countResult).isEqualTo(1L);
+            verify(userRepository).searchPendingBannedUsersByKeyword(keyword, pageable);
+            verify(userRepository).countPendingBannedUsersByKeyword(keyword);
+        }
+    }
 }

@@ -172,11 +172,9 @@ class PostRepositoryTest {
         @DisplayName("Should return correct results for keyword search")
         void searchByKeyword_ShouldReturnCorrectResults(String keyword, int expectedCount) {
             // When - Search in title, content, and description
-            Page<Post> foundPosts = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, PageRequest.of(0, 10));
+            Page<Post> foundPosts = postRepository.searchByKeyword(keyword, PageRequest.of(0, 10));
 
-            Long count = postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword);
+            Long count = postRepository.countByKeyword(keyword);
 
             // Then
             assertThat(foundPosts).hasSize(expectedCount);
@@ -197,63 +195,46 @@ class PostRepositoryTest {
         }
 
         @Test
-        @DisplayName("Should work when searching only title")
-        void searchBySpecificField_ShouldWork_WhenSearchingOnlyTitle() {
-            // When - Search only in title field
-            Page<Post> foundPosts = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    "title", null, null, PageRequest.of(0, 10));
+        @DisplayName("Should search across all fields (title, content, description)")
+        void searchByKeyword_ShouldSearchAcrossAllFields() {
+            // Given - Create posts with different keywords in different fields
+            Post titlePost = new Post();
+            titlePost.setTitle("uniqueTitle");
+            titlePost.setContent("different content");
+            titlePost.setDescription("different description");
+            titlePost.setAuthor(savedUser);
+            entityManager.persistAndFlush(titlePost);
 
-            // Then
-            assertThat(foundPosts).hasSize(1);
-        }
+            Post contentPost = new Post();
+            contentPost.setTitle("different title");
+            contentPost.setContent("uniqueContent");
+            contentPost.setDescription("different description");
+            contentPost.setAuthor(savedUser);
+            entityManager.persistAndFlush(contentPost);
 
-        @Test
-        @DisplayName("Should work when searching only content")
-        void searchBySpecificField_ShouldWork_WhenSearchingOnlyContent() {
-            // When - Search only in content field
-            Page<Post> foundPosts = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    null, "content", null, PageRequest.of(0, 10));
+            Post descriptionPost = new Post();
+            descriptionPost.setTitle("different title");
+            descriptionPost.setContent("different content");
+            descriptionPost.setDescription("uniqueDescription");
+            descriptionPost.setAuthor(savedUser);
+            entityManager.persistAndFlush(descriptionPost);
 
-            // Then
-            assertThat(foundPosts).hasSize(1);
-        }
+            // When - Search for keywords that exist in each field
+            Page<Post> titleResults = postRepository.searchByKeyword("uniqueTitle", PageRequest.of(0, 10));
+            Page<Post> contentResults = postRepository.searchByKeyword("uniqueContent", PageRequest.of(0, 10));
+            Page<Post> descriptionResults = postRepository.searchByKeyword("uniqueDescription", PageRequest.of(0, 10));
 
-        @Test
-        @DisplayName("Should work when searching only description")
-        void searchBySpecificField_ShouldWork_WhenSearchingOnlyDescription() {
-            // When - Search only in description field
-            Page<Post> foundPosts = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    null, null, "description", PageRequest.of(0, 10));
-
-            // Then
-            assertThat(foundPosts).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("Should return empty for mismatched fields")
-        void searchByMismatchedFields_ShouldReturnEmpty() {
-            // When - Search with mismatched field values
-            Page<Post> foundPosts1 = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    null, TEST_TITLE, TEST_TITLE, PageRequest.of(0, 10));
-
-            Page<Post> foundPosts2 = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    TEST_CONTENT, null, TEST_CONTENT, PageRequest.of(0, 10));
-
-            Page<Post> foundPosts3 = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    TEST_DESCRIPTION, TEST_DESCRIPTION, null, PageRequest.of(0, 10));
-
-            // Then
-            assertThat(foundPosts1).isEmpty();
-            assertThat(foundPosts2).isEmpty();
-            assertThat(foundPosts3).isEmpty();
+            // Then - Each search should find the corresponding post
+            assertThat(titleResults).hasSize(1);
+            assertThat(contentResults).hasSize(1);
+            assertThat(descriptionResults).hasSize(1);
         }
 
         @Test
         @DisplayName("Should return all posts for empty keyword")
         void searchByEmptyKeyword_ShouldReturnAllPosts() {
             // When
-            Page<Post> foundPosts = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    "", "", "", PageRequest.of(0, 10));
+            Page<Post> foundPosts = postRepository.searchByKeyword("", PageRequest.of(0, 10));
 
             // Then - Empty string matches all posts
             assertThat(foundPosts).isNotEmpty();
@@ -275,8 +256,7 @@ class PostRepositoryTest {
             }
 
             // When - Request page with size 3
-            Page<Post> page = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    "test", "test", "test", PageRequest.of(0, 3));
+            Page<Post> page = postRepository.searchByKeyword("test", PageRequest.of(0, 3));
 
             // Then
             assertThat(page.getSize()).isEqualTo(3);
@@ -292,10 +272,8 @@ class PostRepositoryTest {
             String keyword = "test";
 
             // When
-            Page<Post> foundPosts = postRepository.findByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword, PageRequest.of(0, 10));
-            Long count = postRepository.countByTitleContainsIgnoreCaseOrContentContainsIgnoreCaseOrDescriptionContainsIgnoreCase(
-                    keyword, keyword, keyword);
+            Page<Post> foundPosts = postRepository.searchByKeyword(keyword, PageRequest.of(0, 10));
+            Long count = postRepository.countByKeyword(keyword);
 
             // Then
             assertThat(foundPosts.getTotalElements()).isEqualTo(count);

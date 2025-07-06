@@ -330,4 +330,254 @@ class BannedIpServiceTest {
             ));
         }
     }
+
+    @Nested
+    @DisplayName("Search Operations")
+    class SearchOperationsTests {
+
+        @Test
+        @DisplayName("Should return banned IPs matching keyword")
+        void searchByKeyword_ShouldReturnBannedIps_WhenKeywordMatches() {
+            // Given
+            String keyword = "192.168";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            BannedIp bannedIp1 = new BannedIp("192.168.1.1", "Test reason 1", FUTURE_DATE);
+            BannedIp bannedIp2 = new BannedIp("192.168.1.2", "Test reason 2", FUTURE_DATE);
+            List<BannedIp> bannedIps = List.of(bannedIp1, bannedIp2);
+            Page<BannedIp> bannedIpsPage = new PageImpl<>(bannedIps);
+
+            when(bannedIpRepository.searchByKeyword(keyword, pageRequest)).thenReturn(bannedIpsPage);
+
+            // When
+            List<BannedIp> result = bannedIpService.searchByKeyword(keyword, pageRequest);
+
+            // Then
+            assertThat(result)
+                    .isNotNull()
+                    .hasSize(2)
+                    .containsExactly(bannedIp1, bannedIp2);
+            assertThat(result.get(0).getIpAddress()).isEqualTo("192.168.1.1");
+            assertThat(result.get(1).getIpAddress()).isEqualTo("192.168.1.2");
+            verify(bannedIpRepository).searchByKeyword(keyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no banned IPs match keyword")
+        void searchByKeyword_ShouldReturnEmptyList_WhenNoIpsMatch() {
+            // Given
+            String keyword = "nomatch";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            List<BannedIp> emptyList = Collections.emptyList();
+            Page<BannedIp> emptyPage = new PageImpl<>(emptyList);
+
+            when(bannedIpRepository.searchByKeyword(keyword, pageRequest)).thenReturn(emptyPage);
+
+            // When
+            List<BannedIp> result = bannedIpService.searchByKeyword(keyword, pageRequest);
+
+            // Then
+            assertThat(result).isEmpty();
+            verify(bannedIpRepository).searchByKeyword(keyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle different page sizes for search")
+        void searchByKeyword_ShouldHandleDifferentPageSizes() {
+            // Given
+            String keyword = "192.168";
+            PageRequest smallPageRequest = PageRequest.of(0, 5);
+            List<BannedIp> smallList = Collections.singletonList(testBannedIp);
+            Page<BannedIp> smallPage = new PageImpl<>(smallList);
+
+            when(bannedIpRepository.searchByKeyword(keyword, smallPageRequest)).thenReturn(smallPage);
+
+            // When
+            List<BannedIp> result = bannedIpService.searchByKeyword(keyword, smallPageRequest);
+
+            // Then
+            assertThat(result)
+                    .hasSize(1)
+                    .containsExactly(testBannedIp);
+            verify(bannedIpRepository).searchByKeyword(keyword, smallPageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle pagination for search results")
+        void searchByKeyword_ShouldHandlePagination() {
+            // Given
+            String keyword = "192.168";
+            PageRequest pageRequest = PageRequest.of(1, 2); // Second page, 2 items per page
+            BannedIp bannedIp1 = new BannedIp("192.168.2.1", "Test reason 3", FUTURE_DATE);
+            BannedIp bannedIp2 = new BannedIp("192.168.2.2", "Test reason 4", FUTURE_DATE);
+            List<BannedIp> bannedIps = List.of(bannedIp1, bannedIp2);
+            Page<BannedIp> bannedIpsPage = new PageImpl<>(bannedIps);
+
+            when(bannedIpRepository.searchByKeyword(keyword, pageRequest)).thenReturn(bannedIpsPage);
+
+            // When
+            List<BannedIp> result = bannedIpService.searchByKeyword(keyword, pageRequest);
+
+            // Then
+            assertThat(result)
+                    .hasSize(2)
+                    .containsExactly(bannedIp1, bannedIp2);
+            verify(bannedIpRepository).searchByKeyword(keyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle empty keyword")
+        void searchByKeyword_ShouldHandleEmptyKeyword() {
+            // Given
+            String emptyKeyword = "";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            List<BannedIp> emptyList = Collections.emptyList();
+            Page<BannedIp> emptyPage = new PageImpl<>(emptyList);
+
+            when(bannedIpRepository.searchByKeyword(emptyKeyword, pageRequest)).thenReturn(emptyPage);
+
+            // When
+            List<BannedIp> result = bannedIpService.searchByKeyword(emptyKeyword, pageRequest);
+
+            // Then
+            assertThat(result).isEmpty();
+            verify(bannedIpRepository).searchByKeyword(emptyKeyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle null keyword gracefully")
+        void searchByKeyword_ShouldHandleNullKeyword() {
+            // Given
+            String nullKeyword = null;
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            List<BannedIp> emptyList = Collections.emptyList();
+            Page<BannedIp> emptyPage = new PageImpl<>(emptyList);
+
+            when(bannedIpRepository.searchByKeyword(nullKeyword, pageRequest)).thenReturn(emptyPage);
+
+            // When
+            List<BannedIp> result = bannedIpService.searchByKeyword(nullKeyword, pageRequest);
+
+            // Then
+            assertThat(result).isEmpty();
+            verify(bannedIpRepository).searchByKeyword(nullKeyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should return correct count when banned IPs match keyword")
+        void countByKeyword_ShouldReturnCorrectCount_WhenIpsMatch() {
+            // Given
+            String keyword = "192.168";
+            long expectedCount = 5L;
+
+            when(bannedIpRepository.countByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            long result = bannedIpService.countByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(bannedIpRepository).countByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should return zero count when no banned IPs match keyword")
+        void countByKeyword_ShouldReturnZero_WhenNoIpsMatch() {
+            // Given
+            String keyword = "nomatch";
+            long expectedCount = 0L;
+
+            when(bannedIpRepository.countByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            long result = bannedIpService.countByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(bannedIpRepository).countByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should handle empty keyword for count")
+        void countByKeyword_ShouldHandleEmptyKeyword() {
+            // Given
+            String emptyKeyword = "";
+            long expectedCount = 0L;
+
+            when(bannedIpRepository.countByKeyword(emptyKeyword)).thenReturn(expectedCount);
+
+            // When
+            long result = bannedIpService.countByKeyword(emptyKeyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(bannedIpRepository).countByKeyword(emptyKeyword);
+        }
+
+        @Test
+        @DisplayName("Should handle null keyword for count")
+        void countByKeyword_ShouldHandleNullKeyword() {
+            // Given
+            String nullKeyword = null;
+            long expectedCount = 0L;
+
+            when(bannedIpRepository.countByKeyword(nullKeyword)).thenReturn(expectedCount);
+
+            // When
+            long result = bannedIpService.countByKeyword(nullKeyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(bannedIpRepository).countByKeyword(nullKeyword);
+        }
+
+        @Test
+        @DisplayName("Should search by partial IP address")
+        void searchByKeyword_ShouldReturnResults_WhenPartialIpMatches() {
+            // Given
+            String keyword = "192.168.1";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            BannedIp bannedIp1 = new BannedIp("192.168.1.100", "Test reason 1", FUTURE_DATE);
+            BannedIp bannedIp2 = new BannedIp("192.168.1.200", "Test reason 2", FUTURE_DATE);
+            List<BannedIp> bannedIps = List.of(bannedIp1, bannedIp2);
+            Page<BannedIp> bannedIpsPage = new PageImpl<>(bannedIps);
+
+            when(bannedIpRepository.searchByKeyword(keyword, pageRequest)).thenReturn(bannedIpsPage);
+
+            // When
+            List<BannedIp> result = bannedIpService.searchByKeyword(keyword, pageRequest);
+
+            // Then
+            assertThat(result)
+                    .hasSize(2)
+                    .extracting(BannedIp::getIpAddress)
+                    .containsExactly("192.168.1.100", "192.168.1.200");
+            verify(bannedIpRepository).searchByKeyword(keyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Search and count methods should be consistent")
+        void searchAndCountMethods_ShouldBeConsistent() {
+            // Given
+            String keyword = "192.168";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            BannedIp bannedIp1 = new BannedIp("192.168.1.1", "Test reason 1", FUTURE_DATE);
+            BannedIp bannedIp2 = new BannedIp("192.168.1.2", "Test reason 2", FUTURE_DATE);
+            List<BannedIp> bannedIps = List.of(bannedIp1, bannedIp2);
+            Page<BannedIp> bannedIpsPage = new PageImpl<>(bannedIps);
+            long count = 2L;
+
+            when(bannedIpRepository.searchByKeyword(keyword, pageRequest)).thenReturn(bannedIpsPage);
+            when(bannedIpRepository.countByKeyword(keyword)).thenReturn(count);
+
+            // When
+            List<BannedIp> searchResult = bannedIpService.searchByKeyword(keyword, pageRequest);
+            long countResult = bannedIpService.countByKeyword(keyword);
+
+            // Then
+            assertThat(searchResult).hasSize(2);
+            assertThat(countResult).isEqualTo(2L);
+            verify(bannedIpRepository).searchByKeyword(keyword, pageRequest);
+            verify(bannedIpRepository).countByKeyword(keyword);
+        }
+    }
 }

@@ -433,4 +433,218 @@ class UserControllerTest {
             verify(userService).deleteById(userId);
         }
     }
+
+    @Nested
+    @DisplayName("searchUsers Tests")
+    class SearchUsersTests {
+
+        @Test
+        @DisplayName("Should return users matching keyword")
+        void searchUsers_ShouldReturnUsers_WhenKeywordMatches() {
+            // Given
+            String keyword = "test";
+            int page = 0;
+            List<User> users = List.of(testUser);
+            List<UserAdminDto> userAdminDtos = List.of(testUserAdminDto);
+            PageRequest pageRequest = PageRequest.of(page, 10, Sort.by(Sort.Direction.ASC, "nickname"));
+
+            when(userService.searchByKeyword(keyword, pageRequest)).thenReturn(users);
+            when(userMapper.toAdminDto(users)).thenReturn(userAdminDtos);
+
+            // When
+            ResponseEntity<List<UserAdminDto>> response = userController.searchUsers(keyword, page);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isNotNull().hasSize(1);
+            assertThat(response.getBody()).first().isEqualTo(testUserAdminDto);
+
+            verify(userService).searchByKeyword(keyword, pageRequest);
+            verify(userMapper).toAdminDto(users);
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no users match keyword")
+        void searchUsers_ShouldReturnEmptyList_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+            int page = 0;
+            List<User> emptyUsers = Collections.emptyList();
+            List<UserAdminDto> emptyAdminDtos = Collections.emptyList();
+            PageRequest pageRequest = PageRequest.of(page, 10, Sort.by(Sort.Direction.ASC, "nickname"));
+
+            when(userService.searchByKeyword(keyword, pageRequest)).thenReturn(emptyUsers);
+            when(userMapper.toAdminDto(emptyUsers)).thenReturn(emptyAdminDtos);
+
+            // When
+            ResponseEntity<List<UserAdminDto>> response = userController.searchUsers(keyword, page);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isNotNull().isEmpty();
+
+            verify(userService).searchByKeyword(keyword, pageRequest);
+            verify(userMapper).toAdminDto(emptyUsers);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {0, 1, 5, 10})
+        @DisplayName("Should handle different page numbers correctly")
+        void searchUsers_ShouldHandleDifferentPages(int page) {
+            // Given
+            String keyword = "test";
+            List<User> users = List.of(testUser);
+            List<UserAdminDto> userAdminDtos = List.of(testUserAdminDto);
+            PageRequest expectedPageRequest = PageRequest.of(page, 10, Sort.by(Sort.Direction.ASC, "nickname"));
+
+            when(userService.searchByKeyword(keyword, expectedPageRequest)).thenReturn(users);
+            when(userMapper.toAdminDto(users)).thenReturn(userAdminDtos);
+
+            // When
+            ResponseEntity<List<UserAdminDto>> response = userController.searchUsers(keyword, page);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            verify(userService).searchByKeyword(keyword, expectedPageRequest);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"", " ", "test", "TEST", "Test User"})
+        @DisplayName("Should handle different keywords correctly")
+        void searchUsers_ShouldHandleDifferentKeywords(String keyword) {
+            // Given
+            int page = 0;
+            List<User> users = List.of(testUser);
+            List<UserAdminDto> userAdminDtos = List.of(testUserAdminDto);
+            PageRequest pageRequest = PageRequest.of(page, 10, Sort.by(Sort.Direction.ASC, "nickname"));
+
+            when(userService.searchByKeyword(keyword, pageRequest)).thenReturn(users);
+            when(userMapper.toAdminDto(users)).thenReturn(userAdminDtos);
+
+            // When
+            ResponseEntity<List<UserAdminDto>> response = userController.searchUsers(keyword, page);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            verify(userService).searchByKeyword(keyword, pageRequest);
+        }
+    }
+
+    @Nested
+    @DisplayName("searchUsersCount Tests")
+    class SearchUsersCountTests {
+
+        @Test
+        @DisplayName("Should return correct count when users match keyword")
+        void searchUsersCount_ShouldReturnCorrectCount_WhenUsersMatch() {
+            // Given
+            String keyword = "test";
+            long expectedCount = 5L;
+
+            when(userService.countByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            ResponseEntity<Long> response = userController.searchUsersCount(keyword);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isEqualTo(expectedCount);
+            verify(userService).countByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should return zero when no users match keyword")
+        void searchUsersCount_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+
+            when(userService.countByKeyword(keyword)).thenReturn(0L);
+
+            // When
+            ResponseEntity<Long> response = userController.searchUsersCount(keyword);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isEqualTo(0L);
+            verify(userService).countByKeyword(keyword);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"", " ", "test", "TEST", "user123"})
+        @DisplayName("Should handle different keywords correctly")
+        void searchUsersCount_ShouldHandleDifferentKeywords(String keyword) {
+            // Given
+            long expectedCount = 3L;
+
+            when(userService.countByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            ResponseEntity<Long> response = userController.searchUsersCount(keyword);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isEqualTo(expectedCount);
+            verify(userService).countByKeyword(keyword);
+        }
+    }
+
+    @Nested
+    @DisplayName("searchUsersPageCount Tests")
+    class SearchUsersPageCountTests {
+
+        @Test
+        @DisplayName("Should calculate correct page count for search results")
+        void searchUsersPageCount_ShouldCalculateCorrectPageCount() {
+            // Given
+            String keyword = "test";
+            long totalUsers = 25L;
+            long expectedPageCount = 3L; // Math.ceil(25/10)
+
+            when(userService.countByKeyword(keyword)).thenReturn(totalUsers);
+
+            // When
+            ResponseEntity<Long> response = userController.searchUsersPageCount(keyword);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isEqualTo(expectedPageCount);
+            verify(userService).countByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should return zero pages when no users match")
+        void searchUsersPageCount_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+
+            when(userService.countByKeyword(keyword)).thenReturn(0L);
+
+            // When
+            ResponseEntity<Long> response = userController.searchUsersPageCount(keyword);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isEqualTo(0L);
+            verify(userService).countByKeyword(keyword);
+        }
+
+        @ParameterizedTest
+        @ValueSource(longs = {1, 9, 10, 11, 20, 100})
+        @DisplayName("Should calculate correct page count for different user counts")
+        void searchUsersPageCount_ShouldCalculateCorrectPageCount_ForDifferentCounts(long userCount) {
+            // Given
+            String keyword = "test";
+            long expectedPageCount = (long) Math.ceil((double) userCount / 10);
+
+            when(userService.countByKeyword(keyword)).thenReturn(userCount);
+
+            // When
+            ResponseEntity<Long> response = userController.searchUsersPageCount(keyword);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isEqualTo(expectedPageCount);
+            verify(userService).countByKeyword(keyword);
+        }
+    }
 }

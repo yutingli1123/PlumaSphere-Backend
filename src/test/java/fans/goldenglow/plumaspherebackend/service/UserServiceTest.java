@@ -346,11 +346,239 @@ class UserServiceTest {
         @Test
         @DisplayName("Should call repository deleteByIdAndRoleIsNot with correct parameters")
         void deleteById_ShouldCallRepositoryDeleteByIdAndRoleIsNot_WithCorrectParameters() {
+            // Given
+            Long userId = 123L;
+
             // When
-            userService.deleteById(TEST_USER_ID);
+            userService.deleteById(userId);
 
             // Then
-            verify(userRepository).deleteByIdAndRoleIsNot(TEST_USER_ID, UserRoles.ADMIN);
+            verify(userRepository).deleteByIdAndRoleIsNot(userId, UserRoles.ADMIN);
+        }
+    }
+
+    @Nested
+    @DisplayName("Search Operations")
+    class SearchOperationsTests {
+
+        @Test
+        @DisplayName("Should return users matching keyword")
+        void searchByKeyword_ShouldReturnUsers_WhenKeywordMatches() {
+            // Given
+            String keyword = "test";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            User user1 = new User("testUser1", "password1");
+            user1.setNickname("Test User 1");
+            User user2 = new User("testUser2", "password2");
+            user2.setNickname("Test User 2");
+            List<User> users = Arrays.asList(user1, user2);
+            Page<User> userPage = new PageImpl<>(users, pageRequest, users.size());
+
+            when(userRepository.searchByKeyword(keyword, pageRequest)).thenReturn(userPage);
+
+            // When
+            List<User> result = userService.searchByKeyword(keyword, pageRequest);
+
+            // Then
+            assertThat(result)
+                    .isNotNull()
+                    .hasSize(2)
+                    .containsExactly(user1, user2);
+            assertThat(result.get(0).getUsername()).isEqualTo("testUser1");
+            assertThat(result.get(1).getUsername()).isEqualTo("testUser2");
+            verify(userRepository).searchByKeyword(keyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no users match keyword")
+        void searchByKeyword_ShouldReturnEmptyList_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageRequest, 0);
+
+            when(userRepository.searchByKeyword(keyword, pageRequest)).thenReturn(emptyPage);
+
+            // When
+            List<User> result = userService.searchByKeyword(keyword, pageRequest);
+
+            // Then
+            assertThat(result).isEmpty();
+            verify(userRepository).searchByKeyword(keyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle different page sizes for search")
+        void searchByKeyword_ShouldHandleDifferentPageSizes() {
+            // Given
+            String keyword = "test";
+            PageRequest smallPageRequest = PageRequest.of(0, 5);
+            List<User> smallUserList = Collections.singletonList(testUser);
+            Page<User> smallUserPage = new PageImpl<>(smallUserList, smallPageRequest, 1);
+
+            when(userRepository.searchByKeyword(keyword, smallPageRequest)).thenReturn(smallUserPage);
+
+            // When
+            List<User> result = userService.searchByKeyword(keyword, smallPageRequest);
+
+            // Then
+            assertThat(result)
+                    .hasSize(1)
+                    .containsExactly(testUser);
+            verify(userRepository).searchByKeyword(keyword, smallPageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle pagination for search results")
+        void searchByKeyword_ShouldHandlePagination() {
+            // Given
+            String keyword = "test";
+            PageRequest pageRequest = PageRequest.of(1, 2); // Second page, 2 items per page
+            User user1 = new User("testUser3", "password3");
+            user1.setNickname("Test User 3");
+            User user2 = new User("testUser4", "password4");
+            user2.setNickname("Test User 4");
+            List<User> users = Arrays.asList(user1, user2);
+            Page<User> userPage = new PageImpl<>(users, pageRequest, 10); // Total 10 items
+
+            when(userRepository.searchByKeyword(keyword, pageRequest)).thenReturn(userPage);
+
+            // When
+            List<User> result = userService.searchByKeyword(keyword, pageRequest);
+
+            // Then
+            assertThat(result)
+                    .hasSize(2)
+                    .containsExactly(user1, user2);
+            verify(userRepository).searchByKeyword(keyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle empty keyword")
+        void searchByKeyword_ShouldHandleEmptyKeyword() {
+            // Given
+            String emptyKeyword = "";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageRequest, 0);
+
+            when(userRepository.searchByKeyword(emptyKeyword, pageRequest)).thenReturn(emptyPage);
+
+            // When
+            List<User> result = userService.searchByKeyword(emptyKeyword, pageRequest);
+
+            // Then
+            assertThat(result).isEmpty();
+            verify(userRepository).searchByKeyword(emptyKeyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should handle null keyword gracefully")
+        void searchByKeyword_ShouldHandleNullKeyword() {
+            // Given
+            String nullKeyword = null;
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageRequest, 0);
+
+            when(userRepository.searchByKeyword(nullKeyword, pageRequest)).thenReturn(emptyPage);
+
+            // When
+            List<User> result = userService.searchByKeyword(nullKeyword, pageRequest);
+
+            // Then
+            assertThat(result).isEmpty();
+            verify(userRepository).searchByKeyword(nullKeyword, pageRequest);
+        }
+
+        @Test
+        @DisplayName("Should return correct count when users match keyword")
+        void countByKeyword_ShouldReturnCorrectCount_WhenUsersMatch() {
+            // Given
+            String keyword = "test";
+            Long expectedCount = 5L;
+
+            when(userRepository.countByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userService.countByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should return zero count when no users match keyword")
+        void countByKeyword_ShouldReturnZero_WhenNoUsersMatch() {
+            // Given
+            String keyword = "nomatch";
+            Long expectedCount = 0L;
+
+            when(userRepository.countByKeyword(keyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userService.countByKeyword(keyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countByKeyword(keyword);
+        }
+
+        @Test
+        @DisplayName("Should handle empty keyword for count")
+        void countByKeyword_ShouldHandleEmptyKeyword() {
+            // Given
+            String emptyKeyword = "";
+            Long expectedCount = 0L;
+
+            when(userRepository.countByKeyword(emptyKeyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userService.countByKeyword(emptyKeyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countByKeyword(emptyKeyword);
+        }
+
+        @Test
+        @DisplayName("Should handle null keyword for count")
+        void countByKeyword_ShouldHandleNullKeyword() {
+            // Given
+            String nullKeyword = null;
+            Long expectedCount = 0L;
+
+            when(userRepository.countByKeyword(nullKeyword)).thenReturn(expectedCount);
+
+            // When
+            Long result = userService.countByKeyword(nullKeyword);
+
+            // Then
+            assertThat(result).isEqualTo(expectedCount);
+            verify(userRepository).countByKeyword(nullKeyword);
+        }
+
+        @Test
+        @DisplayName("Search and count methods should be consistent")
+        void searchAndCountMethods_ShouldBeConsistent() {
+            // Given
+            String keyword = "test";
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            List<User> users = Arrays.asList(testUser, adminUser);
+            Page<User> userPage = new PageImpl<>(users, pageRequest, 2);
+            Long count = 2L;
+
+            when(userRepository.searchByKeyword(keyword, pageRequest)).thenReturn(userPage);
+            when(userRepository.countByKeyword(keyword)).thenReturn(count);
+
+            // When
+            List<User> searchResult = userService.searchByKeyword(keyword, pageRequest);
+            Long countResult = userService.countByKeyword(keyword);
+
+            // Then
+            assertThat(searchResult).hasSize(2);
+            assertThat(countResult).isEqualTo(2L);
+            verify(userRepository).searchByKeyword(keyword, pageRequest);
+            verify(userRepository).countByKeyword(keyword);
         }
     }
 }
