@@ -235,10 +235,10 @@ class BannedIpRepositoryTest {
 
             // Then
             assertThat(result1.getContent()).hasSize(1);
-            assertThat(result1.getContent().get(0).getIpAddress()).isEqualTo("192.168.1.1");
+            assertThat(result1.getContent().getFirst().getIpAddress()).isEqualTo("192.168.1.1");
 
             assertThat(result2.getContent()).hasSize(1);
-            assertThat(result2.getContent().get(0).getIpAddress()).isEqualTo("10.0.0.1");
+            assertThat(result2.getContent().getFirst().getIpAddress()).isEqualTo("10.0.0.1");
         }
 
         @Test
