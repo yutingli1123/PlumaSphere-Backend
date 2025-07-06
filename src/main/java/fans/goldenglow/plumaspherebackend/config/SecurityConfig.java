@@ -48,7 +48,7 @@ public class SecurityConfig {
                             return new AuthorizationDecision(result.isEmpty());
                         }))
                         .requestMatchers("/api/v1/login", "/api/v1/status/**", "/public/**", "/error/**", "/api/v1/get-identity", "/api/v1/refresh-token", "/ws/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/user/count", "/api/v1/user/count-page").access(hasScope("admin"))
+                        .requestMatchers(HttpMethod.GET, "/api/v1/user/count", "/api/v1/user/count-page", "/api/v1/user/search**").access(hasScope("admin"))
                         .requestMatchers(HttpMethod.GET, "/api/v1/post/**", "/api/v1/comment/**", "/api/v1/tag", "/api/v1/user/{userId}", "/upload/**").permitAll()
                         .requestMatchers("/api/v1/post/{postId}/comment", "/api/v1/post/{postId}/like", "/api/v1/comment/**", "/api/v1/user/me").authenticated()
                         .anyRequest().access(hasScope("admin"))
